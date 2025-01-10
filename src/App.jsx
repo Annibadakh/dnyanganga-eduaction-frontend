@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import './App.css'
-import Navbar from './Components/Navbar';
 import Dashboard from './Dashboard/Dashboard';
 import Profile from './Dashboard/Profile';
 import Settings from './Dashboard/Settings';
+import Main from './Components/Main';
 
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           
-          <Route path='/' element={<Navbar />} />
+          <Route path='/' element={<Main />} />
           <Route path='dashboard' element={<Dashboard />}>
             <Route path="profile" element={<Profile />} />
             <Route path='settings' element={<Settings />} />
