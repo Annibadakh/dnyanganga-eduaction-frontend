@@ -2,7 +2,7 @@
 import logo from '../Images/logo2.png'
 const Navbar = () => {
     return(
-        <nav className='fixed top-8 left-2 right-2 flex justify-between px-10 py-1 items-center'>
+        <nav className='fixed z-50 top-8 left-2 right-2 flex justify-between px-10 py-1 items-center'>
             <div className='absolute top-0 -z-10 h-[70px] left-4 right-4 bg-gray-300' style={{transform: "skewX(-26deg)"}}>
             </div>
             <div>
