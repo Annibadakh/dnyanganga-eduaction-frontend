@@ -1,3 +1,4 @@
+import AboutUs from './AboutUs.jsx';
 import Home from './Home.jsx';
 import Navbar from './Navbar.jsx';
 const Main = () => {
@@ -5,6 +6,8 @@ const Main = () => {
         <>
         <Navbar />
         <Home />
+        <AboutUs />
+        
         </>
     )
 };
