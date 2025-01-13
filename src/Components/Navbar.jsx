@@ -2,13 +2,12 @@ import logo from '../Images/logo2.png'
 const Navbar = () => {
     return(
         <nav className='fixed top-8 left-2 right-2 flex justify-between px-10 py-1 items-center'>
-            <div className='absolute top-0 -z-10 h-[70px] left-4 right-4 bg-gray-200' style={{transform: "skewX(-26deg)"}}>
-
+            <div className='absolute top-0 -z-10 h-[70px] left-4 right-4 bg-gray-300' style={{transform: "skewX(-26deg)"}}>
             </div>
             <div>
                 <img src={logo} alt="" className='h-16' />
             </div>
-            <div className='flex list-none gap-6'>
+            <div className='flex text-primary list-none gap-6'>
                 <li>Home</li>
                 <li>About</li>
                 <li>Courses</li>
