@@ -1,5 +1,5 @@
 import React from 'react';
-import homeImage from '../Images/home1.jpg'; 
+import homeImage from '../Images/book.jpg'; 
 
 function Home() {
   return (
@@ -8,18 +8,21 @@ function Home() {
         <img
           src={homeImage}
           alt="Home"
-          className="object-cover w-full h-screen"
+          className="object-cover w-full opacity-60 blur-[4px] h-screen"
         />
         
-        <div className="absolute bottom-0 left-0 m-8 w-80 p-8 bg-gradient-to-r ml-36 mb-20 bg-gray-300 shadow-2xl rounded-3xl text-white flex flex-col items-center justify-center text-center">
-          <h2 className="text-3xl font-semibold text-black">Admission</h2>
-          <h1 className="text-5xl font-semibold text-black mt-2">Open</h1>
-          <p className="mt-4 text-black">
-            Join our classes today. Get the best coaching for your future with expert guidance.
-          </p>
-          <button className="mt-6 w-full bg-blue-300 text-black py-3 px-6 rounded-lg hover:bg-blue-300 transition-all duration-300">
-            Apply Now
+        <div className="absolute top-0 left-0 h-full w-full bg-gradient-to-r shadow-2xl text-white flex flex-col items-center justify-center text-center">
+          <h1 className="text-[30px] sm:mt-20 md:text-[40px] lg:text-[60px] lg:mt-10 mt-8 font-semibold text-black">Shaping Futures, Building Dreams</h1>
+          <h3 className="mt-2 text-[30px]  text-black">Dedicated to delivering quality education and empowering students for academic excellence.</h3>
+          <p className=" hidden sm:block mt-4 text-[24px] text-justify px-12 text-black">Dnyangange Education is a trusted name in providing comprehensive educational services. From expert guidance to innovative teaching methods, we are committed to preparing students for a brighter tomorrow. Our team of experienced educators ensures a nurturing environment that fosters learning, growth, and success.</p>
+          <div>
+          <button className="mt-6 mr-6 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary transition-all duration-300">
+            join Us
           </button>
+          <button className="mt-6 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary transition-all duration-300">
+            Explore Courses
+          </button>
+          </div>
         </div>
       </div>
     </section>

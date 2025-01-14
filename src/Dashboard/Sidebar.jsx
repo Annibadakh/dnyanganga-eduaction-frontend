@@ -12,8 +12,8 @@ const Sidebar = ({ isSidebarOpen }) => {
         ${isSidebarOpen ? "w-64 p-4" : "w-0 overflow-hidden"}`}>
             <nav className={`${isSidebarOpen ? "block" : "hidden"}`}>
                 <ul>
-                    <li className={`py-2 px-4 mb-1 rounded ${isActive("/dashboard/") ? "bg-secondary" : "hover:bg-secondary"}`}>
-                        <Link to="/dashboard/">Home</Link>
+                    <li className={`py-2 px-4 mb-1 rounded ${isActive("/dashboard/home") ? "bg-secondary" : "hover:bg-secondary"}`}>
+                        <Link to="home">Home</Link>
                     </li>
                     <li className={`py-2 px-4 mb-1 rounded ${isActive("/dashboard/profile") ? "bg-secondary" : "hover:bg-secondary"}`}>
                         <Link to="profile">Profile</Link>

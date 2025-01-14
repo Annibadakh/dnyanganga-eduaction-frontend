@@ -19,6 +19,8 @@ export default {
       fontFamily: {
         custom: ['"Times New Roman"', 'serif'], 
       },
+      before: ['hover', 'focus'],
+      after: ['hover', 'focus'],
     },
   },
   plugins: [],
