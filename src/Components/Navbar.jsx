@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-import logo from '../Images/logo2.png'
+import logo from '../Images/logo3.png'
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -25,13 +25,13 @@ const Navbar = () => {
 
     return(
       <>
-        <nav className={`fixed z-50 flex justify-between h-[70px] px-10 py-1 items-center ${scrolled ? "top-0 left-0 right-0 bg-white" : "top-0 left-0 right-0 sm:top-8 bg-white sm:bg-transparent  sm:left-2 sm:right-2"}`}>
-            <div className='absolute top-0 -z-10 h-[70px] left-4 right-4 bg-white' style={{transform: "skewX(-26deg)"}}>
+        <nav className={`fixed z-50 flex justify-between h-[70px] px-10 py-1 items-center  ${scrolled ? "top-0 left-0 right-0 bg-white border-b-2 border-solid border-gray-200" : "top-0 left-0 right-0 sm:top-8 bg-white sm:bg-transparent  sm:left-2 sm:right-2"}`}>
+            <div className='absolute top-0 -z-10 h-[70px] left-4 right-4 bg-white border-b-2 border-solid border-gray-200' style={{transform: "skewX(-26deg)"}}>
             </div>
             <div>
                 <img src={logo} alt="" className='h-16' />
             </div>
-            <div className={`hidden sm:flex text-black list-none gap-6 ${scrolled ? "pt-4" : "pt-0"}`}>
+            <div className={`hidden sm:flex text-black list-none gap-6 ${scrolled ? "pt-6" : "pt-0"}`}>
                 <li className="hover:text-primary">Home</li>
                 <li className="hover:text-primary">About</li>
                 <li className="hover:text-primary"><Link to="/dashboard">dashboard</Link></li>

@@ -27,19 +27,11 @@ html::-webkit-scrollbar-thumb{
   background: var(--primary-color);
 }
 
-section{
-  padding: 5rem 7%;
-  border: 1px solid var(--primary-color);
-  border-radius: 1%;
-  margin-bottom: 5px;
-  margin-left: 2px;
-  margin-right: 2px;
-}
 
 
-@media (max-width:450px){
+/* @media (max-width:450px){
   html{
     font-size: 50%;
   }
-}
+} */
 
