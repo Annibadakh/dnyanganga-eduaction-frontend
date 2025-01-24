@@ -4,6 +4,7 @@ import Navbar from './Navbar.jsx';
 import ContactForm from './ContactForm.jsx';
 import App from './App.jsx';
 import Courses from './Courses.jsx';
+import Footer from './Footer.jsx';
 
 const Main = () => {
     return(
@@ -14,6 +15,7 @@ const Main = () => {
         <ContactForm/>
         <App/>
         <Courses/>
+        <Footer/>
         
         </>
     )
