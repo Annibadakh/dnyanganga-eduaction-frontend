@@ -12,6 +12,8 @@ export default {
         tertiary: 'var(--tertiary)',
         customblack: 'var(--black)',
         customwhite: 'var(--white)',
+        fourthcolor: 'var(--fourthcolor)',
+        customgray: 'var(--gray)',
       },
       boxShadow: {
         custom: 'var(--box-shadow)',

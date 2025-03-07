@@ -48,7 +48,7 @@ function ContactForm() {
                 value={formData.firstName}
                 onChange={handleChange}
                 required
-                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-blue-500"
+                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-primary"
               />
             </div>
 
@@ -63,7 +63,7 @@ function ContactForm() {
                 value={formData.lastName}
                 onChange={handleChange}
                 required
-                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-blue-500"
+                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-primary"
               />
             </div>
           </div>
@@ -81,7 +81,7 @@ function ContactForm() {
                 value={formData.workEmail}
                 onChange={handleChange}
                 required
-                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-blue-500"
+                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-primary"
               />
             </div>
 
@@ -96,7 +96,7 @@ function ContactForm() {
                 value={formData.company}
                 onChange={handleChange}
                 required
-                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-blue-500"
+                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-primary"
               />
             </div>
           </div>
@@ -114,7 +114,7 @@ function ContactForm() {
                 value={formData.jobTitle}
                 onChange={handleChange}
                 required
-                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-blue-500"
+                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-primary"
               />
             </div>
 
@@ -128,7 +128,7 @@ function ContactForm() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-blue-500"
+                className="mt-1 p-2 w-full bg-gray-100 focus:outline-none border-b border-gray-300 focus:border-primary"
               />
             </div>
           </div>
@@ -145,7 +145,7 @@ function ContactForm() {
               className="mr-2"
             />
             <label htmlFor="privacyAgreed" className="text-sm">
-              I agree to the <a href="#" className="text-blue-500">privacy notice</a>
+              I agree to the <a href="#" className="text-primary">privacy notice</a>
             </label>
           </div>
 
@@ -153,7 +153,7 @@ function ContactForm() {
           <div className="mt-6 ml-10">
             <button
               type="submit" 
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-primary hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
               Submit
             </button>
@@ -174,7 +174,7 @@ function ContactForm() {
               onChange={handleChange}
               required
               rows={4}
-              className="mt-1 p-2 w-full h-32 bg-white focus:outline-none border-b border-gray-300 focus:border-blue-500"
+              className="mt-1 p-2 w-full h-32 bg-gray-100 focus:outline-none border border-gray-300 focus:border-primary"
             ></textarea>
           </div>
           <p className="text-sm mt-4 text-center">

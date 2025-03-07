@@ -1,9 +1,11 @@
 :root{
-  --primary-color: #074ca1;
-  --secondary: #FFA500;
-  --tertiary: #C0C0C0;
+  --primary-color: #074C9E;
+  --secondary: #E9742D;
+  --tertiary: #6C92B9;
+  --fourthcolor: #224464;
   --black: #141414;
   --white: #fff;
+  --gray: rgba(128, 128, 128, 0.37);
   --box-shadow: 0 .5rem 1rem rgba(0, 0, 0, 0.517);
 }
 

@@ -1,26 +1,57 @@
-import React from "react";
+// import React from "react";
+// import logo from '../Images/logo4.png';
 
-import logo from '../Images/logo2.png'
-const Header = ({ toggleSidebar }) => {
-    return(
-        <nav className='flex justify-between px-20 items-center shadow-custom min-h-18 bg-tertiary'>
+// const Header = () => {
+
+//     return (
+//         <nav className='flex justify-between gap-2 px-5 md:px-20 py-4 sm:py-1 items-center shadow-custom min-h-18 bg-customgray'>
+//             <div>
+//                 <img src={logo} className='hidden sm:block h-16' alt="logo" />
+//             </div>
+            
+//             <div>
+//                 <h1 className='text-lg sm:text-2xl font-bold'>Dnyanganga Education Pvt. Ltd</h1>
+//             </div>
+            
+//             <div>
+//                 <button className="bg-red-500 text-white px-4 py-2 rounded">Logout</button>
+//             </div>
+//         </nav>
+//     );
+// };
+
+// export default Header;
+
+
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext"; // ✅ Correct Import
+import logo from '../Images/logo4.png';
+
+const Header = () => {
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate("/login"); // Redirect to login page
+    };
+
+    return (
+        <nav className='flex justify-between gap-2 px-5 md:px-20 py-4 sm:py-1 items-center shadow-custom min-h-18 bg-customgray'>
             <div>
-                <img src={logo} className='h-16' alt="logo" />
+                <img src={logo} className='hidden sm:block h-16' alt="logo" />
             </div>
-            <button
-                className="text-white bg-primary px-4 py-2 rounded"
-                onClick={toggleSidebar}
-            >
-                ☰
-            </button>
+            
             <div>
-                <h1 className='text-2xl font-bold'>Dnyanganga Education Pvt. Ltd</h1>
+                <h1 className='text-lg sm:text-2xl font-bold'>Dnyanganga Education Pvt. Ltd</h1>
             </div>
+            
             <div>
-                <button>Logout</button>
+                <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">Logout</button>
             </div>
         </nav>
-    )
+    );
 };
 
 export default Header;
