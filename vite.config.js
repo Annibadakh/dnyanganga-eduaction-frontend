@@ -8,4 +8,8 @@ export default defineConfig({
   define: {
     'process.env': process.env, // Make sure process.env is available
   },
+  server: {
+    host: '0.0.0.0', // Allows access from any device in the network
+    port: 5173
+  },
 })

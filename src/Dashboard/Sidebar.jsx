@@ -1,8 +1,17 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from '../Images/logo.png'
-const Sidebar = ({ isSidebarOpen, clickSidebar }) => {
+
+const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     const location = useLocation(); 
+
+    
+    const links = [
+        { path: "home", label: "Home" },
+        { path: "profile", label: "Profile", role: "teacher" },
+        { path: "settings", label: "Settings" },
+        { path: "visiting", label: "Visiting Form", role: "counsellor"},
+        { path: "register", label: "Registration Form", role: "counsellor"},
+    ];
 
   const isActive = (path) => location.pathname === path;
     return(
@@ -12,15 +21,29 @@ const Sidebar = ({ isSidebarOpen, clickSidebar }) => {
         ${isSidebarOpen ? "w-64 p-4" : "w-0 overflow-hidden"}`}>
             <nav className={`${isSidebarOpen ? "block" : "hidden"}`}>
                 <ul>
-                    <li onClick={clickSidebar} className={`py-2 px-4 mb-1 rounded-full ${isActive("/dashboard/home") ? "bg-secondary" : "hover:bg-secondary"}`}>
+                    {links.map(({ path, label, role }) => {
+                        if (role && role !== userRole) return null;
+                        return (
+                            <li
+                                key={path}
+                                onClick={clickSidebar}
+                                className={`py-2 px-4 mb-1 rounded-full ${isActive(`/dashboard/${path}`) ? "bg-secondary" : "hover:bg-secondary"}`}
+                            >
+                                <Link to={path}>{label}</Link>
+                            </li>
+                        );
+                    })}
+                    {/* <li onClick={clickSidebar} className={`py-2 px-4 mb-1 rounded-full ${isActive("/dashboard/home") ? "bg-secondary" : "hover:bg-secondary"}`}>
                         <Link  to="home">Home</Link>
                     </li>
-                    <li onClick={clickSidebar} className={`py-2 px-4 mb-1 rounded-full ${isActive("/dashboard/profile") ? "bg-secondary" : "hover:bg-secondary"}`}>
-                        <Link to="profile">Profile</Link>
-                    </li>
+                    {userRole === 'teacher' && (
+                        <li onClick={clickSidebar} className={`py-2 px-4 mb-1 rounded-full ${isActive("/dashboard/profile") ? "bg-secondary" : "hover:bg-secondary"}`}>
+                            <Link to="profile">Profile</Link>
+                        </li>
+                    )}
                     <li onClick={clickSidebar} className={`py-2 px-4 mb-1 rounded-full ${isActive("/dashboard/settings") ? "bg-secondary" :"hover:bg-secondary"}`}>
                         <Link to="settings">Settings</Link>
-                    </li>
+                    </li> */}
                 </ul>
             </nav> 
         </aside>

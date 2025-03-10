@@ -1,15 +1,20 @@
-import React, { useState } from "react";
-import { useAuth } from "../Context/AuthContext"; // ✅ Correct Import
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../Context/AuthContext"; 
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function Login() {
-  const { login } = useAuth(); // ✅ Ensure login function is available
+  const { login, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("teacher");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if(user){
+      navigate('/dashboard');
+    }
+  }, [navigate]);
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -18,14 +23,13 @@ function Login() {
         password,
         role,
       });
-
-      // ✅ Call login function from context
       login(response.data);
 
       alert("Login successful");
       navigate("/dashboard");
     } catch (error) {
-      console.error("Login failed:", error.response?.data?.message || error.message);
+      alert(error.response.data.message);
+      console.error("Login failed:", error.response);
     }
   };
 

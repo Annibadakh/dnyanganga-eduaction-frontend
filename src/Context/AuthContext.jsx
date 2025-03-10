@@ -1,45 +1,12 @@
-// import React, { createContext, useContext, useState } from "react";
-
-// // ✅ Create Context
-// export const AuthContext = createContext();
-
-// // ✅ Create Provider
-// export const AuthProvider = ({ children }) => {
-//   const [user, setUser] = useState(JSON.parse(sessionStorage.getItem("user")) || null);
-
-//   const login = (userData) => {
-//     sessionStorage.setItem("user", JSON.stringify(userData));
-//     setUser(userData);
-//   };
-
-//   const logout = () => {
-//     sessionStorage.removeItem("user");
-//     setUser(null);
-//   };
-
-//   return (
-//     <AuthContext.Provider value={{ user, login, logout }}>
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
-
-// // ✅ Custom Hook
-// export const useAuth = () => useContext(AuthContext);
-
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-// ✅ Create Context
 export const AuthContext = createContext();
 
-// ✅ Create Provider
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const storedUser = JSON.parse(sessionStorage.getItem("user"));
     const tokenExpiry = sessionStorage.getItem("tokenExpiry");
 
-    // Check if token is expired
     if (storedUser && tokenExpiry && Date.now() > tokenExpiry) {
       sessionStorage.removeItem("user");
       sessionStorage.removeItem("tokenExpiry");
@@ -62,7 +29,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // ✅ Check token expiration periodically
+  
   useEffect(() => {
     const interval = setInterval(() => {
       const tokenExpiry = sessionStorage.getItem("tokenExpiry");
@@ -81,5 +48,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// ✅ Custom Hook
 export const useAuth = () => useContext(AuthContext);
