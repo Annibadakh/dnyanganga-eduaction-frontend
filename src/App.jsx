@@ -8,7 +8,6 @@ import Dashboard from "./Dashboard/Dashboard";
 import Profile from "./Dashboard/Profile";
 import Settings from "./Dashboard/Settings";
 import {ProtectedRoute, ProtectedRoleBasedRoute} from './ProtectedRoute';
-import persistCombineReducers from "redux-persist/lib/persistCombineReducers";
 import VisitingForm from "./Dashboard/VisitingForm";
 import RegistrationForm from "./Dashboard/RegistrationForm";
 
@@ -41,4 +40,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

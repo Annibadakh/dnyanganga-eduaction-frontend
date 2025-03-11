@@ -8,7 +8,6 @@ import api from "../Api";
 
 function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [response , setResponse] = useState();
   const {user} = useAuth();
 
   const userRole = user.role;
@@ -16,7 +15,6 @@ function Dashboard() {
       api.get("/dashboard")
       .then(response => {
         console.log("data", response.data.message);
-        setResponse(response.data.message);
       })
       .catch (error => {
         console.log("Error to fetch data", error);
@@ -34,11 +32,11 @@ function Dashboard() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Header />
-      <div className="relative flex flex-1">
+      <div className="relative flex flex-1 overflow-hidden">
         <Sidebar isSidebarOpen={isSidebarOpen} clickSidebar={clickSidebar} userRole={userRole} />
-        <main className="relative flex-1 bg-gray-100 p-6 pt-16">
+        <main className="relative flex-1 bg-gray-100 p-6 pt-16 overflow-auto max-h-full">
           <button
             className={`absolute z-50 top-2 transition-all duration-200 ${isSidebarOpen ? "left-[265px]" : "left-2"} sm:left-2 text-white bg-fourthcolor px-4 py-2 rounded`}
             onClick={toggleSidebar}
@@ -48,7 +46,6 @@ function Dashboard() {
           <div className="-z-40 absolute left-0 right-0 top-0 bottom-0 flex justify-center items-center">
             <img src={logo} alt="" className="h-[350px] opacity-30" />
           </div>
-          {response}
           <Outlet />
         </main>
       </div>

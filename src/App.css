@@ -11,8 +11,6 @@
 
 
 html{
-  font-size: 100%;
-  overflow-x: hidden;
   scroll-padding-top: 9rem;
   scroll-behavior: smooth;
 }
@@ -29,11 +27,4 @@ html::-webkit-scrollbar-thumb{
   background: var(--primary-color);
 }
 
-
-
-/* @media (max-width:450px){
-  html{
-    font-size: 50%;
-  }
-} */
 

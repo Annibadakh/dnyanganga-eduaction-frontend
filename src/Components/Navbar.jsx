@@ -25,8 +25,8 @@ const Navbar = () => {
 
     return(
       <>
-        <nav className={`fixed z-50 flex justify-between h-[70px] px-10 py-1 items-center  ${scrolled ? "top-0 left-0 right-0 bg-white border-b-2 border-solid border-gray-200" : "top-0 left-0 right-0 sm:top-8 bg-white sm:bg-transparent  sm:left-2 sm:right-2"}`}>
-            <div className='absolute top-0 -z-10 h-[70px] left-4 right-4 bg-white border-b-2 border-solid border-gray-200' style={{transform: "skewX(-26deg)"}}>
+        <nav className={`fixed z-50 flex justify-between h-[70px] px-10 py-1 items-center  ${scrolled ? "top-0 left-0 right-0 bg-white border-b-2 border-solid border-gray-400" : "top-0 left-0 right-0 sm:top-8 bg-white sm:bg-transparent  sm:left-2 sm:right-2"}`}>
+            <div className='absolute top-0 -z-10 h-[70px] left-4 right-4 bg-white border-b-2 border-solid border-gray-400' style={{transform: "skewX(-26deg)"}}>
             </div>
             <div>
                 <img src={logo} alt="" className='h-16' />

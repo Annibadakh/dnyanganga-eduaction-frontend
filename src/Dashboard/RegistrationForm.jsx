@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext"; 
+import DownloadReceipt from "./DownloadReceipt";
 
 
 const RegistrationForm = () => {
@@ -142,6 +143,7 @@ const RegistrationForm = () => {
       if (response) {
         console.log("Form Submitted Successfully",response.data.payment, response.data.student, response.data.student.studentPhoto);
         setResponse(response);
+        alert("Student Register SUccessfully !!");
         setSubmitted(true);
       } else {
         console.error("Form Submission Failed");
@@ -152,7 +154,7 @@ const RegistrationForm = () => {
   };
 
   return (
-    <div className="w-auto mx-auto mt-10 p-5 border rounded-lg shadow-md bg-white">
+    <div className="w-auto mx-auto mt-0 p-5 border rounded-lg shadow-md bg-white">
       <h2 className="text-2xl font-bold text-center mb-5">Student Registration</h2>
       {!submitted ? (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -218,11 +220,13 @@ const RegistrationForm = () => {
         </form>
         
       ) : (
-        <div className="text-center">
-          <p className="text-green-600 text-lg font-bold">Registration Successful!</p>
-          <img src={responseData.data.student.studentPhoto} alt="Student Photo" />
-          <button className="btn mt-5">Generate Payment Receipt</button>
-        </div>
+        // <div className="text-center">
+        //   <p className="text-green-600 text-lg font-bold">Registration Successful!</p>
+        //   <img src={responseData.data.student.studentPhoto} alt="Student Photo" />
+        //   <button className="btn mt-5">Generate Payment Receipt</button>
+        // </div>
+        <DownloadReceipt receiptData={responseData.data} />
+
       )}
       {isCameraOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
