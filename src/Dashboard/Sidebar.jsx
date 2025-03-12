@@ -4,13 +4,15 @@ import { Link, useLocation } from "react-router-dom";
 const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     const location = useLocation(); 
 
-    
     const links = [
         { path: "home", label: "Home" },
         { path: "profile", label: "Profile", role: "teacher" },
         { path: "settings", label: "Settings" },
         { path: "visiting", label: "Visiting Form", role: "counsellor"},
         { path: "register", label: "Registration Form", role: "counsellor"},
+        { path: "registertable", label: "Register Table"},
+        { path: "visitingtable", label: "Visiting Table"},
+        { path: "user", label: "User Details", role: "admin"},
     ];
 
   const isActive = (path) => location.pathname === path;
@@ -22,7 +24,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
             <nav className={`${isSidebarOpen ? "block" : "hidden"}`}>
                 <ul>
                     {links.map(({ path, label, role }) => {
-                        if (role && role !== userRole) return null;
+                        if (role && role !== userRole.role) return null;
                         return (
                             <li
                                 key={path}

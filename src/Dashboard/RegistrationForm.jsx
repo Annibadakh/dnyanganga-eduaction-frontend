@@ -136,7 +136,7 @@ const RegistrationForm = () => {
     }
 
     try {
-      const response = await api.post("/student/register", formDataToSend, {
+      const response = await api.post("/counsellor/register", formDataToSend, {
         headers: { "Content-Type": "application/json" },
       });
       
@@ -220,13 +220,7 @@ const RegistrationForm = () => {
         </form>
         
       ) : (
-        // <div className="text-center">
-        //   <p className="text-green-600 text-lg font-bold">Registration Successful!</p>
-        //   <img src={responseData.data.student.studentPhoto} alt="Student Photo" />
-        //   <button className="btn mt-5">Generate Payment Receipt</button>
-        // </div>
         <DownloadReceipt receiptData={responseData.data} />
-
       )}
       {isCameraOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">

@@ -9,7 +9,7 @@ const ProtectedRoute = () => {
 
 const ProtectedRoleBasedRoute = ({ allowedRoles }) => {
     const { user } = useAuth();
-    return user.role === allowedRoles ? <Outlet /> : <Navigate to="/login" />;
+    return allowedRoles.includes(user.role) ? <Outlet /> : <Navigate to="/login" />;
 };
 
 export { ProtectedRoute, ProtectedRoleBasedRoute };

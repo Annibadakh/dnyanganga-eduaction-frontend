@@ -33,7 +33,7 @@ const VisitingForm = () => {
     setMessage("");
 
     try {
-      const response = await api.post("/visiting/submit", formData, {
+      const response = await api.post("/counsellor/visiting", formData, {
         headers: { "Content-Type": "application/json" },
       });
 

@@ -9,7 +9,10 @@ import Profile from "./Dashboard/Profile";
 import Settings from "./Dashboard/Settings";
 import {ProtectedRoute, ProtectedRoleBasedRoute} from './ProtectedRoute';
 import VisitingForm from "./Dashboard/VisitingForm";
+import VisitingTable from "./Dashboard/VisitingTable";
+import RegistrationTable from "./Dashboard/RegistrationTable";
 import RegistrationForm from "./Dashboard/RegistrationForm";
+import AddUser from "./Dashboard/AddUser";
 
 
 function App() {
@@ -26,9 +29,16 @@ function App() {
               <Route path="" element={<Home />}/>
               <Route path="home" element={<Home />}/>
               <Route path='profile' element={<Profile />} />
-              <Route element={<ProtectedRoleBasedRoute allowedRoles='counsellor'/> } >
+              <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor', 'admin']}/> } >
+                <Route path='visitingtable' element={<VisitingTable /> } />
+                <Route path='registertable' element={<RegistrationTable /> } />
+              </Route>
+              <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor']}/> } >
                 <Route path='register' element={<RegistrationForm />} />
                 <Route path='visiting' element={<VisitingForm /> } />
+              </Route>
+              <Route element={<ProtectedRoleBasedRoute allowedRoles={['admin']}/> } >
+                <Route path='user' element={<AddUser />} />
               </Route>
               <Route path='settings' element={<Settings />} />
             </Route>

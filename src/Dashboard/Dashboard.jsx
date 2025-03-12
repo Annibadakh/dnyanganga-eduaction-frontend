@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../Context/AuthContext"; 
+import { useAuth } from "../Context/AuthContext";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import logo from '../Images/logo4.png';
@@ -10,16 +10,16 @@ function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const {user} = useAuth();
 
-  const userRole = user.role;
-  useEffect(() => {
-      api.get("/dashboard")
-      .then(response => {
-        console.log("data", response.data.message);
-      })
-      .catch (error => {
-        console.log("Error to fetch data", error);
-     })
-  }, []);
+  const userRole = user;
+  // useEffect(() => {
+  //     api.get("/dashboard")
+  //     .then(response => {
+  //       console.log("data", response.data.message);
+  //     })
+  //     .catch (error => {
+  //       console.log("Error to fetch data", error);
+  //    })
+  // }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
