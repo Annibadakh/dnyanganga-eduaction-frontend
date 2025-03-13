@@ -13,6 +13,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
         { path: "registertable", label: "Register Table"},
         { path: "visitingtable", label: "Visiting Table"},
         { path: "user", label: "User Details", role: "admin"},
+        { path: "examcenter", label: "Exam Center", role: "admin"},
     ];
 
   const isActive = (path) => location.pathname === path;

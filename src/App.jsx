@@ -13,6 +13,7 @@ import VisitingTable from "./Dashboard/VisitingTable";
 import RegistrationTable from "./Dashboard/RegistrationTable";
 import RegistrationForm from "./Dashboard/RegistrationForm";
 import AddUser from "./Dashboard/AddUser";
+import AddCenter from "./Dashboard/AddCenter";
 
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
               </Route>
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['admin']}/> } >
                 <Route path='user' element={<AddUser />} />
+                <Route path='examcenter' element={<AddCenter />} />
               </Route>
               <Route path='settings' element={<Settings />} />
             </Route>

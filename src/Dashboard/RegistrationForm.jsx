@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext"; 
 import DownloadReceipt from "./DownloadReceipt";
@@ -6,6 +6,7 @@ import DownloadReceipt from "./DownloadReceipt";
 
 const RegistrationForm = () => {
   const {user} = useAuth();
+  
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [imageUrl, setImageUrl] = useState("");
@@ -28,19 +29,34 @@ const RegistrationForm = () => {
     pincode: "",
     studentNo: "",
     parentsNo: "",
-    counselorName: "",
     branch: "",
-    examCentre: "",
     modeOfPayment: "",
     amountPaid: "",
     amountRemaining: "",
     studentPhoto: "",
-    dueDate: ""
+    dueDate: "",
+    firstPref: "",
+    secondPref: "",
+    thirdPref: "",
   });
+  const [examCentres, setExamCentres] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    api
+      .get("/admin/getExamCenters")
+      .then((response) => {
+        console.log(response.data.data);
+        setExamCentres(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching users", error);
+      });
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    console.log(formData);
   };
 
   const openCamera = () => {
@@ -133,6 +149,7 @@ const RegistrationForm = () => {
     });
     if(user?.uuid){
       formDataToSend.append("uuid", user.uuid);
+      formDataToSend.append("counsellor", user.userName);
     }
 
     try {
@@ -151,6 +168,13 @@ const RegistrationForm = () => {
     } catch (error) {
       console.error("Error submitting form:", error);
     }
+  };
+  const getAvailableCentres = (selected) => {
+    return examCentres.filter(
+      (centre) =>
+        ![formData.firstPref, formData.secondPref, formData.thirdPref].includes(centre.centerName) ||
+        centre.centerId === selected
+    );
   };
 
   return (
@@ -198,9 +222,46 @@ const RegistrationForm = () => {
             <input type="text" name="pincode" onChange={handleChange} placeholder="PINCODE" className="input" />
             <input type="text" name="studentNo" onChange={handleChange} placeholder="Student No" className="input" />
             <input type="text" name="parentsNo" onChange={handleChange} placeholder="Parents No" className="input" />
-            <input type="text" name="counselorName" onChange={handleChange} placeholder="Counselor Name" className="input" />
+            {/* <input type="text" name="counselorName" onChange={handleChange} placeholder="Counselor Name" className="input" /> */}
             <input type="text" name="branch" onChange={handleChange} placeholder="Branch" className="input" />
-            <input type="text" name="examCentre" onChange={handleChange} placeholder="Exam Centre" className="input" />
+            {/* <input type="text" name="examCentre" onChange={handleChange} placeholder="Exam Centre" className="input" /> */}
+            <label>First Preference:</label>
+            <select name="firstPref" onChange={handleChange}>
+              <option value="">Select</option>
+              {examCentres.map((centre) => (
+                <option key={centre.centerId} value={centre.centerName}>
+                  {centre.centerName}
+                </option>
+              ))}
+            </select>
+
+            <label>Second Preference:</label>
+            <select
+              name="secondPref"
+              onChange={handleChange}
+              disabled={!formData.firstPref}
+            >
+              <option value="">Select</option>
+              {getAvailableCentres(formData.secondPref).map((centre) => (
+                <option key={centre.centerId} value={centre.centerName}>
+                  {centre.centerName}
+                </option>
+              ))}
+            </select>
+
+            <label>Third Preference:</label>
+            <select
+              name="thirdPref"
+              onChange={handleChange}
+              disabled={!formData.secondPref}
+            >
+              <option value="">Select</option>
+              {getAvailableCentres(formData.thirdPref).map((centre) => (
+                <option key={centre.centerId} value={centre.centerName}>
+                  {centre.centerName}
+                </option>
+              ))}
+            </select>
           </div>
           
           <h3 className="text-xl font-bold mt-5">Payment Details</h3>

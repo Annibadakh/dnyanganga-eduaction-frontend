@@ -9,6 +9,16 @@ const RegistrationTable = () => {
     const [error, setError] = useState(null);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
+//     useEffect(() => {
+//       api.get("/counsellor/getInfo")
+//       .then(response => {
+//         console.log("data", response);
+//       })
+//       .catch (error => {
+//         console.log("Error to fetch data", error);
+//      })
+//   }, []);
+
     useEffect(() => {
         console.log(user);
         api.get(`/counsellor/getRegister?uuid=${user.uuid}&role=${user.role}`)
