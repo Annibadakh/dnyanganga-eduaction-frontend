@@ -154,101 +154,180 @@ const RegistrationForm = () => {
   };
 
   return (
-    <div className="w-auto mx-auto mt-0 p-5 border rounded-lg shadow-md bg-white">
-      <h2 className="text-2xl font-bold text-center mb-5">Student Registration</h2>
-      {!submitted ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <input type="time" name="visitTime" onChange={handleChange} placeholder="Visit Time" className="input" />
-            <input type="date" name="date" onChange={handleChange} placeholder="Date" className="input" />
-            <input type="text" name="studentName" onChange={handleChange} placeholder="Student Name" className="input" />
-            <div className="flex flex-col items-center">
-              {imageUrl ? (
-                <>
-                  <img src={imageUrl} alt="Captured" className="w-[132px] h-[170px] rounded-lg" />
-                  <div className="flex flex-row gap-4 items-center">
-                  {!isPhotoSaved && (
-                    <button type="button" onClick={retakePhoto} className="btn mt-2">
+    <div className="w-auto mx-auto mt-0 p-5 border rounded-lg shadow-md bg-gray-100">
+  <h2 className="text-2xl font-bold text-center mb-5">Student Registration</h2>
+  {!submitted ? (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex flex-row justify-between mb-4">
+        <div className="flex flex-col items-center w-full">
+          {imageUrl ? (
+            <>
+              <img src={imageUrl} alt="Captured" className="w-[132px] h-[170px] rounded-lg" />
+              <div className="flex flex-row gap-4 items-center">
+                {!isPhotoSaved && (
+                  <button type="button" onClick={retakePhoto} className="btn mt-2">
                     Retake Photo
                   </button>
-                  )}
-                  <button type="button" onClick={uploadImage} className="btn mt-2" disabled={isPhotoSaved}>
-                    {isPhotoSaved ? "Saved !!": "Save" }
-                  </button>
-                  </div>
-                </>
-              ) : (
-                <button type="button" onClick={openCamera} className="btn">
-                  Capture Photo
+                )}
+                <button type="button" onClick={uploadImage} className="btn mt-2" disabled={isPhotoSaved}>
+                  {isPhotoSaved ? "Saved !!" : "Save"}
                 </button>
-              )}
-            </div>
+              </div>
+            </>
+          ) : (
+            <button type="button" onClick={openCamera} className="btn mt-2">
+              Capture Photo
+            </button>
+          )}
+        </div>
+      </div>
 
-            <select name="gender" onChange={handleChange} className="input">
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-            <input type="date" name="dob" onChange={handleChange} placeholder="DOB" className="input" />
-            <input type="email" name="email" onChange={handleChange} placeholder="Email" className="input" />
-            <input type="text" name="motherName" onChange={handleChange} placeholder="Mother's Name" className="input" />
-            <input type="text" name="standard" onChange={handleChange} placeholder="Standard" className="input" />
-            <input type="text" name="schoolCollege" onChange={handleChange} placeholder="School/College" className="input" />
-            <input type="text" name="address" onChange={handleChange} placeholder="Address" className="input" />
-            <input type="text" name="pincode" onChange={handleChange} placeholder="PINCODE" className="input" />
-            <input type="text" name="studentNo" onChange={handleChange} placeholder="Student No" className="input" />
-            <input type="text" name="parentsNo" onChange={handleChange} placeholder="Parents No" className="input" />
-            <input type="text" name="counselorName" onChange={handleChange} placeholder="Counselor Name" className="input" />
-            <input type="text" name="branch" onChange={handleChange} placeholder="Branch" className="input" />
-            <input type="text" name="examCentre" onChange={handleChange} placeholder="Exam Centre" className="input" />
-          </div>
-          
-          <h3 className="text-xl font-bold mt-5">Payment Details</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <select name="modeOfPayment" onChange={handleChange} className="input">
-              <option value="">Select Payment Mode</option>
-              <option value="Cash">Cash</option>
-              <option value="Card">Card</option>
-              <option value="Online">Online</option>
-            </select>
-            <input type="text" name="amountPaid" onChange={handleChange} placeholder="Amount Paid" className="input" />
-            <input type="text" name="amountRemaining" onChange={handleChange} placeholder="Amount Remaining" className="input" />
-            <input type="date" name="dueDate" onChange={handleChange} placeholder="Due Date" className="input" />
-          </div>
-          
-          {isPhotoSaved && <button type="submit" className="btn w-full">Submit</button>}
-        </form>
-        
-      ) : (
-        // <div className="text-center">
-        //   <p className="text-green-600 text-lg font-bold">Registration Successful!</p>
-        //   <img src={responseData.data.student.studentPhoto} alt="Student Photo" />
-        //   <button className="btn mt-5">Generate Payment Receipt</button>
-        // </div>
-        <DownloadReceipt receiptData={responseData.data} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Visit Time and Date */}
+        <div className="flex flex-col">
+          <label htmlFor="visitTime" className="font-semibold">Visit Time</label>
+          <input type="time" id="visitTime" name="visitTime" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Select Time" />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="date" className="font-semibold">Date</label>
+          <input type="date" id="date" name="date" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Select Date" />
+        </div>
 
-      )}
-      {isCameraOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-4 rounded-lg shadow-lg">
-              {!photoCaptured ? (
-                <>
-                  <video ref={videoRef} autoPlay className="w-64 h-48"></video>
-                  <canvas ref={canvasRef} className="hidden"></canvas>
-                  <button onClick={captureImage} className="btn mt-2">Capture</button>
-                </>
-              ) : (
-                <>
-                  <img src={imageUrl} alt="Captured" className="w-64 h-48 rounded-lg" />
-                  <button onClick={retakePhoto} className="btn mt-2">Retake Photo</button>
-                </>
-              )}
-              <button onClick={closeCamera} className="btn ml-4 mt-2">Close</button>
-            </div>
-          </div>
+        {/* Student Name and Gender */}
+        <div className="flex flex-col">
+          <label htmlFor="studentName" className="font-semibold">Student Name</label>
+          <input type="text" id="studentName" name="studentName" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Student Name" />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="gender" className="font-semibold">Gender</label>
+          <select id="gender" name="gender" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12">
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+
+        {/* Date of Birth and Email */}
+        <div className="flex flex-col">
+          <label htmlFor="dob" className="font-semibold">Date of Birth</label>
+          <input type="date" id="dob" name="dob" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Select DOB" />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="email" className="font-semibold">Email</label>
+          <input type="email" id="email" name="email" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Email" />
+        </div>
+
+        {/* Mother's Name and Standard */}
+        <div className="flex flex-col">
+          <label htmlFor="motherName" className="font-semibold">Mother's Name</label>
+          <input type="text" id="motherName" name="motherName" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Mother's Name" />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="standard" className="font-semibold">Standard</label>
+          <input type="text" id="standard" name="standard" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Standard" />
+        </div>
+
+        {/* School/College and Address */}
+        <div className="flex flex-col">
+          <label htmlFor="schoolCollege" className="font-semibold">School/College</label>
+          <input type="text" id="schoolCollege" name="schoolCollege" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter School/College" />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="address" className="font-semibold">Address</label>
+          <input type="text" id="address" name="address" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Address" />
+        </div>
+
+        {/* Pincode and Student No */}
+        <div className="flex flex-col">
+          <label htmlFor="pincode" className="font-semibold">PINCODE</label>
+          <input type="text" id="pincode" name="pincode" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter PINCODE" />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="studentNo" className="font-semibold">Student No</label>
+          <input type="text" id="studentNo" name="studentNo" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Student Number" />
+        </div>
+
+        {/* Parents No and Counselor Name */}
+        <div className="flex flex-col">
+          <label htmlFor="parentsNo" className="font-semibold">Parents No</label>
+          <input type="text" id="parentsNo" name="parentsNo" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Parents No" />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="counselorName" className="font-semibold">Counselor Name</label>
+          <input type="text" id="counselorName" name="counselorName" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Counselor Name" />
+        </div>
+
+        {/* Branch and Exam Centre */}
+        <div className="flex flex-col">
+          <label htmlFor="branch" className="font-semibold">Branch</label>
+          <input type="text" id="branch" name="branch" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Branch" />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="examCentre" className="font-semibold">Exam Centre</label>
+          <input type="text" id="examCentre" name="examCentre" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Exam Centre" />
+        </div>
+      </div>
+
+      <h3 className="text-xl font-bold mt-5">Payment Details</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Payment Mode and Amount Paid */}
+        <div className="flex flex-col">
+          <label htmlFor="modeOfPayment" className="font-semibold">Payment Mode</label>
+          <select id="modeOfPayment" name="modeOfPayment" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12">
+            <option value="">Select Payment Mode</option>
+            <option value="Cash">Cash</option>
+            <option value="Card">Card</option>
+            <option value="Online">Online</option>
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="amountPaid" className="font-semibold">Amount Paid</label>
+          <input type="text" id="amountPaid" name="amountPaid" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Amount Paid" />
+        </div>
+
+        {/* Amount Remaining and Due Date */}
+        <div className="flex flex-col">
+          <label htmlFor="amountRemaining" className="font-semibold">Amount Remaining</label>
+          <input type="text" id="amountRemaining" name="amountRemaining" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Enter Amount Remaining" />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="dueDate" className="font-semibold">Due Date</label>
+          <input type="date" id="dueDate" name="dueDate" onChange={handleChange} className="input bg-white rounded-lg py-2 w-11/12" placeholder="Select Due Date" />
+        </div>
+      </div>
+
+      {isPhotoSaved && <button type="submit" className="btn w-full">Submit</button>}
+    </form>
+  ) : (
+    <DownloadReceipt receiptData={responseData.data} />
+  )}
+
+  {isCameraOpen && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+      <div className="bg-white p-4 rounded-lg shadow-lg">
+        {!photoCaptured ? (
+          <>
+            <video ref={videoRef} autoPlay className="w-64 h-48"></video>
+            <canvas ref={canvasRef} className="hidden"></canvas>
+            <button onClick={captureImage} className="btn mt-2">Capture</button>
+          </>
+        ) : (
+          <>
+            <img src={imageUrl} alt="Captured" className="w-64 h-48 rounded-lg" />
+            <button onClick={retakePhoto} className="btn mt-2">Retake Photo</button>
+          </>
         )}
-
+        <button onClick={closeCamera} className="btn ml-4 mt-2">Close</button>
+      </div>
     </div>
+  )}
+</div>
+
+
+
+
+
+
   );
 }
 
