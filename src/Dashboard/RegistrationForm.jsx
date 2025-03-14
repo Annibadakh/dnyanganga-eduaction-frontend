@@ -16,28 +16,26 @@ const RegistrationForm = () => {
   const [isPhotoSaved, setSaved] = useState(false);
   const [responseData, setResponse] = useState();
   const [formData, setFormData] = useState({
-    visitTime: "",
-    date: "",
     studentName: "",
     gender: "",
     dob: "",
-    email: "",
     motherName: "",
-    standard: "",
-    schoolCollege: "",
     address: "",
     pincode: "",
+    email: "",
     studentNo: "",
     parentsNo: "",
+    standard: "",
+    schoolCollege: "",
     branch: "",
-    modeOfPayment: "",
-    amountPaid: "",
-    amountRemaining: "",
-    studentPhoto: "",
-    dueDate: "",
     firstPref: "",
     secondPref: "",
     thirdPref: "",
+    studentPhoto: "",
+    amountPaid: "",
+    modeOfPayment: "",
+    amountRemaining: "",
+    dueDate: "",
   });
   const [examCentres, setExamCentres] = useState([]);
   const [submitted, setSubmitted] = useState(false);
@@ -173,7 +171,7 @@ const RegistrationForm = () => {
     return examCentres.filter(
       (centre) =>
         ![formData.firstPref, formData.secondPref, formData.thirdPref].includes(centre.centerName) ||
-        centre.centerId === selected
+        centre.centerName === selected
     );
   };
 
@@ -182,11 +180,9 @@ const RegistrationForm = () => {
       <h2 className="text-2xl font-bold text-center mb-5">Student Registration</h2>
       {!submitted ? (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <input type="time" name="visitTime" onChange={handleChange} placeholder="Visit Time" className="input" />
-            <input type="date" name="date" onChange={handleChange} placeholder="Date" className="input" />
-            <input type="text" name="studentName" onChange={handleChange} placeholder="Student Name" className="input" />
-            <div className="flex flex-col items-center">
+          <div className="flex flex-col gap-4">
+            <h3 className="text-xl font-bold mt-5">Student Photo</h3>
+            <div>
               {imageUrl ? (
                 <>
                   <img src={imageUrl} alt="Captured" className="w-[132px] h-[170px] rounded-lg" />
@@ -207,24 +203,33 @@ const RegistrationForm = () => {
                 </button>
               )}
             </div>
-
+            <h3 className="text-xl font-bold mt-5">Personal Details: </h3>
+            <div className="grid gird-col-1 md:grid-cols-2 gap-4">
+            <input type="text" name="studentName" onChange={handleChange} placeholder="Student Name" className="input" />
             <select name="gender" onChange={handleChange} className="input">
               <option value="">Select Gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
             <input type="date" name="dob" onChange={handleChange} placeholder="DOB" className="input" />
-            <input type="email" name="email" onChange={handleChange} placeholder="Email" className="input" />
             <input type="text" name="motherName" onChange={handleChange} placeholder="Mother's Name" className="input" />
-            <input type="text" name="standard" onChange={handleChange} placeholder="Standard" className="input" />
-            <input type="text" name="schoolCollege" onChange={handleChange} placeholder="School/College" className="input" />
             <input type="text" name="address" onChange={handleChange} placeholder="Address" className="input" />
             <input type="text" name="pincode" onChange={handleChange} placeholder="PINCODE" className="input" />
+            </div>
+            <h3 className="text-xl font-bold mt-5">Educational Details: </h3>
+            <div className="grid gird-col-1 md:grid-cols-2 gap-4">
+            <input type="text" name="standard" onChange={handleChange} placeholder="Standard" className="input" />
+            <input type="text" name="schoolCollege" onChange={handleChange} placeholder="School/College" className="input" />
+            <input type="text" name="branch" onChange={handleChange} placeholder="Branch" className="input" />
+            </div>
+            <h3 className="text-xl font-bold mt-5">Contact Details: </h3>
+            <div className="grid gird-col-1 md:grid-cols-2 gap-4">
+            <input type="email" name="email" onChange={handleChange} placeholder="Email" className="input" />
             <input type="text" name="studentNo" onChange={handleChange} placeholder="Student No" className="input" />
             <input type="text" name="parentsNo" onChange={handleChange} placeholder="Parents No" className="input" />
-            {/* <input type="text" name="counselorName" onChange={handleChange} placeholder="Counselor Name" className="input" /> */}
-            <input type="text" name="branch" onChange={handleChange} placeholder="Branch" className="input" />
-            {/* <input type="text" name="examCentre" onChange={handleChange} placeholder="Exam Centre" className="input" /> */}
+            </div>
+            <h3 className="text-xl font-bold mt-5">Exam Centre </h3>
+            <div className="grid gird-col-1 md:grid-cols-2 gap-4">
             <label>First Preference:</label>
             <select name="firstPref" onChange={handleChange}>
               <option value="">Select</option>
@@ -241,7 +246,7 @@ const RegistrationForm = () => {
               onChange={handleChange}
               disabled={!formData.firstPref}
             >
-              <option value="">Select</option>
+              <option value={formData.secondPref}>Select</option>
               {getAvailableCentres(formData.secondPref).map((centre) => (
                 <option key={centre.centerId} value={centre.centerName}>
                   {centre.centerName}
@@ -262,17 +267,18 @@ const RegistrationForm = () => {
                 </option>
               ))}
             </select>
+            </div>
           </div>
           
           <h3 className="text-xl font-bold mt-5">Payment Details</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" name="amountPaid" onChange={handleChange} placeholder="Amount Paid" className="input" />
             <select name="modeOfPayment" onChange={handleChange} className="input">
               <option value="">Select Payment Mode</option>
               <option value="Cash">Cash</option>
               <option value="Card">Card</option>
               <option value="Online">Online</option>
             </select>
-            <input type="text" name="amountPaid" onChange={handleChange} placeholder="Amount Paid" className="input" />
             <input type="text" name="amountRemaining" onChange={handleChange} placeholder="Amount Remaining" className="input" />
             <input type="date" name="dueDate" onChange={handleChange} placeholder="Due Date" className="input" />
           </div>

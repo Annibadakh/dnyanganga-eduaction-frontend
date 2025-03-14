@@ -3,6 +3,7 @@ import './App.css'
 
 import Main from './Components/Main';
 import Login from "./Components/Login";
+import HallTicket from "./Components/HallTicket";
 import Home from "./Dashboard/Home";
 import Dashboard from "./Dashboard/Dashboard";
 import Profile from "./Dashboard/Profile";
@@ -25,6 +26,7 @@ function App() {
         <Routes>    
           <Route path='/' element={<Main />} />
           <Route path="login" element={<Login />} />
+          <Route path="hallticket" element={<HallTicket />} />
           <Route element={<ProtectedRoute />}>
             <Route path='dashboard' element={<Dashboard />}>
               <Route path="" element={<Home />}/>
