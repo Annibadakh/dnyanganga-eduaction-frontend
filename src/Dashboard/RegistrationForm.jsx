@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import api from "../Api";
-import { useAuth } from "../Context/AuthContext"; 
-import DownloadReceipt from "./DownloadReceipt";
+import { useAuth } from "../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 
 
 const RegistrationForm = () => {
   const {user} = useAuth();
-  
+  const navigate = useNavigate();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [imageUrl, setImageUrl] = useState("");
@@ -14,7 +15,6 @@ const RegistrationForm = () => {
   const [photoCaptured, setPhotoCaptured] = useState(false);
   const [photoFile, setFile] = useState();
   const [isPhotoSaved, setSaved] = useState(false);
-  const [responseData, setResponse] = useState();
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
@@ -38,8 +38,6 @@ const RegistrationForm = () => {
     dueDate: "",
   });
   const [examCentres, setExamCentres] = useState([]);
-  const [submitted, setSubmitted] = useState(false);
-
   useEffect(() => {
     api
       .get("/admin/getExamCenters")
@@ -127,7 +125,7 @@ const RegistrationForm = () => {
       });
 
       if (response.data.imageUrl) {
-        setImageUrl(response.data.imageUrl);
+        setImageUrl(`http://localhost:5000${response.data.imageUrl}`);
         console.log(response.data.imageUrl);
         setFormData({ ...formData, studentPhoto: response.data.imageUrl });
         setIsCameraOpen(false);
@@ -157,9 +155,9 @@ const RegistrationForm = () => {
       
       if (response) {
         console.log("Form Submitted Successfully",response.data.payment, response.data.student, response.data.student.studentPhoto);
-        setResponse(response);
-        alert("Student Register SUccessfully !!");
-        setSubmitted(true);
+        alert("Student Register Successfully !!");
+        navigate("/dashboard/registertable");
+        
       } else {
         console.error("Form Submission Failed");
       }
@@ -178,14 +176,13 @@ const RegistrationForm = () => {
   return (
     <div className="w-auto mx-auto mt-0 p-5 border rounded-lg shadow-md bg-white">
       <h2 className="text-2xl font-bold text-center mb-5">Student Registration</h2>
-      {!submitted ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col gap-4">
             <h3 className="text-xl font-bold mt-5">Student Photo</h3>
             <div>
               {imageUrl ? (
                 <>
-                  <img src={imageUrl} alt="Captured" className="w-[132px] h-[170px] rounded-lg" />
+                  <img src={`${imageUrl}`} alt="Captured" className="w-[132px] h-[170px] rounded-lg" />
                   <div className="flex flex-row gap-4 items-center">
                   {!isPhotoSaved && (
                     <button type="button" onClick={retakePhoto} className="btn mt-2">
@@ -285,10 +282,6 @@ const RegistrationForm = () => {
           
           {isPhotoSaved && <button type="submit" className="btn w-full">Submit</button>}
         </form>
-        
-      ) : (
-        <DownloadReceipt receiptData={responseData.data} />
-      )}
       {isCameraOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-4 rounded-lg shadow-lg">

@@ -14,6 +14,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
         { path: "visitingtable", label: "Visiting Table"},
         { path: "user", label: "User Details", role: "admin"},
         { path: "examcenter", label: "Exam Center", role: "admin"},
+        {path: "paymenttable", label: "Payment table"},
     ];
 
   const isActive = (path) => location.pathname === path;
@@ -36,17 +37,6 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
                             </li>
                         );
                     })}
-                    {/* <li onClick={clickSidebar} className={`py-2 px-4 mb-1 rounded-full ${isActive("/dashboard/home") ? "bg-secondary" : "hover:bg-secondary"}`}>
-                        <Link  to="home">Home</Link>
-                    </li>
-                    {userRole === 'teacher' && (
-                        <li onClick={clickSidebar} className={`py-2 px-4 mb-1 rounded-full ${isActive("/dashboard/profile") ? "bg-secondary" : "hover:bg-secondary"}`}>
-                            <Link to="profile">Profile</Link>
-                        </li>
-                    )}
-                    <li onClick={clickSidebar} className={`py-2 px-4 mb-1 rounded-full ${isActive("/dashboard/settings") ? "bg-secondary" :"hover:bg-secondary"}`}>
-                        <Link to="settings">Settings</Link>
-                    </li> */}
                 </ul>
             </nav> 
         </aside>

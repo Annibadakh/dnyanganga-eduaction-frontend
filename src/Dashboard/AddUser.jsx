@@ -8,6 +8,7 @@ const AddUser = () => {
     name: "",
     email: "",
     role: "counsellor",
+    contactNum: "", // fixed here
   });
 
   useEffect(() => {
@@ -39,7 +40,7 @@ const AddUser = () => {
         alert("user added !!");
         fetchUsers();
         setShowForm(false);
-        setFormData({ name: "", email: "", role: "counsellor" });
+        setFormData({ name: "", email: "", role: "counsellor" ,conatctNum: ""});
       })
       .catch((error) => console.error("Error adding user", error));
   };
@@ -73,6 +74,17 @@ const AddUser = () => {
                 type="text"
                 name="name"
                 value={formData.name}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 font-semibold">Contact Number: </label>
+              <input
+                type="text"
+                name="contactNum"
+                value={formData.contactNum}
                 onChange={handleChange}
                 required
                 className="w-full p-2 border rounded-md"

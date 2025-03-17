@@ -15,6 +15,7 @@ import RegistrationTable from "./Dashboard/RegistrationTable";
 import RegistrationForm from "./Dashboard/RegistrationForm";
 import AddUser from "./Dashboard/AddUser";
 import AddCenter from "./Dashboard/AddCenter";
+import PaymentTable from "./Dashboard/PaymentTable";
 
 
 function App() {
@@ -35,6 +36,8 @@ function App() {
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor', 'admin']}/> } >
                 <Route path='visitingtable' element={<VisitingTable /> } />
                 <Route path='registertable' element={<RegistrationTable /> } />
+                <Route path='paymenttable' element={<PaymentTable /> } />
+
               </Route>
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor']}/> } >
                 <Route path='register' element={<RegistrationForm />} />

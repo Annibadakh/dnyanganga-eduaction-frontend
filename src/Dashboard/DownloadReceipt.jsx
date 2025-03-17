@@ -1,29 +1,45 @@
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import PaymentReceipt from "./PaymentRecipt";
+import { useNavigate } from "react-router-dom";
+
 
 const DownloadReceipt = ({receiptData}) => {
-  const studentName = receiptData.student.studentName;
+  console.log("receipt data",receiptData);
+  const navigate = useNavigate();
+  
+  const handleClick = (e) => {
+      navigate("/dashboard/registertable")
+  }
   return (
     <div className="p-4 border rounded-lg shadow-lg max-w-md mx-auto">
       <h2 className="text-lg font-bold mb-2">Payment Summary</h2>
 
       <div className="mb-4">
-        <p><strong>Name:</strong> {receiptData.student.studentName}</p>
-        <p><strong>Standard:</strong> {receiptData.student.standard}</p>
-        <p><strong>Total Amount:</strong> ₹{parseInt(receiptData.student.amountPaid) + parseInt(receiptData.student.amountRemaining)}</p>
-        <p><strong>Amount Paid:</strong> ₹{receiptData.payment.amountPaid}</p>
-        <p><strong>Remaining Amount:</strong> ₹{receiptData.student.amountRemaining}</p>
-        <p><strong>Due Date:</strong> {new Date(receiptData.student.dueDate).toLocaleDateString()}</p>
-        <p><strong>Payment Mode:</strong> {receiptData.payment.paymentMode}</p>
-      </div>
+        <p><strong>Name:</strong> {receiptData.studentName}</p>
+        <p><strong>Contact No.:</strong> {receiptData.studentNo}</p>
+        <p><strong>Total Amount:</strong> ₹{parseInt(receiptData.amountPaid) + parseInt(receiptData.amountRemaining)}</p>
+        <p><strong>Remaining Amount:</strong> ₹{receiptData.amountRemaining}</p>
+        <p><strong>Due Date:</strong> {new Date(receiptData.dueDate).toLocaleDateString()}</p>
 
-      <PDFDownloadLink
-        document={<PaymentReceipt data={receiptData} />}
-        fileName={`${studentName}.pdf`}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        {({ loading }) => (loading ? "Generating Receipt..." : "Download Receipt")}
-      </PDFDownloadLink>
+        {receiptData.payments.map((payment, index) => (
+          <div key={index} className="border-2 border-black mb-2">
+          <h3>{index+1} Transaction</h3>
+          <p><strong>Amount Paid:</strong> ₹{payment.amountPaid}</p>
+          <p><strong>Payment Mode:</strong> {payment.paymentMode}</p>
+          <p><strong>Payment Date:</strong> {payment.createdAt.slice(0,10)}</p>
+          </div>
+        ))}
+      </div>
+      <div className="gird grid-flow-col gap-4">
+        <PDFDownloadLink
+          document={<PaymentReceipt data={receiptData} />}
+          fileName={`${receiptData.studentName}.pdf`}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          {({ loading }) => (loading ? "Generating Receipt..." : "Download Receipt")}
+        </PDFDownloadLink>
+        <button className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600" onClick={handleClick}>Back</button>
+      </div>
     </div>
   );
 };
