@@ -12,9 +12,9 @@ const Main = () => {
         <Navbar />
         <Home />
         <AboutUs />
-        <ContactForm/>
         <App/>
         <Courses/>
+        <ContactForm/>
         <Footer/>
         
         </>

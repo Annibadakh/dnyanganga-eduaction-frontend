@@ -1,28 +1,24 @@
 
-import aboutimg from '../Images/aboutimg.png';  // Your image file
-import greendots from '../Images/greendots.png'; // Your greendots image
+import aboutimg from '../Images/aboutimg.png';  
+import greendots from '../Images/greendots.png';
 
 const AboutUs = () => {
     return (
         <section className="flex h-screen">
-            {/* Left side with the images */}
             <div className="w-1/2 h-full pl-0 flex justify-center items-center relative">
-                {/* Green dots image positioned behind and adjusted */}
                 <img
                     src={greendots}
                     alt="Green Dots"
-                    className="absolute top-[-10%] left-[-10%] w-1/2 h-auto z-0" // Adjusted to move it left and up
+                    className="absolute top-[0%] left-[5%] w-1/3 h-auto z-0" 
                 />
 
-                {/* About image moved further lower */}
                 <img
                     src={aboutimg}
                     alt="About Us"
-                    className="object-cover w-[70%] h-[80%] rounded-3xl ml-[-15%] mt-[-10%] z-10" // Moved further lower
+                    className="object-cover w-[70%] h-[80%] m-10 p-5 rounded-3xl z-10" 
                 />
             </div>
 
-            {/* Right side with the text */}
             <div className="w-1/2 h-full bg-white p-8 flex flex-col justify-center">
                 <h1 className="text-3xl font-bold mb-4">About Us</h1>
                 <p className="text-lg text-gray-700">
