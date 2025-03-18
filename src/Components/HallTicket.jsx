@@ -30,8 +30,13 @@ const HallTicket = () => {
             setPdfUrl(url);
             setShowPreview(true);
         } catch (err) {
-            console.error("Error generating hall ticket preview:", err);
-            alert("Error generating hall ticket preview.");
+            if(err.status == 403){
+                alert("Student no found !!");
+            }
+            else if(err.status == 404){
+                alert("Mother name not match !!");
+            }
+        
         }
     };
 

@@ -4,9 +4,9 @@ import api from "../Api";
 const AddCenter = () => {
   const [centers, setCenters] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ centerName: "", capicity: "" });
-  const [editId, setEditId] = useState(null); // Track which row is being edited
-  const [editCapacity, setEditCapacity] = useState("");
+  const [formData, setFormData] = useState({ centerName: "", capicity: "", collegeName: "" });
+  const [editId, setEditId] = useState(null);
+  const [editData, setEditData] = useState({ capicity: "", collegeName: "" });
 
   useEffect(() => {
     fetchCenters();
@@ -16,7 +16,7 @@ const AddCenter = () => {
     api
       .get("/admin/getExamCenters")
       .then((response) => setCenters(response.data.data))
-      .catch((error) => console.error("Error fetching users", error));
+      .catch((error) => console.error("Error fetching centers", error));
   };
 
   const handleChange = (e) => {
@@ -25,7 +25,10 @@ const AddCenter = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newCenter = { ...formData, capicity: parseInt(formData.capicity) };
+    const newCenter = { 
+      ...formData, 
+      capicity: parseInt(formData.capicity) 
+    };
 
     api
       .post("/admin/addCenter", newCenter)
@@ -33,11 +36,11 @@ const AddCenter = () => {
         alert("Center added!");
         fetchCenters();
         setShowForm(false);
-        setFormData({ centerName: "", capicity: "" });
+        setFormData({ centerName: "", capicity: "", collegeName: "" });
       })
       .catch((error) => {
         console.error("Error adding center", error);
-        alert(error.response.data.message);
+        alert(error.response?.data?.message || "Error adding center");
       });
   };
 
@@ -51,19 +54,25 @@ const AddCenter = () => {
   };
 
   const handleEdit = (center) => {
-    setEditCapacity(center.capicity);
+    setEditData({ 
+      capicity: center.capicity, 
+      collegeName: center.collegeName 
+    });
     setEditId(center.centerId);
   };
 
   const handleSaveEdit = (centerId) => {
     api
-      .put(`/admin/editcapicity/${centerId}`, { capicity: parseInt(editCapacity) })
+      .put(`/admin/editcapicity/${centerId}`, { 
+        capicity: parseInt(editData.capicity), 
+        collegeName: editData.collegeName 
+      })
       .then(() => {
-        alert("Capacity updated!");
+        alert("Center details updated!");
         setEditId(null);
         fetchCenters();
       })
-      .catch((error) => console.error("Error updating capacity", error));
+      .catch((error) => console.error("Error updating center", error));
   };
 
   return (
@@ -82,6 +91,10 @@ const AddCenter = () => {
               <input type="text" name="centerName" value={formData.centerName} onChange={handleChange} required className="w-full p-2 border rounded-md" />
             </div>
             <div>
+              <label className="block text-gray-700 font-semibold">College Name:</label>
+              <input type="text" name="collegeName" value={formData.collegeName} onChange={handleChange} required className="w-full p-2 border rounded-md" />
+            </div>
+            <div>
               <label className="block text-gray-700 font-semibold">Capacity:</label>
               <input type="number" name="capicity" value={formData.capicity} onChange={handleChange} required className="w-full p-2 border rounded-md" />
             </div>
@@ -93,13 +106,14 @@ const AddCenter = () => {
         </div>
       )}
 
-      <div className="mt-6">
+      <div className="mt-6 overflow-x-auto">
         <table className="w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
               <th className="border p-2">Sr. No</th>
               <th className="border p-2">Center Id</th>
               <th className="border p-2">Center Name</th>
+              <th className="border p-2">College Name</th>
               <th className="border p-2">Capacity</th>
               <th className="border p-2">Actions</th>
             </tr>
@@ -113,24 +127,31 @@ const AddCenter = () => {
                   <td className="border p-2">{center.centerName}</td>
                   <td className="border p-2 text-center">
                     {editId === center.centerId ? (
-                      <input type="number" value={editCapacity} onChange={(e) => setEditCapacity(e.target.value)} className="w-20 p-1 border rounded-md" />
+                      <input type="text" value={editData.collegeName} onChange={(e) => setEditData({ ...editData, collegeName: e.target.value })} className="w-28 p-1 border rounded-md" />
+                    ) : (
+                      center.collegeName
+                    )}
+                  </td>
+                  <td className="border p-2 text-center">
+                    {editId === center.centerId ? (
+                      <input type="number" value={editData.capicity} onChange={(e) => setEditData({ ...editData, capicity: e.target.value })} className="w-20 p-1 border rounded-md" />
                     ) : (
                       center.capicity
                     )}
                   </td>
-                  <td className="border p-2 text-center">
+                  <td className="border p-2 text-center space-x-1">
                     {editId === center.centerId ? (
                       <button onClick={() => handleSaveEdit(center.centerId)} className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600">Save</button>
                     ) : (
                       <button onClick={() => handleEdit(center)} className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600">Edit</button>
                     )}
-                    <button onClick={() => handleDelete(center.centerId)} className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 ml-2">Delete</button>
+                    <button onClick={() => handleDelete(center.centerId)} className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 ml-1">Delete</button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="border p-2 text-center text-gray-500">No centers found</td>
+                <td colSpan="6" className="border p-2 text-center text-gray-500">No centers found</td>
               </tr>
             )}
           </tbody>

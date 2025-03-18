@@ -1,15 +1,22 @@
 import { useState, useEffect } from "react";
 import api from "../Api";
-import PaymentReceipt from "./PaymentRecipt";
 import DownloadReceipt from "./DownloadReceipt";
+import { useAuth } from "../Context/AuthContext";
+
 
 const PaymentTable = () => {
+  const {user} = useAuth();
+  console.log(user);
   const [paymentsData, setPaymentsData] = useState([]);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState("");
 
   useEffect(() => {
-    api.get("/counsellor/getPayments")
+    api.get("/counsellor/getPayments", {
+      params: {
+        uuid: user.uuid,
+    }
+    })
     .then(response => {
         setPaymentsData(response.data.studentData);
     })

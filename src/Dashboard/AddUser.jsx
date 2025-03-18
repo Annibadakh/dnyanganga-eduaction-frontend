@@ -141,6 +141,7 @@ const AddUser = () => {
               <th className="border p-2">Name</th>
               <th className="border p-2">Email</th>
               <th className="border p-2">Role</th>
+              <th className="border p-2">Contact No.</th>
               <th className="border p-2">Actions</th>
             </tr>
           </thead>
@@ -152,6 +153,7 @@ const AddUser = () => {
                   <td className="border p-2">{user.name}</td>
                   <td className="border p-2">{user.email}</td>
                   <td className="border p-2 text-center">{user.role}</td>
+                  <td className="border p-2 text-center">{user.contactNum}</td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => handleDelete(user.uuid)}
