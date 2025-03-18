@@ -15,6 +15,7 @@ const PaymentTable = () => {
     api.get("/counsellor/getPayments", {
       params: {
         uuid: user.uuid,
+        role: user.role,
     }
     })
     .then(response => {
@@ -84,7 +85,7 @@ const PaymentTable = () => {
                 </table>
             </div>
         </>
-      ) : <DownloadReceipt receiptData={receiptData}/>}
+      ) : <DownloadReceipt receiptData={receiptData} setShowReceipt={setShowReceipt}/>}
     </div>
   );
 };

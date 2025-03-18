@@ -1,20 +1,16 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-
-
 const RegistrationForm = () => {
-  const {user} = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
   const [imageUrl, setImageUrl] = useState("");
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [photoCaptured, setPhotoCaptured] = useState(false);
-  const [photoFile, setFile] = useState();
+  const [photoFile, setFile] = useState(null);
   const [isPhotoSaved, setSaved] = useState(false);
+  const [fileError, setFileError] = useState("");
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
@@ -38,6 +34,7 @@ const RegistrationForm = () => {
     dueDate: "",
   });
   const [examCentres, setExamCentres] = useState([]);
+  
   useEffect(() => {
     api
       .get("/admin/getExamCenters")
@@ -51,71 +48,65 @@ const RegistrationForm = () => {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    if (name === "standard") {
+      if (value === "10th") {
+        setFormData({
+          ...formData,
+          [name]: value,
+          branch: "ALL"
+        });
+        setShowBranchDropdown(false);
+      } else if (value === "12th") {
+        setFormData({
+          ...formData,
+          [name]: value,
+          branch: ""
+        });
+        setShowBranchDropdown(true);
+      } else {
+        setFormData({
+          ...formData,
+          [name]: value,
+          branch: ""
+        });
+        setShowBranchDropdown(false);
+      }
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+    
     console.log(formData);
   };
 
-  const openCamera = () => {
-    setIsCameraOpen(true);
-  
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
     
-    navigator.mediaDevices
-      .getUserMedia({
-        video: {
-          aspectRatio: 0.78, 
-          facingMode: isMobile ? { exact: "environment" } : "user", 
-        },
-      })
-      .then((stream) => {
-        videoRef.current.srcObject = stream;
-      })
-      .catch((err) => console.error("Error accessing camera:", err));
-  };
-  
-  
-
-
-  const closeCamera = () => {
-    setIsCameraOpen(false);
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject;
-      const tracks = stream.getTracks();
-      tracks.forEach(track => track.stop());
-      videoRef.current.srcObject = null;
+    if (!file) return;
+    
+    // Check file type - only allow JPG and JPEG
+    const validTypes = ['image/jpeg', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      setFileError("Only JPG and JPEG files are supported");
+      return;
     }
+    
+    setFileError("");
+    setFile(file);
+    setImageUrl(URL.createObjectURL(file));
   };
 
-  
-  const captureImage = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
-  
-    canvas.width = 132;
-    canvas.height = 170;
-  
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
-    canvas.toBlob((blob) => {
-      const file = new File([blob], "passport_photo.jpg", { type: "image/jpeg" });
-      setImageUrl(URL.createObjectURL(blob));
-      setFile(file);
-      setPhotoCaptured(true);
-    }, "image/jpeg");
-
-    closeCamera();
+  const removePhoto = () => {
+    setImageUrl("");
+    setFile(null);
+    setSaved(false);
+    setFileError("");
   };
-  
-
-  const retakePhoto = () => {
-    setPhotoCaptured(false);
-    setImageUrl(""); 
-    openCamera();
-  };
-  
 
   const uploadImage = async () => {
+    if (!photoFile) return;
+
     const imageData = new FormData();
     imageData.append("file", photoFile);
 
@@ -128,7 +119,6 @@ const RegistrationForm = () => {
         setImageUrl(`http://localhost:5000${response.data.imageUrl}`);
         console.log(response.data.imageUrl);
         setFormData({ ...formData, studentPhoto: response.data.imageUrl });
-        setIsCameraOpen(false);
         setSaved(true);
       }
     } catch (error) {
@@ -165,6 +155,7 @@ const RegistrationForm = () => {
       console.error("Error submitting form:", error);
     }
   };
+  
   const getAvailableCentres = (selected) => {
     return examCentres.filter(
       (centre) =>
@@ -182,22 +173,38 @@ const RegistrationForm = () => {
             <div>
               {imageUrl ? (
                 <>
-                  <img src={`${imageUrl}`} alt="Captured" className="w-[132px] h-[170px] rounded-lg" />
+                  <img src={`${imageUrl}`} alt="Uploaded" className="w-[132px] h-[170px] rounded-lg object-cover" />
                   <div className="flex flex-row gap-4 items-center">
-                  {!isPhotoSaved && (
-                    <button type="button" onClick={retakePhoto} className="btn mt-2">
-                    Retake Photo
-                  </button>
-                  )}
-                  <button type="button" onClick={uploadImage} className="btn mt-2" disabled={isPhotoSaved}>
-                    {isPhotoSaved ? "Saved !!": "Save" }
-                  </button>
+                    {!isPhotoSaved && (
+                      <button type="button" onClick={removePhoto} className="btn mt-2">
+                        Remove Photo
+                      </button>
+                    )}
+                    <button type="button" onClick={uploadImage} className="btn mt-2" disabled={isPhotoSaved}>
+                      {isPhotoSaved ? "Saved !!" : "Save" }
+                    </button>
                   </div>
                 </>
               ) : (
-                <button type="button" onClick={openCamera} className="btn">
-                  Capture Photo
-                </button>
+                <div className="flex flex-col gap-2">
+                  <label className="block">
+                    <span className="sr-only">Choose photo</span>
+                    <input 
+                      type="file" 
+                      onChange={handleFileUpload} 
+                      accept=".jpg,.jpeg"
+                      className="block w-full text-sm text-slate-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-violet-50 file:text-violet-700
+                        hover:file:bg-violet-100
+                      "
+                    />
+                  </label>
+                  {fileError && <p className="text-red-500 text-sm">{fileError}</p>}
+                  <p className="text-sm text-gray-500">Only JPG and JPEG files are supported</p>
+                </div>
               )}
             </div>
             <h3 className="text-xl font-bold mt-5">Personal Details: </h3>
@@ -215,9 +222,32 @@ const RegistrationForm = () => {
             </div>
             <h3 className="text-xl font-bold mt-5">Educational Details: </h3>
             <div className="grid gird-col-1 md:grid-cols-2 gap-4">
-            <input type="text" name="standard" onChange={handleChange} placeholder="Standard" className="input" />
-            <input type="text" name="schoolCollege" onChange={handleChange} placeholder="School/College" className="input" />
-            <input type="text" name="branch" onChange={handleChange} placeholder="Branch" className="input" />
+              <select name="standard" onChange={handleChange} className="input">
+                <option value="">Select Standard</option>
+                <option value="10th">10th</option>
+                <option value="12th">12th</option>
+              </select>
+              
+              {showBranchDropdown ? (
+                <select name="branch" value={formData.branch} onChange={handleChange} className="input">
+                  <option value="">Select Branch</option>
+                  <option value="PCM">PCM</option>
+                  <option value="PCB">PCB</option>
+                  <option value="PCMB">PCMB</option>
+                </select>
+              ) : (
+                <input 
+                  type="text" 
+                  name="branch" 
+                  value={formData.branch} 
+                  onChange={handleChange} 
+                  placeholder="Branch" 
+                  className="input" 
+                  readOnly={formData.standard === "10th"}
+                />
+              )}
+              
+              <input type="text" name="schoolCollege" onChange={handleChange} placeholder="School/College" className="input" />
             </div>
             <h3 className="text-xl font-bold mt-5">Contact Details: </h3>
             <div className="grid gird-col-1 md:grid-cols-2 gap-4">
@@ -282,26 +312,6 @@ const RegistrationForm = () => {
           
           {isPhotoSaved && <button type="submit" className="btn w-full">Submit</button>}
         </form>
-      {isCameraOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-4 rounded-lg shadow-lg">
-              {!photoCaptured ? (
-                <>
-                  <video ref={videoRef} autoPlay className="w-64 h-48"></video>
-                  <canvas ref={canvasRef} className="hidden"></canvas>
-                  <button onClick={captureImage} className="btn mt-2">Capture</button>
-                </>
-              ) : (
-                <>
-                  <img src={imageUrl} alt="Captured" className="w-64 h-48 rounded-lg" />
-                  <button onClick={retakePhoto} className="btn mt-2">Retake Photo</button>
-                </>
-              )}
-              <button onClick={closeCamera} className="btn ml-4 mt-2">Close</button>
-            </div>
-          </div>
-        )}
-
     </div>
   );
 }

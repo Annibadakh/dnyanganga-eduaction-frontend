@@ -1,14 +1,11 @@
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import PaymentReceipt from "./PaymentRecipt";
-import { useNavigate } from "react-router-dom";
 
-
-const DownloadReceipt = ({receiptData}) => {
+const DownloadReceipt = ({receiptData, setShowReceipt}) => {
   console.log("receipt data",receiptData);
-  const navigate = useNavigate();
   
   const handleClick = (e) => {
-      navigate("/dashboard/registertable")
+    setShowReceipt(false);
   }
   return (
     <div className="p-4 border rounded-lg shadow-lg max-w-md mx-auto">

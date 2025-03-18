@@ -28,6 +28,7 @@ function App() {
           <Route path='/' element={<Main />} />
           <Route path="login" element={<Login />} />
           <Route path="hallticket" element={<HallTicket />} />
+          <Route path='register' element={<RegistrationForm />} />
           <Route element={<ProtectedRoute />}>
             <Route path='dashboard' element={<Dashboard />}>
               <Route path="" element={<Home />}/>
