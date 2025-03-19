@@ -28,7 +28,7 @@ const HallTicket = () => {
 
             const url = URL.createObjectURL(response.data);
             setPdfUrl(url);
-            setFormData({studentName: "", studentId: "", motherName: "",});
+            // setFormData({studentName: "", studentId: "", motherName: "",});
             setShowPreview(true);
         } catch (err) {
             if(err.status == 403){

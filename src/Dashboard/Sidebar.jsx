@@ -7,7 +7,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     const links = [
         { path: "home", label: "Home" },
         { path: "profile", label: "Profile", role: "teacher" },
-        { path: "settings", label: "Settings" },
+        { path: "settings", label: "Settings", role: "admin" },
         { path: "visiting", label: "Visiting Form", role: "counsellor"},
         { path: "register", label: "Registration Form", role: "counsellor"},
         { path: "registertable", label: "Register Table"},
@@ -22,7 +22,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
         <>
         
         <aside className={`absolute z-50 top-0 bottom-0 left-0 sm:relative bg-fourthcolor text-white transition-all duration-200 
-        ${isSidebarOpen ? "w-64 p-4" : "w-0 overflow-hidden"}`}>
+        ${isSidebarOpen ? "w-56 p-4" : "w-0 overflow-hidden"}`}>
             <nav className={`${isSidebarOpen ? "block" : "hidden"}`}>
                 <ul>
                     {links.map(({ path, label, role }) => {
