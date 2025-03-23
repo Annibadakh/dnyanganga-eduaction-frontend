@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import api from "../Api";
-import DownloadReceipt from "./DownloadReceipt";
 
 
-const PaymentForm = (paymentData) => {
+const PaymentForm = ({paymentData, setShoePayment}) => {
     const student = paymentData;
+    console.log(paymentData, student);
     const [paymentMode, setPaymentMode] = useState("");
     const [responseData, setResponse] = useState();
-    const [submitted, setSubmitted] = useState(false);
     const [amount, setAmount] = useState("");
     const [newDueDate, setNewDueDate] = useState("");
     const [newRemainingAmount, setNewRemainingAmount] = useState(student?.amountRemaining || 0);
@@ -18,6 +17,9 @@ const PaymentForm = (paymentData) => {
         return <p className="text-red-500">No student selected for payment.</p>;
     }
 
+    const handleClick = (e) => {
+        setShoePayment(false);
+    } 
     const handleDate = (e) => {
         setNewDueDate(e.target.value) || "";
         console.log(newDueDate);
@@ -65,7 +67,7 @@ const PaymentForm = (paymentData) => {
             const response = await api.post("/counsellor/makePayment", formData);
             setResponse(response);
             alert("Payment Successfull !!");
-            setSubmitted(true);
+            setShoePayment(false);
         } catch (err) {
             setError("Failed to process payment. Please try again.");
         }
@@ -73,8 +75,6 @@ const PaymentForm = (paymentData) => {
 
     return (
         <div className="max-w-lg mx-auto p-6 border rounded shadow-lg">
-            {!submitted ? (
-                <>
                 <h2 className="text-2xl font-bold mb-4">Payment Form</h2>
             {error && <p className="text-red-500">{error}</p>}
             <form onSubmit={handleSubmit}>
@@ -108,13 +108,15 @@ const PaymentForm = (paymentData) => {
                     </select>
                 </div>
                 
-                {!error && (
-                    <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Submit Payment
-                </button>
-                )}
-            </form></>
-            ) : <DownloadReceipt receiptData={responseData.data}/>}
+                <div>
+                    {!error && (
+                        <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Submit Payment
+                    </button>
+                    )}
+                    <button className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600" onClick={handleClick}>Back</button>
+                </div>
+                </form>
         </div>
     );
 };

@@ -117,7 +117,7 @@ const RegistrationTable = () => {
                         !loading && <p>No registrations found.</p>
                     )}
                 </>
-            ) : <PaymentForm paymentData={paymentData} />}
+            ) : <PaymentForm paymentData={paymentData} setShoePayment={setShoePayment} />}
         </div>
     );
 };

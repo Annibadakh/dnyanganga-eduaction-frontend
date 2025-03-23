@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import './App.css'
-
+import './App.css';
+import { useState, useEffect } from 'react';
 import Main from './Components/Main';
 import Login from "./Components/Login";
 import HallTicket from "./Components/HallTicket";
@@ -16,10 +16,23 @@ import RegistrationForm from "./Dashboard/RegistrationForm";
 import AddUser from "./Dashboard/AddUser";
 import AddCenter from "./Dashboard/AddCenter";
 import PaymentTable from "./Dashboard/PaymentTable";
-
+import Result from "./Components/Result";
+import axios from "axios";
 
 function App() {
-
+  const [hallTicket, setHallTicket] = useState(false);
+  const [resultDeclared, setResultDeclared] = useState(false);
+  useEffect(() => {
+    axios.get('http://localhost:5000/api/admin/getSettingFlags')
+      .then(res => {
+        const data = res.data.data;
+        const hallTicketFlag = data.find(flag => flag.flagName === 'HALLTICKET');
+        const resultDeclaredFlag = data.find(flag => flag.flagName === 'RESULT');
+        if (hallTicketFlag) setHallTicket(hallTicketFlag.flagValue === 'true');
+        if (resultDeclaredFlag) setResultDeclared(resultDeclaredFlag.flagValue === 'true');
+      })
+      .catch(err => console.error('Error fetching flags', err));
+  }, []);
   return (
     
     <div className="font-custom">
@@ -27,7 +40,8 @@ function App() {
         <Routes>    
           <Route path='/' element={<Main />} />
           <Route path="login" element={<Login />} />
-          <Route path="hallticket" element={<HallTicket />} />
+          <Route path="hallticket" element={hallTicket ? <HallTicket /> : <h2>Hall Ticket not yet declare !!</h2>} />
+          <Route path="result" element={resultDeclared ? <Result /> : <h2>Result not yet declare</h2>} />
           <Route path='register' element={<RegistrationForm />} />
           <Route element={<ProtectedRoute />}>
             <Route path='dashboard' element={<Dashboard />}>

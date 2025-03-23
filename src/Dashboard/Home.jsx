@@ -31,7 +31,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div className=" bg-gray-100 flex justify-center">
       <div className="p-8 bg-white rounded-xl shadow-xl space-y-6 w-80">
         <h1 className="text-xl font-semibold text-center">Admin Controls</h1>
 
