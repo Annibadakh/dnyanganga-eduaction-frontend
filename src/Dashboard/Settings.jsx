@@ -1,12 +1,9 @@
 // SubjectManagement.jsx
 import { useState, useEffect } from 'react';
-import api
- from '../Api';
+import api from '../Api';
+
 function Settings() {
-  // State for subjects list
   const [subjects, setSubjects] = useState([]);
-  
-  // State for form data
   const [formData, setFormData] = useState({
     subjectCode: '',
     subjectName: '',
@@ -14,8 +11,8 @@ function Settings() {
     standard: '',
   });
   
-  // State for exam modal
   const [showModal, setShowModal] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [examData, setExamData] = useState({
     examDate: '',
@@ -26,12 +23,10 @@ function Settings() {
   const [formError, setFormError] = useState(null);
   const [modalError, setModalError] = useState(null);
 
-  // Fetch all subjects on component mount
   useEffect(() => {
     fetchSubjects();
   }, []);
 
-  // Fetch subjects from API
   const fetchSubjects = async () => {
     try {
       const response = await api.get('/admin/getsubjects');
@@ -52,7 +47,6 @@ function Settings() {
     });
   };
 
-  // Handle input change for exam form
   const handleExamFormChange = (e) => {
     const { name, value } = e.target;
     setExamData({
@@ -61,11 +55,9 @@ function Settings() {
     });
   };
 
-  // Handle subject form submission
   const handleSubjectSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form
     if (!formData.subjectCode || !formData.subjectName || !formData.language) {
       setFormError('All fields are required');
       return;
@@ -73,7 +65,7 @@ function Settings() {
     
     try {
       const response = await api.post('/admin/addSubject', formData);
-      setSubjects([...subjects, response.data]);
+      fetchSubjects();
       
       setFormData({
         subjectCode: '',
@@ -82,6 +74,7 @@ function Settings() {
         standard: '',
       });
       setFormError(null);
+      setShowAddForm(false); // Close the form after successful submission
     } catch (err) {
       console.error('Error adding subject:', err);
       setFormError(err.response?.data?.message || 'Failed to add subject');
@@ -98,34 +91,41 @@ function Settings() {
     setModalError(null);
   };
 
-  // Close exam modal
   const closeExamModal = () => {
     setShowModal(false);
     setSelectedSubject(null);
     setModalError(null);
   };
 
-  // Handle exam form submission
+  const openAddForm = () => {
+    setShowAddForm(true);
+    setFormError(null);
+  };
+
+  const closeAddForm = () => {
+    setShowAddForm(false);
+    setFormData({
+      subjectCode: '',
+      subjectName: '',
+      language: '',
+      standard: '',
+    });
+    setFormError(null);
+  };
+
   const handleExamSubmit = async (e) => {
     e.preventDefault();
     
     if (!selectedSubject) return;
     
-    // Validate form
     if (!examData.examDate || !examData.examTime) {
       setModalError('Both exam date and time are required');
       return;
     }
     
     try {
-      const response = await api.put(`/admin/addDates/${selectedSubject.subjectCode}`, examData);
-      
-      // Fix for the error - correctly access nested data in the response
-      const updatedSubject = response.data.data || response.data;
-      
-      setSubjects(subjects.map(subject => 
-        subject.subjectCode === selectedSubject.subjectCode ? updatedSubject : subject
-      ));
+      await api.put(`/admin/addDates/${selectedSubject.subjectCode}`, examData);  
+      fetchSubjects();
       
       closeExamModal();
     } catch (err) {
@@ -134,106 +134,127 @@ function Settings() {
     }
   };
 
-  // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return 'Not set';
     return new Date(dateString).toLocaleDateString();
   };
 
-  // Format time for display
   const formatTime = (timeString) => {
     if (!timeString) return 'Not set';
-    return timeString.substring(0, 5); // Format: HH:MM
+    return timeString.substring(0, 5); 
   };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Subject Management System</h1>
       
-      {/* Subject Form */}
-      <div className="bg-white p-6 rounded shadow mb-6">
-        <h2 className="text-xl font-semibold mb-4">Add New Subject</h2>
-        
-        {formError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {formError}
-          </div>
-        )}
-        
-        <form onSubmit={handleSubjectSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-gray-700 mb-2" htmlFor="subjectCode">
-                Subject Code*
-              </label>
-              <input
-                type="number"
-                id="subjectCode"
-                name="subjectCode"
-                value={formData.subjectCode}
-                onChange={handleFormChange}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-gray-700 mb-2" htmlFor="subjectName">
-                Subject Name*
-              </label>
-              <input
-                type="text"
-                id="subjectName"
-                name="subjectName"
-                value={formData.subjectName}
-                onChange={handleFormChange}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-gray-700 mb-2" htmlFor="language">
-                Language*
-              </label>
-              <input
-                type="text"
-                id="language"
-                name="language"
-                value={formData.language}
-                onChange={handleFormChange}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-gray-700 mb-2" htmlFor="standard">
-                Standard*
-              </label>
-              <select
-                id="standard"
-                name="standard"
-                value={formData.standard}
-                onChange={handleFormChange}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              >
-                <option value="">Select Standard</option>
-                <option value="10th">10th</option>
-                <option value="12th">12th</option>
-              </select>
-            </div>
-          </div>
-          
+      {/* Add Subject Button */}
+      {!showAddForm && (
+        <div className="mb-6">
           <button
-            type="submit"
-            className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={openAddForm}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
             Add Subject
           </button>
-        </form>
-      </div>
+        </div>
+      )}
+      
+      {/* Add Subject Form */}
+      {showAddForm && (
+        <div className="bg-white p-6 rounded shadow mb-6">
+          <h2 className="text-xl font-semibold mb-4">Add New Subject</h2>
+          
+          {formError && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              {formError}
+            </div>
+          )}
+          
+          <form onSubmit={handleSubjectSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-gray-700 mb-2" htmlFor="subjectCode">
+                  Subject Code*
+                </label>
+                <input
+                  type="number"
+                  id="subjectCode"
+                  name="subjectCode"
+                  value={formData.subjectCode}
+                  onChange={handleFormChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2" htmlFor="subjectName">
+                  Subject Name*
+                </label>
+                <input
+                  type="text"
+                  id="subjectName"
+                  name="subjectName"
+                  value={formData.subjectName}
+                  onChange={handleFormChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2" htmlFor="language">
+                  Language*
+                </label>
+                <input
+                  type="text"
+                  id="language"
+                  name="language"
+                  value={formData.language}
+                  onChange={handleFormChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2" htmlFor="standard">
+                  Standard*
+                </label>
+                <select
+                  id="standard"
+                  name="standard"
+                  value={formData.standard}
+                  onChange={handleFormChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                >
+                  <option value="">Select Standard</option>
+                  <option value="10th">10th</option>
+                  <option value="12th">12th</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-2 mt-4">
+              <button
+                type="button"
+                onClick={closeAddForm}
+                className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       
       {/* Subjects Table */}
       <div className="bg-white p-6 rounded shadow">
