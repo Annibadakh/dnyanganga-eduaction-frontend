@@ -165,71 +165,144 @@ const RegistrationForm = () => {
   };
 
   return (
-    <div className="w-auto mx-auto mt-0 p-5 border rounded-lg shadow-md bg-white">
-      <h2 className="text-2xl font-bold text-center mb-5">Student Registration</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col gap-4">
-            <h3 className="text-xl font-bold mt-5">Student Photo</h3>
-            <div>
+  <div className="w-full bg-white">
+    <div className="container px-1 py-1 w-full">
+      <div className="w-full bg-white">
+        <div className="bg-primary text-white text-center py-4">
+          <h2 className="text-2xl font-bold">Student Registration Form</h2>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 w-full">
+          {/* Photo Upload Section */}
+          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Photo</h3>
+            <div className="flex flex-col items-center w-full">
               {imageUrl ? (
                 <>
-                  <img src={`${imageUrl}`} alt="Uploaded" className="w-[132px] h-[170px] rounded-lg object-cover" />
-                  <div className="flex flex-row gap-4 items-center">
+                  <img 
+                    src={`${imageUrl}`} 
+                    alt="Uploaded" 
+                    className="w-56 max-w-md h-auto object-cover rounded-md mb-4"
+                  />
+                  <div className="flex space-x-4 w-full justify-center">
                     {!isPhotoSaved && (
-                      <button type="button" onClick={removePhoto} className="btn mt-2">
+                      <button 
+                        type="button" 
+                        onClick={removePhoto} 
+                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                      >
                         Remove Photo
                       </button>
                     )}
-                    <button type="button" onClick={uploadImage} className="btn mt-2" disabled={isPhotoSaved}>
-                      {isPhotoSaved ? "Saved !!" : "Save" }
+                    <button 
+                      type="button" 
+                      onClick={uploadImage} 
+                      disabled={isPhotoSaved}
+                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50"
+                    >
+                      {isPhotoSaved ? "Photo Saved" : "Save Photo"}
                     </button>
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col gap-2">
-                  <label className="block">
-                    <span className="sr-only">Choose photo</span>
-                    <input 
-                      type="file" 
-                      onChange={handleFileUpload} 
-                      accept=".jpg,.jpeg"
-                      className="block w-full text-sm text-slate-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-full file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-violet-50 file:text-violet-700
-                        hover:file:bg-violet-100
-                      "
-                    />
-                  </label>
-                  {fileError && <p className="text-red-500 text-sm">{fileError}</p>}
-                  <p className="text-sm text-gray-500">Only JPG and JPEG files are supported</p>
+                <div className="w-full">
+                  <input 
+                    type="file" 
+                    onChange={handleFileUpload} 
+                    accept=".jpg,.jpeg"
+                    className="w-full px-3 py-2 border rounded"
+                  />
+                  {fileError && <p className="text-red-500 text-sm mt-2">{fileError}</p>}
+                  <p className="text-sm text-gray-500 mt-2">Supported formats: JPG, JPEG</p>
                 </div>
               )}
             </div>
-            <h3 className="text-xl font-bold mt-5">Personal Details: </h3>
-            <div className="grid gird-col-1 md:grid-cols-2 gap-4">
-            <input type="text" name="studentName" onChange={handleChange} placeholder="Student Name" className="input" />
-            <select name="gender" onChange={handleChange} className="input">
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-            <input type="date" name="dob" onChange={handleChange} placeholder="DOB" className="input" />
-            <input type="text" name="motherName" onChange={handleChange} placeholder="Mother's Name" className="input" />
-            <input type="text" name="address" onChange={handleChange} placeholder="Address" className="input" />
-            <input type="text" name="pincode" onChange={handleChange} placeholder="PINCODE" className="input" />
+          </div>
+
+          {/* Personal Details Section */}
+          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">Personal Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <input 
+                type="text" 
+                name="studentName" 
+                onChange={handleChange} 
+                placeholder="Student Name" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+              />
+              <select 
+                name="gender" 
+                onChange={handleChange} 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+              <div className="w-full flex flex-row items-center gap-1">
+                <label className="w-32 text-sm text-gray-600">Date of Birth:</label>
+                <input 
+                  type="date" 
+                  name="dob" 
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                />
+              </div>
+              <input 
+                type="text" 
+                name="motherName" 
+                onChange={handleChange} 
+                placeholder="Mother's Name" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+              />
+              <input 
+                type="text" 
+                name="address" 
+                onChange={handleChange} 
+                placeholder="Address" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
+                required
+              />
+              <input 
+                type="text" 
+                name="pincode" 
+                onChange={handleChange} 
+                placeholder="PINCODE" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+                pattern="\d{6}"
+                title="Pincode must be 6 digits"
+              />
             </div>
-            <h3 className="text-xl font-bold mt-5">Educational Details: </h3>
-            <div className="grid gird-col-1 md:grid-cols-2 gap-4">
-              <select name="standard" onChange={handleChange} className="input">
+          </div>
+
+          {/* Educational Details Section */}
+          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">Educational Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <select 
+                name="standard" 
+                onChange={handleChange} 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+              >
                 <option value="">Select Standard</option>
                 <option value="10th">10th</option>
                 <option value="12th">12th</option>
               </select>
               
               {showBranchDropdown ? (
-                <select name="branch" value={formData.branch} onChange={handleChange} className="input">
+                <select 
+                  name="branch" 
+                  value={formData.branch} 
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
                   <option value="">Select Branch</option>
                   <option value="PCM">PCM</option>
                   <option value="PCB">PCB</option>
@@ -242,78 +315,187 @@ const RegistrationForm = () => {
                   value={formData.branch} 
                   onChange={handleChange} 
                   placeholder="Branch" 
-                  className="input" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   readOnly={formData.standard === "10th"}
+                  required
                 />
               )}
               
-              <input type="text" name="schoolCollege" onChange={handleChange} placeholder="School/College" className="input" />
-            </div>
-            <h3 className="text-xl font-bold mt-5">Contact Details: </h3>
-            <div className="grid gird-col-1 md:grid-cols-2 gap-4">
-            <input type="email" name="email" onChange={handleChange} placeholder="Email" className="input" />
-            <input type="text" name="studentNo" onChange={handleChange} placeholder="Student No" className="input" />
-            <input type="text" name="parentsNo" onChange={handleChange} placeholder="Parents No" className="input" />
-            </div>
-            <h3 className="text-xl font-bold mt-5">Exam Centre </h3>
-            <div className="grid gird-col-1 md:grid-cols-2 gap-4">
-            <label>First Preference:</label>
-            <select name="firstPref" onChange={handleChange}>
-              <option value="">Select</option>
-              {examCentres.map((centre) => (
-                <option key={centre.centerId} value={centre.centerName}>
-                  {centre.centerName}
-                </option>
-              ))}
-            </select>
-
-            <label>Second Preference:</label>
-            <select
-              name="secondPref"
-              onChange={handleChange}
-              disabled={!formData.firstPref}
-            >
-              <option value={formData.secondPref}>Select</option>
-              {getAvailableCentres(formData.secondPref).map((centre) => (
-                <option key={centre.centerId} value={centre.centerName}>
-                  {centre.centerName}
-                </option>
-              ))}
-            </select>
-
-            <label>Third Preference:</label>
-            <select
-              name="thirdPref"
-              onChange={handleChange}
-              disabled={!formData.secondPref}
-            >
-              <option value="">Select</option>
-              {getAvailableCentres(formData.thirdPref).map((centre) => (
-                <option key={centre.centerId} value={centre.centerName}>
-                  {centre.centerName}
-                </option>
-              ))}
-            </select>
+              <input 
+                type="text" 
+                name="schoolCollege" 
+                onChange={handleChange} 
+                placeholder="School/College" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
+                required
+              />
             </div>
           </div>
-          
-          <h3 className="text-xl font-bold mt-5">Payment Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input type="text" name="amountPaid" onChange={handleChange} placeholder="Amount Paid" className="input" />
-            <select name="modeOfPayment" onChange={handleChange} className="input">
-              <option value="">Select Payment Mode</option>
-              <option value="Cash">Cash</option>
-              <option value="Card">Card</option>
-              <option value="Online">Online</option>
-            </select>
-            <input type="text" name="amountRemaining" onChange={handleChange} placeholder="Amount Remaining" className="input" />
-            <input type="date" name="dueDate" onChange={handleChange} placeholder="Due Date" className="input" />
+
+          {/* Contact Details Section */}
+          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">Contact Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <input 
+                type="email" 
+                name="email" 
+                onChange={handleChange} 
+                placeholder="Email" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+              />
+              <input 
+                type="tel" 
+                name="studentNo" 
+                onChange={handleChange} 
+                placeholder="Student No" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+                pattern="[0-9]{10}"
+                title="Phone number must be 10 digits"
+              />
+              <input 
+                type="tel" 
+                name="parentsNo" 
+                onChange={handleChange} 
+                placeholder="Parents No" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+                pattern="[0-9]{10}"
+                title="Phone number must be 10 digits"
+              />
+            </div>
+          </div>
+
+          {/* Exam Centre Section */}
+          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">Exam Centre Preferences</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <div>
+                <label className="block mb-2 text-sm text-gray-600">First Preference:</label>
+                <select 
+                  name="firstPref" 
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
+                  <option value="">Select</option>
+                  {examCentres.map((centre) => (
+                    <option key={centre.centerId} value={centre.centerName}>
+                      {centre.centerName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-2 text-sm text-gray-600">Second Preference:</label>
+                <select
+                  name="secondPref"
+                  onChange={handleChange}
+                  disabled={!formData.firstPref}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50"
+                  required
+                >
+                  <option value="">Select</option>
+                  {getAvailableCentres(formData.secondPref).map((centre) => (
+                    <option key={centre.centerId} value={centre.centerName}>
+                      {centre.centerName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block mb-2 text-sm text-gray-600">Third Preference:</label>
+                <select
+                  name="thirdPref"
+                  onChange={handleChange}
+                  disabled={!formData.secondPref}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50"
+                  required
+                >
+                  <option value="">Select</option>
+                  {getAvailableCentres(formData.thirdPref).map((centre) => (
+                    <option key={centre.centerId} value={centre.centerName}>
+                      {centre.centerName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Details Section */}
+          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">Payment Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <input 
+                type="number" 
+                name="amountPaid" 
+                onChange={handleChange} 
+                placeholder="Amount Paid" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+                min="0"
+              />
+              <select 
+                name="modeOfPayment" 
+                onChange={handleChange} 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+              >
+                <option value="">Select Payment Mode</option>
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+                <option value="Online">Online</option>
+              </select>
+              <input 
+                type="number" 
+                name="amountRemaining" 
+                onChange={handleChange} 
+                placeholder="Amount Remaining" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+                min="0"
+              />
+              <div className="w-full flex flex-row items-center gap-1">
+                <label className="w-24 text-sm text-gray-600">Due Date:</label>
+                <input 
+                  type="date" 
+                  name="dueDate" 
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+          <button 
+              type="reset" 
+              className="w-full py-3 bg-primary text-white rounded hover:bg-opacity-90 transition"
+            >
+              Reset
+            </button>
+          {isPhotoSaved && (
+            <button 
+              type="submit" 
+              className="w-full py-3 bg-primary text-white rounded hover:bg-opacity-90 transition"
+            >
+              Submit
+            </button>
+          )}
           </div>
           
-          {isPhotoSaved && <button type="submit" className="btn w-full">Submit</button>}
         </form>
+      </div>
     </div>
-  );
+  </div>
+);
+  
+  
 }
 
 export default RegistrationForm;

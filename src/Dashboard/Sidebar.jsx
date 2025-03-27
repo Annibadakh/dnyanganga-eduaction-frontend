@@ -21,7 +21,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     return(
         <>
         
-        <aside className={`absolute z-50 top-0 bottom-0 left-0 sm:relative bg-fourthcolor text-white transition-all duration-200 
+        <aside className={`absolute z-50 top-0 bottom-0 left-0 sm:relative bg-primary text-white transition-all duration-200 
         ${isSidebarOpen ? "w-56 p-4" : "w-0 overflow-hidden"}`}>
             <nav className={`${isSidebarOpen ? "block" : "hidden"}`}>
                 <ul>
