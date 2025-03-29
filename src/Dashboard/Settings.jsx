@@ -145,36 +145,36 @@ function Settings() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Subject Management System</h1>
-      
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6 text-primary">Subject Management System</h1>
+  
       {/* Add Subject Button */}
       {!showAddForm && (
         <div className="mb-6">
           <button
             onClick={openAddForm}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-primary hover:bg-secondary text-customwhite font-bold py-2 px-4 rounded shadow-custom"
           >
             Add Subject
           </button>
         </div>
       )}
-      
+  
       {/* Add Subject Form */}
       {showAddForm && (
-        <div className="bg-white p-6 rounded shadow mb-6">
-          <h2 className="text-xl font-semibold mb-4">Add New Subject</h2>
-          
+        <div className="bg-customwhite p-6 rounded shadow-custom mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-secondary">Add New Subject</h2>
+  
           {formError && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
               {formError}
             </div>
           )}
-          
+  
           <form onSubmit={handleSubjectSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-gray-700 mb-2" htmlFor="subjectCode">
+                <label className="block text-customblack mb-2" htmlFor="subjectCode">
                   Subject Code*
                 </label>
                 <input
@@ -183,13 +183,13 @@ function Settings() {
                   name="subjectCode"
                   value={formData.subjectCode}
                   onChange={handleFormChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-customgray rounded"
                   required
                 />
               </div>
-              
+  
               <div>
-                <label className="block text-gray-700 mb-2" htmlFor="subjectName">
+                <label className="block text-customblack mb-2" htmlFor="subjectName">
                   Subject Name*
                 </label>
                 <input
@@ -198,13 +198,13 @@ function Settings() {
                   name="subjectName"
                   value={formData.subjectName}
                   onChange={handleFormChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-customgray rounded"
                   required
                 />
               </div>
-              
+  
               <div>
-                <label className="block text-gray-700 mb-2" htmlFor="language">
+                <label className="block text-customblack mb-2" htmlFor="language">
                   Language*
                 </label>
                 <input
@@ -213,13 +213,13 @@ function Settings() {
                   name="language"
                   value={formData.language}
                   onChange={handleFormChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-customgray rounded"
                   required
                 />
               </div>
-              
+  
               <div>
-                <label className="block text-gray-700 mb-2" htmlFor="standard">
+                <label className="block text-customblack mb-2" htmlFor="standard">
                   Standard*
                 </label>
                 <select
@@ -227,7 +227,7 @@ function Settings() {
                   name="standard"
                   value={formData.standard}
                   onChange={handleFormChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-customgray rounded"
                   required
                 >
                   <option value="">Select Standard</option>
@@ -236,18 +236,18 @@ function Settings() {
                 </select>
               </div>
             </div>
-            
+  
             <div className="flex justify-end space-x-2 mt-4">
               <button
                 type="button"
                 onClick={closeAddForm}
-                className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
+                className="bg-fourthcolor hover:bg-gray-400 text-customblack font-bold py-2 px-4 rounded"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-primary hover:bg-secondary text-customwhite font-bold py-2 px-4 rounded shadow-custom"
               >
                 Submit
               </button>
@@ -255,22 +255,22 @@ function Settings() {
           </form>
         </div>
       )}
-      
+  
       {/* Subjects Table */}
-      <div className="bg-white p-6 rounded shadow">
-        <h2 className="text-xl font-semibold mb-4">Subjects List</h2>
-        
+      <div className="bg-customwhite p-6 rounded shadow-custom">
+        <h2 className="text-xl font-semibold mb-4 text-secondary">Subjects List</h2>
+  
         {error ? (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             {error}
           </div>
         ) : subjects.length === 0 ? (
-          <p>No subjects found. Add a subject to get started.</p>
+          <p className="text-customblack">No subjects found. Add a subject to get started.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-300">
+            <table className="min-w-full bg-customwhite border border-customgray">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-tertiary text-customwhite">
                   <th className="px-4 py-2 border">Subject Code</th>
                   <th className="px-4 py-2 border">Subject Name</th>
                   <th className="px-4 py-2 border">Language</th>
@@ -281,7 +281,7 @@ function Settings() {
               </thead>
               <tbody>
                 {subjects.map((subject) => (
-                  <tr key={subject.subjectCode}>
+                  <tr key={subject.subjectCode} className="hover:bg-gray-100">
                     <td className="px-4 py-2 border">{subject.subjectCode}</td>
                     <td className="px-4 py-2 border">{subject.subjectName}</td>
                     <td className="px-4 py-2 border">{subject.language}</td>
@@ -290,7 +290,7 @@ function Settings() {
                     <td className="px-4 py-2 border">
                       <button
                         onClick={() => openExamModal(subject)}
-                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded text-sm"
+                        className="bg-green-500 hover:bg-green-700 text-customwhite font-bold py-1 px-2 rounded text-sm shadow-custom"
                       >
                         {subject.examDate ? 'Update Exam' : 'Add Exam'}
                       </button>
@@ -302,27 +302,27 @@ function Settings() {
           </div>
         )}
       </div>
-      
+  
       {/* Exam Details Modal */}
       {showModal && selectedSubject && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-semibold mb-4">
+          <div className="bg-customwhite rounded-lg p-6 max-w-md w-full shadow-custom">
+            <h2 className="text-xl font-semibold mb-4 text-secondary">
               {selectedSubject.examDate ? 'Update Exam Details' : 'Add Exam Details'}
             </h2>
-            <p className="mb-4">
+            <p className="mb-4 text-customblack">
               <strong>Subject:</strong> {selectedSubject.subjectName} ({selectedSubject.subjectCode})
             </p>
-            
+  
             {modalError && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                 {modalError}
               </div>
             )}
-            
+  
             <form onSubmit={handleExamSubmit}>
               <div className="mb-4">
-                <label className="block text-gray-700 mb-2" htmlFor="examDate">
+                <label className="block text-customblack mb-2" htmlFor="examDate">
                   Exam Date*
                 </label>
                 <input
@@ -331,13 +331,13 @@ function Settings() {
                   name="examDate"
                   value={examData.examDate}
                   onChange={handleExamFormChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-customgray rounded"
                   required
                 />
               </div>
-              
+  
               <div className="mb-4">
-                <label className="block text-gray-700 mb-2" htmlFor="examTime">
+                <label className="block text-customblack mb-2" htmlFor="examTime">
                   Exam Time*
                 </label>
                 <input
@@ -346,22 +346,22 @@ function Settings() {
                   name="examTime"
                   value={examData.examTime}
                   onChange={handleExamFormChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-customgray rounded"
                   required
                 />
               </div>
-              
+  
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"
                   onClick={closeExamModal}
-                  className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
+                  className="bg-fourthcolor hover:bg-gray-400 text-customblack font-bold py-2 px-4 rounded"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-primary hover:bg-secondary text-customwhite font-bold py-2 px-4 rounded shadow-custom"
                 >
                   Save
                 </button>
@@ -372,6 +372,8 @@ function Settings() {
       )}
     </div>
   );
+  
+  
 }
 
 export default Settings;
