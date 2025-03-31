@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 
 const HallTicket = () => {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [formData, setFormData] = useState({
         studentName: "",
         studentId: "",
@@ -17,7 +18,7 @@ const HallTicket = () => {
 
     const handleGenerate = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/api/pdf/generate-preview", {
+            const response = await axios.get(`${apiUrl}/pdf/generate-preview`, {
                 params: {
                     studentName: formData.studentName,
                     studentId: formData.studentId,

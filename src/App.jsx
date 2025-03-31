@@ -20,10 +20,11 @@ import Result from "./Components/Result";
 import axios from "axios";
 
 function App() {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [hallTicket, setHallTicket] = useState(false);
   const [resultDeclared, setResultDeclared] = useState(false);
   useEffect(() => {
-    axios.get('http://localhost:5000/api/admin/getSettingFlags')
+    axios.get(`${apiUrl}/admin/getSettingFlags`)
       .then(res => {
         const data = res.data.data;
         const hallTicketFlag = data.find(flag => flag.flagName === 'HALLTICKET');
