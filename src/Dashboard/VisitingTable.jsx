@@ -11,6 +11,7 @@ const VisitingTable = () => {
         api.get(`/counsellor/getVisiting`)
             .then(response => {
                 setVisitingData(response.data.data);
+                console.log(response.data.data);
                 setLoading(false);
             })
             .catch(error => {
@@ -55,21 +56,18 @@ const VisitingTable = () => {
                   <tr>
                     {[
                       { key: "id", label: "ID" },
-                      { key: "firstName", label: "First Name" },
-                      { key: "middleName", label: "Middle Name" },
-                      { key: "lastName", label: "Last Name" },
+                      { key: "studentName", label: "Student Name" },
                       { key: "gender", label: "Gender" },
                       { key: "schoolCollege", label: "School/College" },
                       { key: "standard", label: "Standard" },
+                      { key: "previousYearPercent", label: "Previous Year Percent" },
                       { key: "studentContact", label: "Student Contact" },
                       { key: "parentsContact", label: "Parents Contact" },
                       { key: "address", label: "Address" },
-                      { key: "branch", label: "Branch" },
-                      { key: "counselorName", label: "Counselor" },
+                      { key: "counsellor", label: "Counsellor" },
                       { key: "demoGiven", label: "Demo Given" },
                       { key: "reason", label: "Reason" },
-                      { key: "date", label: "Date" },
-                      { key: "time", label: "Time" }
+                      { key: "createdAt", label: "Date" },
                     ].map(({ key, label }) => (
                       <th key={key} className="border-b border-customgray p-4 text-left whitespace-nowrap">
                         {label}
@@ -87,21 +85,18 @@ const VisitingTable = () => {
                   {visitingData.map((visit, index) => (
                     <tr key={index} className="border-b border-customgray hover:bg-gray-100 transition">
                       <td className="p-4 whitespace-nowrap">{visit.id}</td>
-                      <td className="p-4 whitespace-nowrap">{visit.firstName}</td>
-                      <td className="p-4 whitespace-nowrap">{visit.middleName}</td>
-                      <td className="p-4 whitespace-nowrap">{visit.lastName}</td>
+                      <td className="p-4 whitespace-nowrap">{visit.studentName}</td>
                       <td className="p-4 whitespace-nowrap">{visit.gender}</td>
                       <td className="p-4 whitespace-nowrap">{visit.schoolCollege}</td>
                       <td className="p-4 whitespace-nowrap">{visit.standard}</td>
+                      <td className="p-4 whitespace-nowrap">{visit.previousYearPercent}</td>
                       <td className="p-4 whitespace-nowrap">{visit.studentContact}</td>
                       <td className="p-4 whitespace-nowrap">{visit.parentsContact}</td>
                       <td className="p-4 whitespace-nowrap">{visit.address}</td>
-                      <td className="p-4 whitespace-nowrap">{visit.branch}</td>
-                      <td className="p-4 whitespace-nowrap">{visit.counselorName}</td>
+                      <td className="p-4 whitespace-nowrap">{visit.counsellor}</td>
                       <td className="p-4 whitespace-nowrap">{visit.demoGiven}</td>
                       <td className="p-4 whitespace-nowrap">{visit.reason}</td>
-                      <td className="p-4 whitespace-nowrap">{new Date(visit.date).toLocaleDateString()}</td>
-                      <td className="p-4 whitespace-nowrap">{visit.time}</td>
+                      <td className="p-4 whitespace-nowrap">{new Date(visit.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>

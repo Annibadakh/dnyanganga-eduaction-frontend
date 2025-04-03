@@ -11,6 +11,7 @@ const RegistrationForm = () => {
   const [isPhotoSaved, setSaved] = useState(false);
   const [fileError, setFileError] = useState("");
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
+  const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
@@ -21,12 +22,13 @@ const RegistrationForm = () => {
     email: "",
     studentNo: "",
     parentsNo: "",
+    appNo: "",
     standard: "",
     schoolCollege: "",
     branch: "",
-    firstPref: "",
-    secondPref: "",
-    thirdPref: "",
+    examCentre: "",
+    formNo: "",
+    receiptNo: "",
     studentPhoto: "",
     amountPaid: "",
     modeOfPayment: "",
@@ -55,8 +57,9 @@ const RegistrationForm = () => {
         setFormData({
           ...formData,
           [name]: value,
-          branch: "ALL"
+          branch: ""
         });
+        setShow10thBranchDropdown(true);
         setShowBranchDropdown(false);
       } else if (value === "12th") {
         setFormData({
@@ -65,6 +68,7 @@ const RegistrationForm = () => {
           branch: ""
         });
         setShowBranchDropdown(true);
+        setShow10thBranchDropdown(false);
       } else {
         setFormData({
           ...formData,
@@ -72,6 +76,7 @@ const RegistrationForm = () => {
           branch: ""
         });
         setShowBranchDropdown(false);
+        setShow10thBranchDropdown(false);
       }
     } else {
       setFormData({ ...formData, [name]: value });
@@ -154,14 +159,6 @@ const RegistrationForm = () => {
     } catch (error) {
       console.error("Error submitting form:", error);
     }
-  };
-  
-  const getAvailableCentres = (selected) => {
-    return examCentres.filter(
-      (centre) =>
-        ![formData.firstPref, formData.secondPref, formData.thirdPref].includes(centre.centerName) ||
-        centre.centerName === selected
-    );
   };
 
   return (
@@ -295,7 +292,20 @@ const RegistrationForm = () => {
                 <option value="12th">12th</option>
               </select>
               
-              {showBranchDropdown ? (
+              {show10thBranchDropdown ? (
+                <select 
+                  name="branch" 
+                  value={formData.branch} 
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
+                  <option value="">Select Branch</option>
+                  <option value="English">English</option>
+                  <option value="Marathi">Marathi</option>
+                  <option value="Semi-English">Semi-English</option>
+                </select>
+              ) : showBranchDropdown ? (
                 <select 
                   name="branch" 
                   value={formData.branch} 
@@ -316,7 +326,6 @@ const RegistrationForm = () => {
                   onChange={handleChange} 
                   placeholder="Branch" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  readOnly={formData.standard === "10th"}
                   required
                 />
               )}
@@ -340,7 +349,7 @@ const RegistrationForm = () => {
                 type="email" 
                 name="email" 
                 onChange={handleChange} 
-                placeholder="Email" 
+                placeholder="Student Email" 
                 className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                 required
                 pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
@@ -365,22 +374,31 @@ const RegistrationForm = () => {
                 pattern="[0-9]{10}"
                 title="Phone number must be 10 digits"
               />
+              <input 
+                type="tel" 
+                name="appNo" 
+                onChange={handleChange} 
+                placeholder="Application No" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+                pattern="[0-9]{10}"
+                title="Phone number must be 10 digits"
+              />
             </div>
           </div>
 
-          {/* Exam Centre Section */}
+          {/* Exam Centre and Form Details Section */}
           <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Exam Centre Preferences</h3>
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">Exam Centre and Form Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
               <div>
-                <label className="block mb-2 text-sm text-gray-600">First Preference:</label>
                 <select 
-                  name="firstPref" 
+                  name="examCentre" 
                   onChange={handleChange} 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 >
-                  <option value="">Select</option>
+                  <option value="">Select Exam Centre</option>
                   {examCentres.map((centre) => (
                     <option key={centre.centerId} value={centre.centerName}>
                       {centre.centerName}
@@ -388,42 +406,24 @@ const RegistrationForm = () => {
                   ))}
                 </select>
               </div>
-
-              <div>
-                <label className="block mb-2 text-sm text-gray-600">Second Preference:</label>
-                <select
-                  name="secondPref"
-                  onChange={handleChange}
-                  disabled={!formData.firstPref}
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50"
-                  required
-                >
-                  <option value="">Select</option>
-                  {getAvailableCentres(formData.secondPref).map((centre) => (
-                    <option key={centre.centerId} value={centre.centerName}>
-                      {centre.centerName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block mb-2 text-sm text-gray-600">Third Preference:</label>
-                <select
-                  name="thirdPref"
-                  onChange={handleChange}
-                  disabled={!formData.secondPref}
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50"
-                  required
-                >
-                  <option value="">Select</option>
-                  {getAvailableCentres(formData.thirdPref).map((centre) => (
-                    <option key={centre.centerId} value={centre.centerName}>
-                      {centre.centerName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              
+              <input 
+                type="text" 
+                name="formNo" 
+                onChange={handleChange} 
+                placeholder="Form Number" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+              />
+              
+              <input 
+                type="text" 
+                name="receiptNo" 
+                onChange={handleChange} 
+                placeholder="Receipt Number" 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+              />
             </div>
           </div>
 

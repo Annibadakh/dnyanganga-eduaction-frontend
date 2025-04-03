@@ -1,27 +1,26 @@
 import { useState } from "react";
 import api from "../Api";
+import { useAuth } from "../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 
 const VisitingForm = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    time: "",
-    date: "",
-    firstName: "",
-    middleName: "",
-    lastName: "",
+    studentName: "",
     gender: "",
     schoolCollege: "",
     address: "",
     studentContact: "",
     parentsContact: "",
     standard: "",
+    previousYearPercent: "",
     demoGiven: "",
     reason: "",
-    counselorName: "",
-    branch: "",
   });
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   
 
@@ -32,33 +31,25 @@ const VisitingForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
 
+    const formDataToSend = new FormData();
+    Object.keys(formData).forEach(key => {
+      formDataToSend.append(key, formData[key]);
+    });
+    
+    if(user?.uuid){
+      formDataToSend.append("uuid", user.uuid);
+      formDataToSend.append("counsellor", user.userName);
+    }
     try {
-      const response = await api.post("/counsellor/visiting", formData, {
+      const response = await api.post("/counsellor/visiting", formDataToSend, {
         headers: { "Content-Type": "application/json" },
       });
 
-      setMessage(response.data.message);
-      setFormData({
-        time: "",
-        date: "",
-        firstName: "",
-        middleName: "",
-        lastName: "",
-        gender: "",
-        schoolCollege: "",
-        address: "",
-        studentContact: "",
-        parentsContact: "",
-        standard: "",
-        demoGiven: "",
-        reason: "",
-        counselorName: "",
-        branch: "",
-      });
+      alert(response.data.message);
+      navigate("/dashboard/visitingtable");
     } catch (error) {
-      setMessage(error.response?.data?.message || "Error submitting form.");
+      alert(error.response?.data?.message || "Error submitting form.");
     } finally {
       setLoading(false);
     }
@@ -71,71 +62,20 @@ const VisitingForm = () => {
           <div className="bg-primary text-white text-center py-4">
             <h2 className="text-2xl font-bold">Visiting Form</h2>
           </div>
-  
           <form onSubmit={handleSubmit} className="p-6 space-y-6 w-full">
-            {message && <p className="text-center text-red-500 mb-4">{message}</p>}
-  
-            {/* Date and Time Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Visit Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                <div>
-                  <label className="block mb-2 text-sm text-gray-600">Time</label>
-                  <input 
-                    type="time" 
-                    name="time" 
-                    value={formData.time} 
-                    onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
-                    required 
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2 text-sm text-gray-600">Date</label>
-                  <input 
-                    type="date" 
-                    name="date" 
-                    value={formData.date} 
-                    onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
-                    required 
-                  />
-                </div>
-              </div>
-            </div>
-  
-            {/* Personal Details Section */}
             <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Personal Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                 <input 
                   type="text" 
-                  name="firstName" 
-                  placeholder="First Name" 
-                  value={formData.firstName.toUpperCase()} 
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 uppercase" 
-                  required 
-                />
-                <input 
-                  type="text" 
-                  name="middleName" 
-                  placeholder="Middle Name" 
-                  value={formData.middleName.toUpperCase()} 
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 uppercase" 
-                />
-                <input 
-                  type="text" 
-                  name="lastName" 
-                  placeholder="Last Name" 
-                  value={formData.lastName.toUpperCase()} 
+                  name="studentName" 
+                  placeholder="Student Name" 
+                  value={formData.studentName} 
                   onChange={handleChange} 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 uppercase" 
                   required 
                 />
               </div>
-              
               <div className="mt-4">
                 <select 
                   name="gender" 
@@ -213,6 +153,16 @@ const VisitingForm = () => {
                   required 
                 />
                 <input 
+                  type="number" 
+                  name="previousYearPercent" 
+                  placeholder="Previous Year Percentage" 
+                  value={formData.previousYearPercent} 
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
+                  required 
+                  min="0" max="100" step="0.01"
+                />
+                <input 
                   type="text" 
                   name="demoGiven" 
                   placeholder="Demo Given" 
@@ -221,28 +171,6 @@ const VisitingForm = () => {
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
                   required 
                 />
-                <select 
-                  name="counselorName" 
-                  value={formData.counselorName} 
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
-                  required
-                >
-                  <option value="">Select Counselor</option>
-                  <option value="Counselor 1">Counselor 1</option>
-                  <option value="Counselor 2">Counselor 2</option>
-                </select>
-                <select 
-                  name="branch" 
-                  value={formData.branch} 
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
-                  required
-                >
-                  <option value="">Select Branch</option>
-                  <option value="Branch 1">Branch 1</option>
-                  <option value="Branch 2">Branch 2</option>
-                </select>
               </div>
               
               <div className="mt-4">
