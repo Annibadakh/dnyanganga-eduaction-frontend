@@ -4,6 +4,7 @@ import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const RegistrationForm = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const { user } = useAuth();
   const navigate = useNavigate();
   const [imageUrl, setImageUrl] = useState("");
@@ -121,7 +122,7 @@ const RegistrationForm = () => {
       });
 
       if (response.data.imageUrl) {
-        setImageUrl(`http://localhost:5000${response.data.imageUrl}`);
+        setImageUrl(`${apiUrl}${response.data.imageUrl}`);
         console.log(response.data.imageUrl);
         setFormData({ ...formData, studentPhoto: response.data.imageUrl });
         setSaved(true);

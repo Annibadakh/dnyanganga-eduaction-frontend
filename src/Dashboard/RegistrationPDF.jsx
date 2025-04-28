@@ -71,6 +71,8 @@ const styles = StyleSheet.create({
 
 // Create Document Component
 const RegistrationPDF = ({ data }) => {
+    const imgUrl = import.meta.env.VITE_IMG_URL;
+
   const formatDate = (dateString) => (!dateString ? "N/A" : new Date(dateString).toLocaleDateString());
 
   return (
@@ -85,7 +87,7 @@ const RegistrationPDF = ({ data }) => {
             <Text style={styles.head}>Receipt No: {data.receiptNo || "N/A"}</Text>
             <Text style={styles.head}>Registration Date: {formatDate(data.createdAt)}</Text>
           </View>
-          {data.studentPhoto && <Image src={`http://localhost:5000${data.studentPhoto}`} style={styles.photo} />}
+          {data.studentPhoto && <Image src={`${imgUrl}${data.studentPhoto}`} style={styles.photo} />}
         </View>
 
         {["Personal Information", "Educational Information", "Address Information", "Payment Information"].map((section) => (

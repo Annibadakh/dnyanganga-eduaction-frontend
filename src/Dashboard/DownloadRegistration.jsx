@@ -3,6 +3,8 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import RegistrationPDF from "./RegistrationPDF";
 
 const DownloadRegistration = ({ studentData, setShowRegistration }) => {
+  const imgUrl = import.meta.env.VITE_IMG_URL;
+  
   const handleCancel = () => {
     setShowRegistration(false);
   };
@@ -59,7 +61,7 @@ const DownloadRegistration = ({ studentData, setShowRegistration }) => {
             <div className="flex justify-center mb-8 bg-gray-100 p-4 rounded-xl border border-gray-200">
               <div className="relative">
                 <img
-                  src={`http://localhost:5000${studentData.studentPhoto}`}
+                  src={`${imgUrl}${studentData.studentPhoto}`}
                   alt={`${studentData.studentName}'s photo`}
                   className="w-48 h-48 object-cover border-4 border-primary rounded-lg"
                 />
