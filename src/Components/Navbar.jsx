@@ -1,12 +1,14 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 
 import logo from '../Images/logo3.png'
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
-
+    const navigate = useNavigate();
+    
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,7 +39,7 @@ const Navbar = () => {
                 <li className="hover:text-primary"><Link to="/dashboard">dashboard</Link></li>
                 <li className="hover:text-primary">Contact us</li>
                 <li className="hover:text-primary">App</li>
-                <li className="hover:text-primary">Demo</li>
+                <li className="hover:text-primary"><button onClick={()=> navigate("login")}>Login</button></li>
             </div>
             <div className={`right-10 z-40 -top-6 h-10 w-96 list-none gap-6 bg-primary px-10 py-2 ${scrolled ? "hidden" : "hidden sm:absolute sm:flex"}`} style={{transform: "skewX(26deg)"}}></div>
             <div className={`hidden sm:absolute right-5 z-40 sm:flex list-none gap-6 px-10 py-2 ${scrolled ? "-top-1 text-primary" : "-top-6 text-white"}`}>
@@ -59,11 +61,11 @@ const Navbar = () => {
             <li>Home</li>
             <li>App</li>
             <li>Course</li>
-            <li>Demo</li>
             <li>About Us</li>
             <li>Contact</li>
             <li>Home</li>
             <li>Courses</li>
+            <li className="hover:text-primary"><button onClick={()=> navigate("login")}>Login</button></li>
           </ul>
         )}
         </>
