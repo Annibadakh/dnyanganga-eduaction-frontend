@@ -4,12 +4,12 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const storedUser = JSON.parse(sessionStorage.getItem("user"));
-    const tokenExpiry = sessionStorage.getItem("tokenExpiry");
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const tokenExpiry = localStorage.getItem("tokenExpiry");
 
     if (storedUser && tokenExpiry && Date.now() > tokenExpiry) {
-      sessionStorage.removeItem("user");
-      sessionStorage.removeItem("tokenExpiry");
+      localStorage.removeItem("user");
+      localStorage.removeItem("tokenExpiry");
       return null;
     }
 
@@ -17,22 +17,21 @@ export const AuthProvider = ({ children }) => {
   });
 
   const login = (userData, tokenExpiryDuration = 30 * 60 * 1000) => {
-    const expiryTime = Date.now() + tokenExpiryDuration; // Set expiry time (default 30 minutes)
-    sessionStorage.setItem("user", JSON.stringify(userData));
-    sessionStorage.setItem("tokenExpiry", expiryTime);
+    const expiryTime = Date.now() + tokenExpiryDuration; // Default: 30 minutes
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("tokenExpiry", expiryTime);
     setUser(userData);
   };
 
   const logout = () => {
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("tokenExpiry");
+    localStorage.removeItem("user");
+    localStorage.removeItem("tokenExpiry");
     setUser(null);
   };
 
-  
   useEffect(() => {
     const interval = setInterval(() => {
-      const tokenExpiry = sessionStorage.getItem("tokenExpiry");
+      const tokenExpiry = localStorage.getItem("tokenExpiry");
       if (tokenExpiry && Date.now() > tokenExpiry) {
         logout();
       }

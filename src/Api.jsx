@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const getAuthToken = () => sessionStorage.getItem("user");
+const getAuthToken = () => localStorage.getItem("user");
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
