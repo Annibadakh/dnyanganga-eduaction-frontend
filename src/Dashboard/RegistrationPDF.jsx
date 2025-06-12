@@ -60,6 +60,12 @@ const styles = StyleSheet.create({
     border: "1px solid #ccc",
     alignSelf: "flex-end",
   },
+  photo2: {
+    width: 100,
+    height: 100,
+    border: "1px solid #ccc",
+    alignSelf: "flex-start",
+  },
   header: {
     flexDirection: "row",
     padding: 5,
@@ -81,6 +87,7 @@ const RegistrationPDF = ({ data }) => {
         <Text style={styles.title}>Student Registration Form</Text>
         
         <View style={styles.header}>
+          {data.studentPhoto && <Image src={`${imgUrl}/uploads/logo.png`} style={styles.photo2} />}
           <View>
             <Text style={styles.head}>Student ID: {data.studentId || "N/A"}</Text>
             <Text style={styles.head}>Form No: {data.formNo || "N/A"}</Text>

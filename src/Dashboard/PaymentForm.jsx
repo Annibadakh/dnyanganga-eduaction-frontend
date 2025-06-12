@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import api from "../Api";
 
 
-const PaymentForm = ({paymentData, setShoePayment}) => {
+const PaymentForm = ({paymentData, setShowPayment}) => {
     const student = paymentData;
     console.log(paymentData, student);
     const [paymentMode, setPaymentMode] = useState("");
     const [responseData, setResponse] = useState();
     const [amount, setAmount] = useState("");
     const [newDueDate, setNewDueDate] = useState("");
+    const [receiptNo, setReceiptNo] = useState("");
     const [newRemainingAmount, setNewRemainingAmount] = useState(student?.amountRemaining || 0);
     const [dueDate, setDueDate] = useState(false);
     const [error, setError] = useState("");
@@ -18,12 +19,16 @@ const PaymentForm = ({paymentData, setShoePayment}) => {
     }
 
     const handleClick = (e) => {
-        setShoePayment(false);
+        setShowPayment(false);
     } 
     const handleDate = (e) => {
         setNewDueDate(e.target.value) || "";
         console.log(newDueDate);
     };
+
+    const handleOnChange = (e) => {
+        setReceiptNo(e.target.value);
+    }
 
     const handleAmountChange = (e) => {
         const amountValue = parseFloat(e.target.value) || 0;
@@ -55,6 +60,7 @@ const PaymentForm = ({paymentData, setShoePayment}) => {
 
         const formData = {
             studentId: student.studentId,
+                receiptNo: receiptNo,
                 amountPaid: amountValue,
                 paymentMode,
                 newRemainingAmount,
@@ -67,7 +73,7 @@ const PaymentForm = ({paymentData, setShoePayment}) => {
             const response = await api.post("/counsellor/makePayment", formData);
             setResponse(response);
             alert("Payment Successfull !!");
-            setShoePayment(false);
+            setShowPayment(false);
         } catch (err) {
             setError("Failed to process payment. Please try again.");
         }
@@ -81,6 +87,9 @@ const PaymentForm = ({paymentData, setShoePayment}) => {
                 <div className="mb-3">
                     <label className="block">Student Name:</label>
                     <input type="text" value={student.studentName} disabled className="border p-2 w-full" />
+                </div><div className="mb-3">
+                    <label className="block">Receipt No</label>
+                    <input type="text" value={receiptNo} onChange={handleOnChange} className="border p-2 w-full" />
                 </div>
                 <div className="mb-3">
                     <label className="block">Remaining Amount:</label>
@@ -103,7 +112,7 @@ const PaymentForm = ({paymentData, setShoePayment}) => {
                     <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} required className="border p-2 w-full">
                         <option value="">Select Payment Mode</option>
                         <option value="Cash">Cash</option>
-                        <option value="Card">Card</option>
+                        <option value="Card">Check</option>
                         <option value="Online">Online</option>
                     </select>
                 </div>

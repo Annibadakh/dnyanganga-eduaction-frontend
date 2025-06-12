@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 import api from "../Api";
+import { useAuth } from "../Context/AuthContext";
+
 
 const VisitingTable = () => {
+  const {user} = useAuth();
     const [visitingData, setVisitingData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
     useEffect(() => {
-        api.get(`/counsellor/getVisiting`)
+        api.get(`/counsellor/getVisiting?uuid=${user.uuid}&role=${user.role}`)
             .then(response => {
                 setVisitingData(response.data.data);
                 console.log(response.data.data);

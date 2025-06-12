@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../Api';
+import { useAuth } from '../Context/AuthContext';
 
 export default function Home() {
+  const {user} = useAuth();
+  console.log(user);
   const [hallTicket, setHallTicket] = useState(false);
   const [resultDeclared, setResultDeclared] = useState(false);
 
-  // Fetch initial state
-  useEffect(() => {
+  const getFlag = () => {
     api.get('/admin/getSettingFlags')
       .then(res => {
         const data = res.data.data;
@@ -17,14 +19,20 @@ export default function Home() {
         if (resultDeclaredFlag) setResultDeclared(resultDeclaredFlag.flagValue === 'true');
       })
       .catch(err => console.error('Error fetching flags', err));
+  }
+  // Fetch initial state
+  useEffect(() => {
+    getFlag();
   }, []);
 
-  const toggleFlag = async (flagName, currentValue, setFn) => {
+  const toggleFlag = async (flagName, currentValue) => {
     try {
-      await api.put(`/admin/updateSettingFlag/${flagName}`, {
+      const response = await api.put(`/admin/updateSettingFlag/${flagName}`, {
         flagValue: (!currentValue).toString(),
       });
-      setFn(!currentValue);
+      console.log(response);
+      // setFn(!currentValue);
+      getFlag();
     } catch (error) {
       console.error(`Error updating ${flagName}`, error);
     }
@@ -32,14 +40,15 @@ export default function Home() {
 
   return (
     <div className=" bg-gray-100 flex justify-center">
-      <div className="p-8 bg-white rounded-xl shadow-xl space-y-6 w-80">
+      {user.role == "admin" ? (
+        <div className="p-8 bg-white rounded-xl shadow-xl space-y-6 w-80">
         <h1 className="text-xl font-semibold text-center">Admin Controls</h1>
 
         {/* Hall Ticket Toggle */}
         <div className="flex items-center justify-between">
           <span className="font-medium">Hall Ticket</span>
           <button
-            onClick={() => toggleFlag('HALLTICKET', hallTicket, setHallTicket)}
+            onClick={() => toggleFlag('HALLTICKET', hallTicket)}
             className={`w-14 h-7 flex items-center rounded-full p-1 duration-300 ease-in-out ${
               hallTicket ? 'bg-green-500' : 'bg-gray-300'
             }`}
@@ -56,7 +65,7 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <span className="font-medium">Result Declared</span>
           <button
-            onClick={() => toggleFlag('RESULT', resultDeclared, setResultDeclared)}
+            onClick={() => toggleFlag('RESULT', resultDeclared)}
             className={`w-14 h-7 flex items-center rounded-full p-1 duration-300 ease-in-out ${
               resultDeclared ? 'bg-green-500' : 'bg-gray-300'
             }`}
@@ -69,6 +78,9 @@ export default function Home() {
           </button>
         </div>
       </div>
+      ) : (
+        <h1>{user.userName} welcome</h1>
+      )}
     </div>
   );
 }

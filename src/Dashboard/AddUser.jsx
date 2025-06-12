@@ -8,7 +8,8 @@ const AddUser = () => {
     name: "",
     email: "",
     role: "counsellor",
-    contactNum: "", // fixed here
+    contactNum: "",
+    branch: "",
   });
 
   useEffect(() => {
@@ -32,7 +33,10 @@ const AddUser = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newUser = { ...formData, password: formData.email };
+    const newUser = { 
+      ...formData,
+      branch: formData.role === "counsellor" ? formData.branch : null,
+      password: formData.email };
 
     api
       .post("/auth/register", newUser)
@@ -40,13 +44,12 @@ const AddUser = () => {
         alert("user added !!");
         fetchUsers();
         setShowForm(false);
-        setFormData({ name: "", email: "", role: "counsellor" ,conatctNum: ""});
+        setFormData({ name: "", email: "", role: "counsellor" ,conatctNum: "", branch: ""});
       })
       .catch((error) => console.error("Error adding user", error));
   };
 
   const handleDelete = (uuid) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     api
       .delete(`/admin/deleteUser/${uuid}`)
@@ -113,6 +116,20 @@ const AddUser = () => {
                 <option value="teacher">Teacher</option>
               </select>
             </div>
+            {formData.role === "counsellor" && (
+              <div>
+                <label className="block text-gray-700 font-semibold">Branch:</label>
+                <input
+                  type="text"
+                  name="branch"
+                  value={formData.branch}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-2 border rounded-md"
+                />
+              </div>
+            )}
+
             <div className="flex space-x-2">
               <button
                 type="submit"
@@ -157,9 +174,9 @@ const AddUser = () => {
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => handleDelete(user.uuid)}
-                      className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+                      className={`${user.isActive ? "bg-red-500" : "bg-green-500"} text-white px-3 py-1 w-24 rounded-md hover:bg-red-600`}
                     >
-                      Delete
+                      {user.isActive ? "Deactivate" : "Activate"}
                     </button>
                   </td>
                 </tr>

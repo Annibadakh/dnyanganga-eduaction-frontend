@@ -5,12 +5,15 @@ import { useNavigate } from "react-router-dom";
 
 const RegistrationForm = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
+  const imgUrl = import.meta.env.VITE_IMG_URL;
   const { user } = useAuth();
+  console.log(user);
   const navigate = useNavigate();
   const [imageUrl, setImageUrl] = useState("");
   const [photoFile, setFile] = useState(null);
   const [isPhotoSaved, setSaved] = useState(false);
   const [fileError, setFileError] = useState("");
+  const [paymentError, setPaymentError] = useState("");
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
   const [formData, setFormData] = useState({
@@ -28,9 +31,11 @@ const RegistrationForm = () => {
     schoolCollege: "",
     branch: "",
     examCentre: "",
+    examYear: "",
     formNo: "",
     receiptNo: "",
     studentPhoto: "",
+    totalamount: 7900,
     amountPaid: "",
     modeOfPayment: "",
     amountRemaining: "",
@@ -42,13 +47,31 @@ const RegistrationForm = () => {
     api
       .get("/admin/getExamCenters")
       .then((response) => {
-        console.log(response.data.data);
         setExamCentres(response.data.data);
       })
       .catch((error) => {
         console.error("Error fetching users", error);
       });
   }, []);
+
+  // Calculate amount remaining whenever totalamount or amountPaid changes
+  useEffect(() => {
+    const totalAmount = parseFloat(formData.totalamount) || 0;
+    const amountPaid = parseFloat(formData.amountPaid) || 0;
+    
+    if (amountPaid > totalAmount && amountPaid > 0) {
+      setPaymentError("Amount paid cannot be greater than total amount");
+    } else {
+      setPaymentError("");
+    }
+    
+    const remaining = totalAmount - amountPaid;
+    
+    setFormData(prevData => ({
+      ...prevData,
+      amountRemaining: remaining >= 0 ? remaining.toString() : "0"
+    }));
+  }, [formData.totalamount, formData.amountPaid]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -122,7 +145,7 @@ const RegistrationForm = () => {
       });
 
       if (response.data.imageUrl) {
-        setImageUrl(`${apiUrl}${response.data.imageUrl}`);
+        setImageUrl(`${imgUrl}${response.data.imageUrl}`);
         console.log(response.data.imageUrl);
         setFormData({ ...formData, studentPhoto: response.data.imageUrl });
         setSaved(true);
@@ -142,6 +165,7 @@ const RegistrationForm = () => {
     if(user?.uuid){
       formDataToSend.append("uuid", user.uuid);
       formDataToSend.append("counsellor", user.userName);
+      formDataToSend.append("counsellorBranch", user.branch);
     }
 
     try {
@@ -240,7 +264,7 @@ const RegistrationForm = () => {
                 <option value="Female">Female</option>
               </select>
               <div className="w-full flex flex-row items-center gap-1">
-                <label className="w-32 text-sm text-gray-600">Date of Birth:</label>
+                <label className="text-[17px] mr-4 text-gray-600">DOB:</label>
                 <input 
                   type="date" 
                   name="dob" 
@@ -379,7 +403,7 @@ const RegistrationForm = () => {
                 type="tel" 
                 name="appNo" 
                 onChange={handleChange} 
-                placeholder="Application No" 
+                placeholder="Application No for App Access" 
                 className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                 required
                 pattern="[0-9]{10}"
@@ -408,6 +432,26 @@ const RegistrationForm = () => {
                 </select>
               </div>
               
+              <div className="w-full flex flex-row items-center gap-1">
+                <label className="text-[17px] text-gray-600">December</label>
+                <select 
+                name="examYear" 
+                onChange={handleChange} 
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                required
+              >
+                <option value="">Select Exam Year</option>
+                {Array.from({ length: 5 }, (_, i) => {
+                  const year = new Date().getFullYear() + i;
+                  return (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  );
+                })}
+              </select>
+              </div>
+              
               <input 
                 type="text" 
                 name="formNo" 
@@ -434,13 +478,32 @@ const RegistrationForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
               <input 
                 type="number" 
-                name="amountPaid" 
+                value={formData.totalamount}
+                name="totalamount" 
                 onChange={handleChange} 
-                placeholder="Amount Paid" 
+                placeholder="Total Amount" 
                 className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                 required
                 min="0"
               />
+              <input 
+                type="number" 
+                name="amountPaid" 
+                value={formData.amountPaid}
+                onChange={handleChange} 
+                placeholder="Amount Paid" 
+                className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${
+                  paymentError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-blue-300'
+                }`}
+                required
+                min="0"
+                max={formData.totalamount}
+              />
+              {paymentError && (
+                <div className="md:col-span-2">
+                  <p className="text-red-500 text-sm mt-1">{paymentError}</p>
+                </div>
+              )}
               <select 
                 name="modeOfPayment" 
                 onChange={handleChange} 
@@ -449,20 +512,12 @@ const RegistrationForm = () => {
               >
                 <option value="">Select Payment Mode</option>
                 <option value="Cash">Cash</option>
-                <option value="Card">Card</option>
+                <option value="Card">Check</option>
                 <option value="Online">Online</option>
               </select>
-              <input 
-                type="number" 
-                name="amountRemaining" 
-                onChange={handleChange} 
-                placeholder="Amount Remaining" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-                min="0"
-              />
+              
               <div className="w-full flex flex-row items-center gap-1">
-                <label className="w-24 text-sm text-gray-600">Due Date:</label>
+                <label className="w-20 text-[15px] text-gray-600">Due Date:</label>
                 <input 
                   type="date" 
                   name="dueDate" 
@@ -471,6 +526,15 @@ const RegistrationForm = () => {
                   required
                 />
               </div>
+              <input 
+                type="number" 
+                name="amountRemaining" 
+                value={formData.amountRemaining}
+                placeholder="Amount Remaining" 
+                className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
+                disabled
+                readOnly
+              />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -480,7 +544,7 @@ const RegistrationForm = () => {
             >
               Reset
             </button>
-          {isPhotoSaved && (
+          {isPhotoSaved && !paymentError && (
             <button 
               type="submit" 
               className="w-full py-3 bg-primary text-white rounded hover:bg-opacity-90 transition"

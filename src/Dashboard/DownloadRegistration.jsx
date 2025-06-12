@@ -4,7 +4,7 @@ import RegistrationPDF from "./RegistrationPDF";
 
 const DownloadRegistration = ({ studentData, setShowRegistration }) => {
   const imgUrl = import.meta.env.VITE_IMG_URL;
-  
+  console.log(studentData)
   const handleCancel = () => {
     setShowRegistration(false);
   };
@@ -20,6 +20,7 @@ const DownloadRegistration = ({ studentData, setShowRegistration }) => {
 
   return (
     <div className="p-10 bg-customwhite border border-gray-200 rounded-2xl">
+      
       <h1 className="text-4xl font-bold text-primary mb-10 text-center font-custom">
         Student Registration Details
       </h1>

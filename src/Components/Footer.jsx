@@ -3,7 +3,7 @@ import logo3 from '../Images/logo3.png';
 
 const Footer = () => {
   return (
-    <footer className="bg-blue-300 text-black p-4 mt-5">
+    <footer className="bg-blue-950 text-white p-4 mt-5">
       <div className="container mx-auto flex flex-col items-center">
         <div className="mb-4">
           <h2 className="text-xl font-bold">Dnyanganga Coaching Classes</h2>
@@ -16,7 +16,7 @@ const Footer = () => {
             <img 
               src={logo3} // Replace with your logo path
               alt="Dnyanganga Coaching Classes Logo"
-              className="w-96 h-auto mb-2"  // Increased width (w-96) for a larger logo
+              className="w-96 h-auto mb-4 bg-white rounded"  // Increased width (w-96) for a larger logo
             />
             <p className=" font-semibold text-1xl">
               Best Coaching Classes In Kopargaon.
@@ -50,7 +50,7 @@ const Footer = () => {
           {/* Localization Section with Google Map */}
           <div className="mb-4 md:ml-8 md:w-1/4">
             <h3 className="text-lg font-semibold">Localization</h3>
-            <div className="w-full h-64">
+            <div className="w-40 h-40">
               <iframe
                 title="Google Map - Dnyanganga Coaching Classes"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121176.58181515415!2d74.52089326394435!3d19.876165285936193!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bd32e2f0814ee9b%3A0x2c2264609b51ed8!2sKopargaon!5e0!3m2!1sen!2sin!4v1674563481395!5m2!1sen!2sin"

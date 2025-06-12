@@ -7,13 +7,13 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     const links = [
         { path: "home", label: "Home", role:"admin" },
         { path: "profile", label: "Profile", role: "teacher" },
-        { path: "settings", label: "Settings", role: "admin" },
-        { path: "visiting", label: "Visiting Form", role: "counsellor"},
-        { path: "register", label: "Registration Form", role: "counsellor"},
-        { path: "registertable", label: "Register Table"},
-        { path: "visitingtable", label: "Visiting Table"},
+        { path: "settings", label: "Subjects Details", role: "admin" },
         { path: "user", label: "User Details", role: "admin"},
         { path: "examcenter", label: "Exam Center", role: "admin"},
+        { path: "register", label: "Registration Form", role: "counsellor"},
+        { path: "registertable", label: "Register Table"},
+        { path: "visiting", label: "Visiting Form", role: "counsellor"},
+        { path: "visitingtable", label: "Visiting Table"},
         {path: "paymenttable", label: "Payment table"},
     ];
 

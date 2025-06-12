@@ -25,7 +25,7 @@ function Login() {
         role,
       });
       login(response.data);
-
+      console.log(response.data);
       alert("Login successful");
       navigate("/dashboard");
     } catch (error) {
