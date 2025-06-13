@@ -4,6 +4,8 @@ import api from "../Api";
 const AddUser = () => {
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [submitLoader, setSubmitLoader] = useState(false);
+  const [updateLoader, setUpdateLoader] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -37,24 +39,34 @@ const AddUser = () => {
       ...formData,
       branch: formData.role === "counsellor" ? formData.branch : null,
       password: formData.email };
-
+    setSubmitLoader(true);
     api
       .post("/auth/register", newUser)
       .then(() => {
         alert("user added !!");
         fetchUsers();
         setShowForm(false);
+        setSubmitLoader(false);
         setFormData({ name: "", email: "", role: "counsellor" ,conatctNum: "", branch: ""});
       })
-      .catch((error) => console.error("Error adding user", error));
+      .catch((error) => {
+        console.error("Error adding user", error);
+        setSubmitLoader(false);
+      });
   };
 
   const handleDelete = (uuid) => {
-
+    setUpdateLoader(uuid);
     api
       .delete(`/admin/deleteUser/${uuid}`)
-      .then(() => fetchUsers())
-      .catch((error) => console.error("Error deleting user", error));
+      .then(() => {
+        fetchUsers();
+        setUpdateLoader(null);
+      })
+      .catch((error) => {
+        console.error("Error deleting user", error);
+        setUpdateLoader(null);
+      });
   };
 
   return (
@@ -133,14 +145,16 @@ const AddUser = () => {
             <div className="flex space-x-2">
               <button
                 type="submit"
-                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                disabled={submitLoader}
+                className="bg-green-500 min-w-20 disabled:opacity-50 text-white px-4 py-2 rounded-md hover:bg-green-600 grid place-items-center  "
               >
-                Submit
+                {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
               </button>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                disabled={submitLoader}
+                className="bg-gray-500 text-white disabled:opacity-50 px-4 py-2 rounded-md hover:bg-gray-600"
               >
                 Cancel
               </button>
@@ -174,9 +188,10 @@ const AddUser = () => {
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => handleDelete(user.uuid)}
-                      className={`${user.isActive ? "bg-red-500" : "bg-green-500"} text-white px-3 py-1 w-24 rounded-md hover:bg-red-600`}
+                      disabled={updateLoader == user.uuid}
+                      className={`${user.isActive ? "bg-red-500" : "bg-green-500"} disabled:opacity-50 text-white grid place-items-center px-3 py-1 w-24 rounded-md ${user.isActive ? "hover:bg-green-500" : "hover:bg-red-500"}`}
                     >
-                      {user.isActive ? "Deactivate" : "Activate"}
+                      {updateLoader == user.uuid ? <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span> : (user.isActive ? "Deactivate" : "Activate")}
                     </button>
                   </td>
                 </tr>

@@ -10,6 +10,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("teacher");
   const navigate = useNavigate();
+  const [loginLoader, setLoginLoader] = useState(false);
 
   useEffect(() => {
     if(user){
@@ -18,6 +19,7 @@ function Login() {
   }, [navigate]);
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoginLoader(true);
     try {
       const response = await axios.post(`${apiUrl}/auth/login`, {
         email,
@@ -31,6 +33,9 @@ function Login() {
     } catch (error) {
       alert(error.response.data.message);
       console.error("Login failed:", error.response);
+    }
+    finally{
+      setLoginLoader(false);
     }
   };
 
@@ -75,9 +80,10 @@ function Login() {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
+            disabled={loginLoader}
+            className="w-full min-h-10 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 flex items-center justify-center"
           >
-            Login
+            {loginLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> :  "Login"}
           </button>
         </form>
       </div>

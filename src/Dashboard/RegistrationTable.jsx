@@ -258,7 +258,7 @@ const RegistrationTable = () => {
                         )}
                         <button
                           onClick={() => handleViewPDF(student)}
-                          className="bg-primary text-white px-3 py-1 rounded hover:bg-blue-700 flex items-center gap-2"
+                          className="bg-primary text-white px-3 py-1 min-w-12 rounded hover:bg-blue-700 grid place-items-center"
                           disabled={loadingPdfId === student.studentId}
                         >
                           {loadingPdfId === student.studentId ? (

@@ -7,6 +7,8 @@ export default function Home() {
   console.log(user);
   const [hallTicket, setHallTicket] = useState(false);
   const [resultDeclared, setResultDeclared] = useState(false);
+  const [hallLoading, setHallLoading] = useState(false);
+  const [resultLoading, setResultLoading] = useState(false);
 
   const getFlag = () => {
     api.get('/admin/getSettingFlags')
@@ -19,13 +21,23 @@ export default function Home() {
         if (resultDeclaredFlag) setResultDeclared(resultDeclaredFlag.flagValue === 'true');
       })
       .catch(err => console.error('Error fetching flags', err));
-  }
-  // Fetch initial state
+}
+
   useEffect(() => {
+    setHallLoading(true);
+    setResultLoading(true);
     getFlag();
+    setHallLoading(false);
+    setResultLoading(false);
   }, []);
 
   const toggleFlag = async (flagName, currentValue) => {
+    if(flagName == "RESULT"){
+      setResultLoading(true);
+    }
+    else if(flagName == "HALLTICKET"){
+      setHallLoading(true);
+    }
     try {
       const response = await api.put(`/admin/updateSettingFlag/${flagName}`, {
         flagValue: (!currentValue).toString(),
@@ -36,6 +48,10 @@ export default function Home() {
     } catch (error) {
       console.error(`Error updating ${flagName}`, error);
     }
+    finally{
+      setHallLoading(false);
+      setResultLoading(false);
+    }
   };
 
   return (
@@ -45,26 +61,31 @@ export default function Home() {
         <h1 className="text-xl font-semibold text-center">Admin Controls</h1>
 
         {/* Hall Ticket Toggle */}
+        
         <div className="flex items-center justify-between">
           <span className="font-medium">Hall Ticket</span>
-          <button
+          <div className='grid place-items-center'>
+            {hallLoading ? <span className="animate-spin h-7 w-7 border-2 border-black border-t-transparent rounded-full"></span> : <button
             onClick={() => toggleFlag('HALLTICKET', hallTicket)}
             className={`w-14 h-7 flex items-center rounded-full p-1 duration-300 ease-in-out ${
               hallTicket ? 'bg-green-500' : 'bg-gray-300'
             }`}
+            
           >
             <div
               className={`bg-white w-5 h-5 rounded-full shadow-md transform duration-300 ease-in-out ${
                 hallTicket ? 'translate-x-7' : ''
               }`}
             ></div>
-          </button>
+          </button>}
+          </div>
         </div>
 
         {/* Result Declared Toggle */}
         <div className="flex items-center justify-between">
           <span className="font-medium">Result Declared</span>
-          <button
+              <div className='grid place-items-center'>
+              {resultLoading ? <span className="animate-spin h-7 w-7 border-2 border-black border-t-transparent rounded-full"></span> : <button
             onClick={() => toggleFlag('RESULT', resultDeclared)}
             className={`w-14 h-7 flex items-center rounded-full p-1 duration-300 ease-in-out ${
               resultDeclared ? 'bg-green-500' : 'bg-gray-300'
@@ -75,7 +96,9 @@ export default function Home() {
                 resultDeclared ? 'translate-x-7' : ''
               }`}
             ></div>
-          </button>
+          </button>}
+
+              </div>
         </div>
       </div>
       ) : (

@@ -345,10 +345,10 @@ const VisitingForm = () => {
             
             <button 
               type="submit" 
-              className="w-full py-3 bg-primary text-white rounded hover:bg-opacity-90 transition"
+              className="w-full py-3 min-h-12 bg-primary text-white rounded hover:bg-opacity-9 disabled:opacity-50 transition grid place-items-center"
               disabled={loading}
             >
-              {loading ? "Submitting..." : "Submit"}
+              {loading ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
             </button>
           </form>
         </div>

@@ -16,6 +16,8 @@ const RegistrationForm = () => {
   const [paymentError, setPaymentError] = useState("");
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
+  const [imgLoader, setImgLoader] = useState(false); 
+  const [submitLoader, setSUbmitLoader] = useState(false);
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
@@ -135,7 +137,7 @@ const RegistrationForm = () => {
 
   const uploadImage = async () => {
     if (!photoFile) return;
-
+    setImgLoader(true);
     const imageData = new FormData();
     imageData.append("file", photoFile);
 
@@ -153,11 +155,14 @@ const RegistrationForm = () => {
     } catch (error) {
       console.error("Error uploading image:", error);
     }
+    finally{
+      setImgLoader(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setSUbmitLoader(true);
     const formDataToSend = new FormData();
     Object.keys(formData).forEach(key => {
       formDataToSend.append(key, formData[key]);
@@ -183,6 +188,9 @@ const RegistrationForm = () => {
       }
     } catch (error) {
       console.error("Error submitting form:", error);
+    }
+    finally{
+      setSUbmitLoader(false);
     }
   };
 
@@ -211,7 +219,8 @@ const RegistrationForm = () => {
                       <button 
                         type="button" 
                         onClick={removePhoto} 
-                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                        disabled={imgLoader}
+                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
                       >
                         Remove Photo
                       </button>
@@ -219,10 +228,10 @@ const RegistrationForm = () => {
                     <button 
                       type="button" 
                       onClick={uploadImage} 
-                      disabled={isPhotoSaved}
-                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50"
+                      disabled={isPhotoSaved || imgLoader}
+                      className="px-4 py-2 min-w-28 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50 grid place-items-center"
                     >
-                      {isPhotoSaved ? "Photo Saved" : "Save Photo"}
+                      {isPhotoSaved ? "Photo Saved" : (imgLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Save Photo")}
                     </button>
                   </div>
                 </>
@@ -540,16 +549,18 @@ const RegistrationForm = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
           <button 
               type="reset" 
-              className="w-full py-3 bg-primary text-white rounded hover:bg-opacity-90 transition"
+              disabled={submitLoader}
+              className="w-full py-3 disabled:opacity-50 bg-primary text-white rounded hover:bg-opacity-90 transition"
             >
               Reset
             </button>
           {isPhotoSaved && !paymentError && (
             <button 
               type="submit" 
-              className="w-full py-3 bg-primary text-white rounded hover:bg-opacity-90 transition"
+              disabled={submitLoader}
+              className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition"
             >
-              Submit
+              {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
             </button>
           )}
           </div>

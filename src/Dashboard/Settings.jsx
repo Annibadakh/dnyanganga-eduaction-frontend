@@ -22,6 +22,9 @@ function Settings() {
   const [error, setError] = useState(null);
   const [formError, setFormError] = useState(null);
   const [modalError, setModalError] = useState(null);
+  const [submitLoader, setSubmitLoader] = useState(false);
+  const [updateLoader, setUpdateLoader] = useState(false);
+  const [deleteLoader, setDeleteLoader] = useState(null);
 
   useEffect(() => {
     fetchSubjects();
@@ -58,11 +61,12 @@ function Settings() {
 
   const handleSubjectSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.subjectCode || !formData.subjectName || !formData.language) {
       setFormError('All fields are required');
       return;
     }
-
+    setSubmitLoader(true);
     try {
       await api.post('/admin/addSubject', formData);
       fetchSubjects();
@@ -78,10 +82,14 @@ function Settings() {
       console.error('Error adding subject:', err);
       setFormError(err.response?.data?.message || 'Failed to add subject');
     }
+    finally{
+      setSubmitLoader(false);
+    }
   };
 
   const deleteSubject = async (code) => {
     if (!window.confirm("Are you sure you want to delete subject ?")) return;
+    setDeleteLoader(code);
     try {
       await api.delete(`/admin/deleteSubject/${code}`);
       fetchSubjects();
@@ -89,6 +97,9 @@ function Settings() {
     } catch (err) {
       console.error('Error deleting subject:', err);
       alert('Failed to delete subject');
+    }
+    finally{
+      setDeleteLoader(null);
     }
   };
 
@@ -122,7 +133,7 @@ function Settings() {
       examDate: examData.examDate,
       examTime: `${examData.examTimeFrom}-${examData.examTimeTo}`
     };
-
+    setUpdateLoader(true);
     try {
       await api.put(`/admin/addDates/${selectedSubject.subjectCode}`, updatedExamData);
       fetchSubjects();
@@ -130,6 +141,9 @@ function Settings() {
     } catch (err) {
       console.error('Error updating exam details:', err);
       setModalError(err.response?.data?.message || 'Failed to update exam details');
+    }
+    finally{
+      setUpdateLoader(false);
     }
   };
 
@@ -199,15 +213,17 @@ function Settings() {
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
+                disabled={submitLoader}
+                className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 text-black font-bold py-2 px-4 rounded"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-primary hover:bg-secondary text-white font-bold py-2 px-4 rounded"
+                disabled={submitLoader}
+                className="bg-primary min-w-24 hover:bg-secondary disabled:opacity-50 text-white font-bold py-2 px-4 rounded grid place-items-center"
               >
-                Submit
+                {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
               </button>
             </div>
           </form>
@@ -245,18 +261,19 @@ function Settings() {
                     <td className="px-4 py-2 border">{subject.standard}</td>
                     <td className="px-4 py-2 border">{formatDate(subject.examDate)}</td>
                     <td className="px-4 py-2 border">{formatTime(subject.examTime)}</td>
-                    <td className="px-4 py-2 border space-x-2">
+                    <td className="px-4 py-2 border gap-2 flex flex-row justify-center">
                       <button
                         onClick={() => openExamModal(subject)}
-                        className="bg-green-500 hover:bg-green-700 text-white px-2 w-24 py-1 rounded text-sm"
+                        className="bg-green-500 hover:bg-green-700 text-white w-24 h-8 rounded text-sm"
                       >
                         {subject.examDate ? 'Update' : 'Add'} Exam
                       </button>
                       <button
                         onClick={() => deleteSubject(subject.subjectCode)}
-                        className="bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded text-sm"
+                        disabled={deleteLoader == subject.subjectCode}
+                        className="bg-red-500 hover:bg-red-700 disabled:opacity-50 text-white h-8 rounded text-sm min-w-16 flex items-center justify-center"
                       >
-                        Delete
+                        {deleteLoader == subject.subjectCode ? <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span> : "Delete"}
                       </button>
                     </td>
                   </tr>
@@ -322,15 +339,17 @@ function Settings() {
                 <button
                   type="button"
                   onClick={closeExamModal}
-                  className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
+                  disabled={updateLoader}
+                  className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 text-black font-bold py-2 px-4 rounded"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-primary hover:bg-secondary text-white font-bold py-2 px-4 rounded"
+                  disabled={updateLoader}
+                  className="bg-primary min-w-20 hover:bg-secondary disabled:opacity-50 text-white font-bold py-2 px-4 rounded grid place-items-center"
                 >
-                  Save
+                  {updateLoader ? <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span> : "Save"}
                 </button>
               </div>
             </form>
