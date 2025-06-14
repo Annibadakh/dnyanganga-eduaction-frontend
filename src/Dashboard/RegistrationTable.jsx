@@ -186,30 +186,30 @@ const RegistrationTable = () => {
               <table className="table-auto w-full border border-customgray rounded-xl overflow-hidden shadow-lg text-sm">
                 <thead className="bg-primary text-customwhite uppercase tracking-wider">
                   <tr>
-                    <th className="p-3 text-left whitespace-nowrap">
+                    <th className="p-3 border text-left whitespace-nowrap">
                       Register Date
                     </th>
-                    <th className="p-3 text-left whitespace-nowrap">Student ID</th>
-                    <th className="p-3 text-left whitespace-nowrap">Form No.</th>
-                    <th className="p-3 text-left whitespace-nowrap">Name</th>
-                    <th className="p-3 text-left whitespace-nowrap">Standard</th>
-                    <th className="p-3 text-left whitespace-nowrap">Medium/Group</th>
-                    <th className="p-3 text-left whitespace-nowrap">Exam Centre</th>
-                    <th className="p-3 text-left whitespace-nowrap">Student No</th>
-                    <th className="p-3 text-left whitespace-nowrap">Parent No</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Student ID</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Form No.</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Name</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Standard</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Medium/Group</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Exam Centre</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Student No</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Parent No</th>
                     {user.role === "admin" && (
                       <>
-                        <th className="p-3 text-left whitespace-nowrap">Counsellor</th>
-                        <th className="p-3 text-left whitespace-nowrap">
+                        <th className="p-3 text-left border whitespace-nowrap">Counsellor</th>
+                        <th className="p-3 text-left border whitespace-nowrap">
                           Counsellor Branch
                         </th>
                       </>
                     )}
-                    <th className="p-3 text-left whitespace-nowrap">Total Amount</th>
-                    <th className="p-3 text-left whitespace-nowrap">Paid</th>
-                    <th className="p-3 text-left whitespace-nowrap">Remaining</th>
-                    <th className="p-3 text-left whitespace-nowrap">Due Date</th>
-                    <th className="p-3 text-left whitespace-nowrap">Actions</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Total Amount</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Paid</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Remaining</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Due Date</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-customblack">
@@ -218,36 +218,36 @@ const RegistrationTable = () => {
                       key={index}
                       className="border-b border-gray-200 hover:bg-gray-100 transition"
                     >
-                      <td className="p-3 whitespace-nowrap">
+                      <td className="p-3 border whitespace-nowrap">
                         {new Date(student.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="p-3 whitespace-nowrap">{student.studentId}</td>
-                      <td className="p-3 whitespace-nowrap">{student.formNo}</td>
-                      <td className="p-3 whitespace-nowrap">{student.studentName}</td>
-                      <td className="p-3 whitespace-nowrap">{student.standard}</td>
-                      <td className="p-3 whitespace-nowrap">{student.branch}</td>
-                      <td className="p-3 whitespace-nowrap">{student.examCentre}</td>
-                      <td className="p-3 whitespace-nowrap">{student.studentNo}</td>
-                      <td className="p-3 whitespace-nowrap">{student.parentsNo}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.studentId}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.formNo}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.studentName}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.standard}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.branch}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.examCentre}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.studentNo}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.parentsNo}</td>
                       {user.role === "admin" && (
                         <>
-                          <td className="p-3 whitespace-nowrap">{student.counsellor}</td>
-                          <td className="p-3 whitespace-nowrap">
+                          <td className="p-3 border whitespace-nowrap">{student.counsellor}</td>
+                          <td className="p-3 border whitespace-nowrap">
                             {student.counsellorBranch}
                           </td>
                         </>
                       )}
-                      <td className="p-3 whitespace-nowrap">{student.totalAmount}</td>
-                      <td className="p-3 whitespace-nowrap text-green-500 font-bold">
+                      <td className="p-3 border whitespace-nowrap">{student.totalAmount}</td>
+                      <td className="p-3 border whitespace-nowrap text-green-500 font-bold">
                         {student.amountPaid}
                       </td>
-                      <td className="p-3 whitespace-nowrap text-red-500 font-bold">
+                      <td className="p-3 border whitespace-nowrap text-red-500 font-bold">
                         {student.amountRemaining}
                       </td>
-                      <td className="p-3 whitespace-nowrap">
+                      <td className="p-3 border whitespace-nowrap">
                         {new Date(student.dueDate).toLocaleDateString()}
                       </td>
-                      <td className="p-3 whitespace-nowrap space-x-2">
+                      <td className="p-3 border whitespace-nowrap space-x-2">
                         {user.role === "counsellor" && student.amountRemaining > 0 && (
                           <button
                             onClick={() => handlePayment(student)}

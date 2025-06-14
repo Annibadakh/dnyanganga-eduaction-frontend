@@ -95,6 +95,7 @@ const VisitingTable = () => {
             <thead className="bg-primary text-white uppercase">
               <tr>
                 <th className="p-3 border">Sr</th>
+                <th className="p-3 border">Date</th>
                 <th className="p-3 border">Name</th>
                 <th className="p-3 border">Gender</th>
                 <th className="p-3 border">School/College</th>
@@ -106,7 +107,6 @@ const VisitingTable = () => {
                 <th className="p-3 border">Counsellor</th>
                 <th className="p-3 border">Demo</th>
                 <th className="p-3 border">Reason</th>
-                <th className="p-3 border">Date</th>
               </tr>
             </thead>
             <tbody>
@@ -116,6 +116,9 @@ const VisitingTable = () => {
                   className="text-center border-b hover:bg-gray-100 transition"
                 >
                   <td className="p-2 border">{index + 1}</td>
+                  <td className="p-2 border">
+                    {new Date(visit.createdAt).toLocaleDateString()}
+                  </td>
                   <td className="p-2 border">{visit.studentName}</td>
                   <td className="p-2 border">{visit.gender}</td>
                   <td className="p-2 border">{visit.schoolCollege}</td>
@@ -127,9 +130,6 @@ const VisitingTable = () => {
                   <td className="p-2 border">{visit.counsellor}</td>
                   <td className="p-2 border">{visit.demoGiven}</td>
                   <td className="p-2 border">{visit.reason}</td>
-                  <td className="p-2 border">
-                    {new Date(visit.createdAt).toLocaleDateString()}
-                  </td>
                 </tr>
               ))}
             </tbody>
