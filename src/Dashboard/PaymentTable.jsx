@@ -16,6 +16,7 @@ const PaymentTable = () => {
         },
       })
       .then((response) => {
+        console.log(response);
         setPaymentsData(response.data.studentData);
       })
       .catch((error) => console.error("Error fetching data:", error));
@@ -91,6 +92,7 @@ const PaymentTable = () => {
                       <thead>
                         <tr className="bg-gray-100">
                           <th className="border px-2 py-1">Payment ID</th>
+                          <th className="border px-2 py-1">Receipt No.</th>
                           <th className="border px-2 py-1">Amount</th>
                           <th className="border px-2 py-1">Date</th>
                           <th className="border px-2 py-1">Mode</th>
@@ -100,6 +102,7 @@ const PaymentTable = () => {
                         {student.payments.map((payment) => (
                           <tr key={payment.paymentId}>
                             <td className="border px-2 py-1">{payment.paymentId}</td>
+                            <td className="border px-2 py-1">{payment.receiptNo}</td>
                             <td className="border px-2 py-1">{payment.amountPaid}</td>
                             <td className="border px-2 py-1">
                               {new Date(payment.createdAt).toLocaleDateString()}
