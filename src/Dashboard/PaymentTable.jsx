@@ -1,12 +1,24 @@
-import { useState, useEffect } from "react";
+import {Fragment, useState, useEffect } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
+import { Dialog, Transition } from "@headlessui/react";
 
 const PaymentTable = () => {
   const { user } = useAuth();
   const [paymentsData, setPaymentsData] = useState([]);
   const [loadingPdfId, setLoadingPdfId] = useState(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [selectedReceiptUrl, setSelectedReceiptUrl] = useState("");
+  const imgUrl = import.meta.env.VITE_IMG_URL;
 
+  const handleViewReceipt = (receiptPhoto) => {
+    if (receiptPhoto) {
+      setSelectedReceiptUrl(`${imgUrl}${receiptPhoto}`);
+      setShowReceiptModal(true);
+    } else {
+      alert("No receipt image available.");
+    }
+  };
   useEffect(() => {
     api
       .get("/counsellor/getPayments", {
@@ -96,6 +108,7 @@ const PaymentTable = () => {
                           <th className="border px-2 py-1">Amount</th>
                           <th className="border px-2 py-1">Date</th>
                           <th className="border px-2 py-1">Mode</th>
+                          <th className="border px-2 py-1">View Receipt</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -108,6 +121,14 @@ const PaymentTable = () => {
                               {new Date(payment.createdAt).toLocaleDateString()}
                             </td>
                             <td className="border px-2 py-1">{payment.paymentMode}</td>
+                            <td className="border px-2 py-1">
+                              <button
+                                onClick={() => handleViewReceipt(payment.receiptPhoto)}
+                                className="text-blue-500 underline hover:text-blue-700"
+                              >
+                                View
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -134,7 +155,60 @@ const PaymentTable = () => {
           </tbody>
         </table>
       </div>
+      <Transition appear show={showReceiptModal} as={Fragment}>
+  <Dialog as="div" className="relative z-50" onClose={() => setShowReceiptModal(false)}>
+    <Transition.Child
+      as={Fragment}
+      enter="ease-out duration-300"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      leave="ease-in duration-200"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+    >
+      <div className="fixed inset-0 bg-black bg-opacity-50" />
+    </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-full p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                  Receipt Image
+                </Dialog.Title>
+                <div className="mt-4">
+                  <img
+                    src={selectedReceiptUrl}
+                    alt="Receipt"
+                    className="max-h-[500px] w-full object-contain rounded border"
+                  />
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+                    onClick={() => setShowReceiptModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+
     </div>
+    
   );
 };
 

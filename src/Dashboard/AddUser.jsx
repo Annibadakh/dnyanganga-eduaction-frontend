@@ -12,6 +12,7 @@ const AddUser = () => {
     role: "counsellor",
     contactNum: "",
     branch: "",
+    commission: "",
   });
 
   useEffect(() => {
@@ -138,6 +139,14 @@ const AddUser = () => {
                   onChange={handleChange}
                   required
                   className="w-full p-2 border rounded-md"
+                /><label className="block text-gray-700 font-semibold">commission in Percent: Ex. 20</label>
+                <input
+                  type="text"
+                  name="commission"
+                  value={formData.commission}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-2 border rounded-md"
                 />
               </div>
             )}
@@ -173,6 +182,8 @@ const AddUser = () => {
               <th className="border p-2">Email</th>
               <th className="border p-2">Role</th>
               <th className="border p-2">Contact No.</th>
+              <th className="border p-2">Branch</th>
+              <th className="border p-2">Commission</th>
               <th className="border p-2">Actions</th>
             </tr>
           </thead>
@@ -185,6 +196,8 @@ const AddUser = () => {
                   <td className="border p-2">{user.email}</td>
                   <td className="border p-2 text-center">{user.role}</td>
                   <td className="border p-2 text-center">{user.contactNum}</td>
+                  <td className="border p-2 text-center">{user.branch}</td>
+                  <td className="border p-2 text-center">{user.commission}%</td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => handleDelete(user.uuid)}

@@ -4,6 +4,7 @@ import api from "../Api";
 import PaymentForm from "./PaymentForm";
 
 const RegistrationTable = () => {
+  const imgUrl = import.meta.env.VITE_IMG_URL;
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -17,6 +18,9 @@ const RegistrationTable = () => {
   const [examCentres, setExamCentres] = useState([]);
   const [selectedExamCentre, setSelectedExamCentre] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+
 
   useEffect(() => {
     if (user.role === "admin") {
@@ -48,6 +52,7 @@ const RegistrationTable = () => {
     api
       .get(`/counsellor/getRegister?uuid=${user.uuid}&role=${user.role}`)
       .then((response) => {
+        console.log(response.data.data);
         setRegistrations(response.data.data);
         setFiltered(response.data.data);
         setLoading(false);
@@ -57,7 +62,7 @@ const RegistrationTable = () => {
         setError("Failed to load data");
         setLoading(false);
       });
-  }, [user?.uuid]);
+  }, [user?.uuid, showPayment]);
 
   useEffect(() => {
     const q = searchQuery.toLowerCase();
@@ -130,6 +135,17 @@ const RegistrationTable = () => {
       setLoadingPdfId(null);
     }
   };
+  const handleViewPhoto = (photoPath) => {
+      if (photoPath) {
+        const fullUrl = `${imgUrl}${photoPath}`;
+        console.log(fullUrl)
+        setSelectedPhoto(fullUrl);
+        setShowPhotoModal(true);
+      } else {
+        alert("Photo not available.");
+      }
+    };
+
 
   return (
     <div className="p-6 bg-customwhite shadow-custom rounded-2xl">
@@ -247,27 +263,36 @@ const RegistrationTable = () => {
                       <td className="p-3 border whitespace-nowrap">
                         {new Date(student.dueDate).toLocaleDateString()}
                       </td>
-                      <td className="p-3 border whitespace-nowrap space-x-2">
-                        {user.role === "counsellor" && student.amountRemaining > 0 && (
-                          <button
-                            onClick={() => handlePayment(student)}
-                            className="bg-secondary text-white px-3 py-1 rounded hover:bg-tertiary"
-                          >
-                            Make Payment
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleViewPDF(student)}
-                          className="bg-primary text-white px-3 py-1 min-w-12 rounded hover:bg-blue-700 grid place-items-center"
-                          disabled={loadingPdfId === student.studentId}
-                        >
-                          {loadingPdfId === student.studentId ? (
-                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                          ) : (
-                            "PDF"
+                      <td className="p-3 border whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          {user.role === "counsellor" && student.amountRemaining > 0 && (
+                            <button
+                              onClick={() => handlePayment(student)}
+                              className="bg-secondary text-white px-3 py-1 rounded hover:bg-tertiary"
+                            >
+                              Make Payment
+                            </button>
                           )}
-                        </button>
+                          <button
+                            onClick={() => handleViewPDF(student)}
+                            className="bg-primary text-white px-3 py-1 min-w-12 rounded hover:bg-blue-700 grid place-items-center"
+                            disabled={loadingPdfId === student.studentId}
+                          >
+                            {loadingPdfId === student.studentId ? (
+                              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                            ) : (
+                              "PDF"
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleViewPhoto(student.formPhoto)}
+                            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                          >
+                            View
+                          </button>
+                        </div>
                       </td>
+
                     </tr>
                   ))}
                 </tbody>
@@ -282,6 +307,28 @@ const RegistrationTable = () => {
       ) : (
         <PaymentForm paymentData={paymentData} setShowPayment={setShowPayment} />
       )}
+      {showPhotoModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+        <div className="relative bg-white rounded-lg shadow-lg w-[90%] max-w-3xl max-h-[90vh] overflow-y-auto p-4">
+          <button
+            onClick={() => setShowPhotoModal(false)}
+            className="absolute top-2 right-2 text-black hover:text-gray-800 text-xl"
+          >
+            ✕
+          </button>
+          <h2 className="text-lg font-semibold mb-4">Form Photo</h2>
+          <div className="overflow-auto max-h-[75vh] border rounded">
+            <img
+              src={selectedPhoto}
+              alt="Form"
+              className="w-full h-auto object-contain"
+            />
+          </div>
+        </div>
+      </div>
+    )}
+
+
     </div>
   );
 };

@@ -17,7 +17,21 @@ const RegistrationForm = () => {
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
   const [imgLoader, setImgLoader] = useState(false); 
-  const [submitLoader, setSUbmitLoader] = useState(false);
+  const [submitLoader, setSubmitLoader] = useState(false);
+
+  // Document upload states
+  const [receiptImageUrl, setReceiptImageUrl] = useState("");
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [isReceiptSaved, setReceiptSaved] = useState(false);
+  const [receiptError, setReceiptError] = useState("");
+  const [receiptLoader, setReceiptLoader] = useState(false);
+
+  const [formImageUrl, setFormImageUrl] = useState("");
+  const [formFile, setFormFile] = useState(null);
+  const [isFormSaved, setFormSaved] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [formLoader, setFormLoader] = useState(false);
+
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
@@ -37,6 +51,8 @@ const RegistrationForm = () => {
     formNo: "",
     receiptNo: "",
     studentPhoto: "",
+    receiptPhoto: "",
+    formPhoto: "",
     totalamount: 7900,
     amountPaid: "",
     modeOfPayment: "",
@@ -128,11 +144,59 @@ const RegistrationForm = () => {
     setImageUrl(URL.createObjectURL(file));
   };
 
+  const handleReceiptFileUpload = (e) => {
+    const file = e.target.files[0];
+    
+    if (!file) return;
+    
+    // Check file type - only allow JPG and JPEG
+    const validTypes = ['image/jpeg', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      setReceiptError("Only JPG and JPEG files are supported");
+      return;
+    }
+    
+    setReceiptError("");
+    setReceiptFile(file);
+    setReceiptImageUrl(URL.createObjectURL(file));
+  };
+
+  const handleFormFileUpload = (e) => {
+    const file = e.target.files[0];
+    
+    if (!file) return;
+    
+    // Check file type - only allow JPG and JPEG
+    const validTypes = ['image/jpeg', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      setFormError("Only JPG and JPEG files are supported");
+      return;
+    }
+    
+    setFormError("");
+    setFormFile(file);
+    setFormImageUrl(URL.createObjectURL(file));
+  };
+
   const removePhoto = () => {
     setImageUrl("");
     setFile(null);
     setSaved(false);
     setFileError("");
+  };
+
+  const removeReceiptPhoto = () => {
+    setReceiptImageUrl("");
+    setReceiptFile(null);
+    setReceiptSaved(false);
+    setReceiptError("");
+  };
+
+  const removeFormPhoto = () => {
+    setFormImageUrl("");
+    setFormFile(null);
+    setFormSaved(false);
+    setFormError("");
   };
 
   const uploadImage = async () => {
@@ -160,9 +224,59 @@ const RegistrationForm = () => {
     }
   };
 
+  const uploadReceiptImage = async () => {
+    if (!receiptFile) return;
+    setReceiptLoader(true);
+    const imageData = new FormData();
+    imageData.append("file", receiptFile);
+
+    try {
+      const response = await api.post("/upload-photo", imageData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data.imageUrl) {
+        setReceiptImageUrl(`${imgUrl}${response.data.imageUrl}`);
+        console.log(response.data.imageUrl);
+        setFormData({ ...formData, receiptPhoto: response.data.imageUrl });
+        setReceiptSaved(true);
+      }
+    } catch (error) {
+      console.error("Error uploading receipt image:", error);
+    }
+    finally{
+      setReceiptLoader(false);
+    }
+  };
+
+  const uploadFormImage = async () => {
+    if (!formFile) return;
+    setFormLoader(true);
+    const imageData = new FormData();
+    imageData.append("file", formFile);
+
+    try {
+      const response = await api.post("/upload-photo", imageData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data.imageUrl) {
+        setFormImageUrl(`${imgUrl}${response.data.imageUrl}`);
+        console.log(response.data.imageUrl);
+        setFormData({ ...formData, formPhoto: response.data.imageUrl });
+        setFormSaved(true);
+      }
+    } catch (error) {
+      console.error("Error uploading form image:", error);
+    }
+    finally{
+      setFormLoader(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSUbmitLoader(true);
+    setSubmitLoader(true);
     const formDataToSend = new FormData();
     Object.keys(formData).forEach(key => {
       formDataToSend.append(key, formData[key]);
@@ -190,7 +304,7 @@ const RegistrationForm = () => {
       console.error("Error submitting form:", error);
     }
     finally{
-      setSUbmitLoader(false);
+      setSubmitLoader(false);
     }
   };
 
@@ -546,6 +660,106 @@ const RegistrationForm = () => {
               />
             </div>
           </div>
+
+          {/* Documents Section */}
+          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">Documents</h3>
+            
+            {/* Receipt Photo Upload */}
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-3 text-gray-700">Receipt Photo</h4>
+              <div className="flex flex-col items-center w-full">
+                {receiptImageUrl ? (
+                  <>
+                    <img 
+                      src={`${receiptImageUrl}`} 
+                      alt="Receipt" 
+                      className="w-56 max-w-md h-auto object-cover rounded-md mb-4"
+                    />
+                    <div className="flex space-x-4 w-full justify-center">
+                      {!isReceiptSaved && (
+                        <button 
+                          type="button" 
+                          onClick={removeReceiptPhoto} 
+                          disabled={receiptLoader}
+                          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
+                        >
+                          Remove Receipt
+                        </button>
+                      )}
+                      <button 
+                        type="button" 
+                        onClick={uploadReceiptImage} 
+                        disabled={isReceiptSaved || receiptLoader}
+                        className="px-4 py-2 min-w-28 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50 grid place-items-center"
+                      >
+                        {isReceiptSaved ? "Receipt Saved" : (receiptLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Save Receipt")}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full">
+                    <input 
+                      type="file" 
+                      onChange={handleReceiptFileUpload} 
+                      accept=".jpg,.jpeg"
+                      className="w-full px-3 py-2 border rounded"
+                    />
+                    {receiptError && <p className="text-red-500 text-sm mt-2">{receiptError}</p>}
+                    <p className="text-sm text-gray-500 mt-2">Supported formats: JPG, JPEG</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Form Photo Upload */}
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-3 text-gray-700">Form Photo</h4>
+              <div className="flex flex-col items-center w-full">
+                {formImageUrl ? (
+                  <>
+                    <img 
+                      src={`${formImageUrl}`} 
+                      alt="Form" 
+                      className="w-56 max-w-md h-auto object-cover rounded-md mb-4"
+                    />
+                    <div className="flex space-x-4 w-full justify-center">
+                      {!isFormSaved && (
+                        <button 
+                          type="button" 
+                          onClick={removeFormPhoto} 
+                          disabled={formLoader}
+                          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
+                        >
+                          Remove Form
+                        </button>
+                      )}
+                      <button 
+                        type="button" 
+                        onClick={uploadFormImage} 
+                        disabled={isFormSaved || formLoader}
+                        className="px-4 py-2 min-w-28 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50 grid place-items-center"
+                      >
+                        {isFormSaved ? "Form Saved" : (formLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Save Form")}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full">
+                    <input 
+                      type="file" 
+                      onChange={handleFormFileUpload} 
+                      accept=".jpg,.jpeg"
+                      className="w-full px-3 py-2 border rounded"
+                    />
+                    {formError && <p className="text-red-500 text-sm mt-2">{formError}</p>}
+                    <p className="text-sm text-gray-500 mt-2">Supported formats: JPG, JPEG</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
           <button 
               type="reset" 
