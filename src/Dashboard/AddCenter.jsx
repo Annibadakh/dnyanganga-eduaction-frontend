@@ -19,7 +19,7 @@ const AddCenter = () => {
     api
       .get("/admin/getExamCenters")
       .then((response) => setCenters(response.data.data))
-      .catch((error) => console.error("Error fetching centers", error));
+      .catch((error) => console.error("Error fetching centre", error));
   };
 
   const handleChange = (e) => {
@@ -36,21 +36,21 @@ const AddCenter = () => {
     api
       .post("/admin/addCenter", newCenter)
       .then(() => {
-        alert("Center added!");
+        alert("Centre added!");
         fetchCenters();
         setShowForm(false);
         setFormData({ centerName: "", capicity: "", collegeName: "" });
         setSubmitLoader(false);
       })
       .catch((error) => {
-        console.error("Error adding center", error);
-        alert(error.response?.data?.message || "Error adding center");
+        console.error("Error adding centre", error);
+        alert(error.response?.data?.message || "Error adding centre");
         setSubmitLoader(false);
       })
   };
 
   const handleDelete = (centerId) => {
-    if (!window.confirm("Are you sure you want to delete this center?")) return;
+    if (!window.confirm("Are you sure you want to delete this centre?")) return;
     setDeleteLoader(centerId);
     api
       .delete(`/admin/deleteExamCenter/${centerId}`)
@@ -59,7 +59,7 @@ const AddCenter = () => {
         setDeleteLoader(null);
       })
       .catch((error) => {
-        console.error("Error deleting center", error);
+        console.error("Error deleting centre", error);
         setDeleteLoader(null);
       });
   };
@@ -80,40 +80,40 @@ const AddCenter = () => {
         collegeName: editData.collegeName 
       })
       .then(() => {
-        alert("Center details updated!");
+        alert("Centre details updated!");
         setEditId(null);
         fetchCenters();
         setUpdateLoader(null);
       })
       .catch((error) => {
-        console.error("Error updating center", error);
+        console.error("Error updating centre", error);
         setUpdateLoader(null);
       });
   };
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Exam Center Management</h1>
+      <h1 className="text-2xl font-bold mb-4">Exam Centre Management</h1>
 
       <button onClick={() => setShowForm(true)} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-        Add Center
+        Add Centre
       </button>
 
       {showForm && (
         <div className="mt-4 bg-gray-100 p-4 rounded-lg shadow-md">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-gray-700 font-semibold">Center Name:</label>
+              <label className="block text-gray-700 font-semibold">Centre Name:</label>
               <input type="text" name="centerName" value={formData.centerName} onChange={handleChange} required className="w-full p-2 border rounded-md" />
             </div>
             <div>
               <label className="block text-gray-700 font-semibold">College Name:</label>
               <input type="text" name="collegeName" value={formData.collegeName} onChange={handleChange} required className="w-full p-2 border rounded-md" />
             </div>
-            <div>
+            {/* <div>
               <label className="block text-gray-700 font-semibold">Capacity:</label>
               <input type="number" name="capicity" value={formData.capicity} onChange={handleChange} required className="w-full p-2 border rounded-md" />
-            </div>
+            </div> */}
             <div className="flex space-x-2">
               <button
                 type="submit"
@@ -128,12 +128,12 @@ const AddCenter = () => {
       )}
 
       <div className="mt-6 overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300">
+        <table className="w-full border-collapse text-center border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border p-2">Sr. No</th>
-              <th className="border p-2">Center Id</th>
-              <th className="border p-2">Center Name</th>
+              <th className="border p-2">Sr. No.</th>
+              <th className="border p-2">Centre Id</th>
+              <th className="border p-2">Centre Name</th>
               <th className="border p-2">College Name</th>
               <th className="border p-2">Capacity</th>
               <th className="border p-2">Actions</th>

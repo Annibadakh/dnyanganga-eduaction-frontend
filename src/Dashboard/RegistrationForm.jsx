@@ -2,35 +2,24 @@ import { useState, useEffect } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { FileUploadHook } from "./FileUploadHook";
+import FileUpload from "./FileUpload";
 
 const RegistrationForm = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const imgUrl = import.meta.env.VITE_IMG_URL;
   const { user } = useAuth();
-  console.log(user);
   const navigate = useNavigate();
-  const [imageUrl, setImageUrl] = useState("");
-  const [photoFile, setFile] = useState(null);
-  const [isPhotoSaved, setSaved] = useState(false);
-  const [fileError, setFileError] = useState("");
+  
+  // File upload hooks
+  const studentPhoto = FileUploadHook();
+  const receiptPhoto = FileUploadHook();
+  const formPhoto = FileUploadHook();
+  
+  // Form states
   const [paymentError, setPaymentError] = useState("");
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
-  const [imgLoader, setImgLoader] = useState(false); 
   const [submitLoader, setSubmitLoader] = useState(false);
-
-  // Document upload states
-  const [receiptImageUrl, setReceiptImageUrl] = useState("");
-  const [receiptFile, setReceiptFile] = useState(null);
-  const [isReceiptSaved, setReceiptSaved] = useState(false);
-  const [receiptError, setReceiptError] = useState("");
-  const [receiptLoader, setReceiptLoader] = useState(false);
-
-  const [formImageUrl, setFormImageUrl] = useState("");
-  const [formFile, setFormFile] = useState(null);
-  const [isFormSaved, setFormSaved] = useState(false);
-  const [formError, setFormError] = useState("");
-  const [formLoader, setFormLoader] = useState(false);
+  const [examCentres, setExamCentres] = useState([]);
 
   const [formData, setFormData] = useState({
     studentName: "",
@@ -43,6 +32,7 @@ const RegistrationForm = () => {
     studentNo: "",
     parentsNo: "",
     appNo: "",
+    notificationNo: "",
     standard: "",
     schoolCollege: "",
     branch: "",
@@ -59,7 +49,6 @@ const RegistrationForm = () => {
     amountRemaining: "",
     dueDate: "",
   });
-  const [examCentres, setExamCentres] = useState([]);
   
   useEffect(() => {
     api
@@ -123,164 +112,39 @@ const RegistrationForm = () => {
     } else {
       setFormData({ ...formData, [name]: value });
     }
-    
-    console.log(formData);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    
-    if (!file) return;
-    
-    // Check file type - only allow JPG and JPEG
-    const validTypes = ['image/jpeg', 'image/jpg'];
-    if (!validTypes.includes(file.type)) {
-      setFileError("Only JPG and JPEG files are supported");
-      return;
-    }
-    
-    setFileError("");
-    setFile(file);
-    setImageUrl(URL.createObjectURL(file));
-  };
-
-  const handleReceiptFileUpload = (e) => {
-    const file = e.target.files[0];
-    
-    if (!file) return;
-    
-    // Check file type - only allow JPG and JPEG
-    const validTypes = ['image/jpeg', 'image/jpg'];
-    if (!validTypes.includes(file.type)) {
-      setReceiptError("Only JPG and JPEG files are supported");
-      return;
-    }
-    
-    setReceiptError("");
-    setReceiptFile(file);
-    setReceiptImageUrl(URL.createObjectURL(file));
-  };
-
-  const handleFormFileUpload = (e) => {
-    const file = e.target.files[0];
-    
-    if (!file) return;
-    
-    // Check file type - only allow JPG and JPEG
-    const validTypes = ['image/jpeg', 'image/jpg'];
-    if (!validTypes.includes(file.type)) {
-      setFormError("Only JPG and JPEG files are supported");
-      return;
-    }
-    
-    setFormError("");
-    setFormFile(file);
-    setFormImageUrl(URL.createObjectURL(file));
-  };
-
-  const removePhoto = () => {
-    setImageUrl("");
-    setFile(null);
-    setSaved(false);
-    setFileError("");
-  };
-
-  const removeReceiptPhoto = () => {
-    setReceiptImageUrl("");
-    setReceiptFile(null);
-    setReceiptSaved(false);
-    setReceiptError("");
-  };
-
-  const removeFormPhoto = () => {
-    setFormImageUrl("");
-    setFormFile(null);
-    setFormSaved(false);
-    setFormError("");
-  };
-
-  const uploadImage = async () => {
-    if (!photoFile) return;
-    setImgLoader(true);
-    const imageData = new FormData();
-    imageData.append("file", photoFile);
-
-    try {
-      const response = await api.post("/upload-photo", imageData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (response.data.imageUrl) {
-        setImageUrl(`${imgUrl}${response.data.imageUrl}`);
-        console.log(response.data.imageUrl);
-        setFormData({ ...formData, studentPhoto: response.data.imageUrl });
-        setSaved(true);
-      }
-    } catch (error) {
-      console.error("Error uploading image:", error);
-    }
-    finally{
-      setImgLoader(false);
+  // Handle file uploads with form data update
+  const handleStudentPhotoUpload = async () => {
+    const imageUrl = await studentPhoto.uploadImage();
+    if (imageUrl) {
+      setFormData({ ...formData, studentPhoto: imageUrl });
     }
   };
 
-  const uploadReceiptImage = async () => {
-    if (!receiptFile) return;
-    setReceiptLoader(true);
-    const imageData = new FormData();
-    imageData.append("file", receiptFile);
-
-    try {
-      const response = await api.post("/upload-photo", imageData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (response.data.imageUrl) {
-        setReceiptImageUrl(`${imgUrl}${response.data.imageUrl}`);
-        console.log(response.data.imageUrl);
-        setFormData({ ...formData, receiptPhoto: response.data.imageUrl });
-        setReceiptSaved(true);
-      }
-    } catch (error) {
-      console.error("Error uploading receipt image:", error);
-    }
-    finally{
-      setReceiptLoader(false);
+  const handleReceiptPhotoUpload = async () => {
+    const imageUrl = await receiptPhoto.uploadImage();
+    if (imageUrl) {
+      setFormData({ ...formData, receiptPhoto: imageUrl });
     }
   };
 
-  const uploadFormImage = async () => {
-    if (!formFile) return;
-    setFormLoader(true);
-    const imageData = new FormData();
-    imageData.append("file", formFile);
-
-    try {
-      const response = await api.post("/upload-photo", imageData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (response.data.imageUrl) {
-        setFormImageUrl(`${imgUrl}${response.data.imageUrl}`);
-        console.log(response.data.imageUrl);
-        setFormData({ ...formData, formPhoto: response.data.imageUrl });
-        setFormSaved(true);
-      }
-    } catch (error) {
-      console.error("Error uploading form image:", error);
-    }
-    finally{
-      setFormLoader(false);
+  const handleFormPhotoUpload = async () => {
+    const imageUrl = await formPhoto.uploadImage();
+    if (imageUrl) {
+      setFormData({ ...formData, formPhoto: imageUrl });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitLoader(true);
+    
     const formDataToSend = new FormData();
     Object.keys(formData).forEach(key => {
       formDataToSend.append(key, formData[key]);
     });
+    
     if(user?.uuid){
       formDataToSend.append("uuid", user.uuid);
       formDataToSend.append("counsellor", user.userName);
@@ -293,482 +157,448 @@ const RegistrationForm = () => {
       });
       
       if (response) {
-        console.log("Form Submitted Successfully",response.data.payment, response.data.student, response.data.student.studentPhoto);
+        console.log("Form Submitted Successfully", response.data.payment, response.data.student, response.data.student.studentPhoto);
         alert("Student Register Successfully !!");
         navigate("/dashboard/registertable");
-        
       } else {
         console.error("Form Submission Failed");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-    }
-    finally{
+    } finally {
       setSubmitLoader(false);
     }
   };
 
+  const handleReset = () => {
+    setFormData({
+      studentName: "",
+      gender: "",
+      dob: "",
+      motherName: "",
+      address: "",
+      pincode: "",
+      email: "",
+      studentNo: "",
+      parentsNo: "",
+      appNo: "",
+      notificationNo: "",
+      standard: "",
+      schoolCollege: "",
+      branch: "",
+      examCentre: "",
+      examYear: "",
+      formNo: "",
+      receiptNo: "",
+      studentPhoto: "",
+      receiptPhoto: "",
+      formPhoto: "",
+      totalamount: 7900,
+      amountPaid: "",
+      modeOfPayment: "",
+      amountRemaining: "",
+      dueDate: "",
+    });
+    
+    // Reset all file uploads
+    studentPhoto.resetUpload();
+    receiptPhoto.resetUpload();
+    formPhoto.resetUpload();
+    
+    setPaymentError("");
+    setShowBranchDropdown(false);
+    setShow10thBranchDropdown(false);
+  };
+
   return (
-  <div className="w-full bg-white">
-    <div className="container px-1 py-1 w-full">
-      <div className="w-full bg-white">
-        <div className="bg-primary text-white text-center py-4">
-          <h2 className="text-2xl font-bold">Student Registration Form</h2>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 w-full">
-          {/* Photo Upload Section */}
-          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Photo</h3>
-            <div className="flex flex-col items-center w-full">
-              {imageUrl ? (
-                <>
-                  <img 
-                    src={`${imageUrl}`} 
-                    alt="Uploaded" 
-                    className="w-56 max-w-md h-auto object-cover rounded-md mb-4"
-                  />
-                  <div className="flex space-x-4 w-full justify-center">
-                    {!isPhotoSaved && (
-                      <button 
-                        type="button" 
-                        onClick={removePhoto} 
-                        disabled={imgLoader}
-                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
-                      >
-                        Remove Photo
-                      </button>
-                    )}
-                    <button 
-                      type="button" 
-                      onClick={uploadImage} 
-                      disabled={isPhotoSaved || imgLoader}
-                      className="px-4 py-2 min-w-28 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50 grid place-items-center"
-                    >
-                      {isPhotoSaved ? "Photo Saved" : (imgLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Save Photo")}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="w-full">
-                  <input 
-                    type="file" 
-                    onChange={handleFileUpload} 
-                    accept=".jpg,.jpeg"
-                    className="w-full px-3 py-2 border rounded"
-                  />
-                  {fileError && <p className="text-red-500 text-sm mt-2">{fileError}</p>}
-                  <p className="text-sm text-gray-500 mt-2">Supported formats: JPG, JPEG</p>
-                </div>
-              )}
-            </div>
+    <div className="w-full bg-white">
+      <div className="container px-1 py-1 w-full">
+        <div className="w-full bg-white">
+          <div className="bg-primary text-white text-center py-4">
+            <h2 className="text-2xl font-bold">Student Registration Form</h2>
           </div>
-
-          {/* Personal Details Section */}
-          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Personal Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-              <input 
-                type="text" 
-                name="studentName" 
-                onChange={handleChange} 
-                placeholder="Student Name" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              />
-              <select 
-                name="gender" 
-                onChange={handleChange} 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-              <div className="w-full flex flex-row items-center gap-1">
-                <label className="text-[17px] mr-4 text-gray-600">DOB:</label>
-                <input 
-                  type="date" 
-                  name="dob" 
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  required
-                />
-              </div>
-              <input 
-                type="text" 
-                name="motherName" 
-                onChange={handleChange} 
-                placeholder="Mother's Name" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              />
-              <input 
-                type="text" 
-                name="address" 
-                onChange={handleChange} 
-                placeholder="Address" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
-                required
-              />
-              <input 
-                type="text" 
-                name="pincode" 
-                onChange={handleChange} 
-                placeholder="PINCODE" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-                pattern="\d{6}"
-                title="Pincode must be 6 digits"
+          
+          <form onSubmit={handleSubmit} className="p-6 space-y-6 w-full">
+            {/* Photo Upload Section */}
+            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Photo</h3>
+              <FileUpload
+                title=""
+                imageUrl={studentPhoto.imageUrl}
+                error={studentPhoto.error}
+                loader={studentPhoto.loader}
+                isSaved={studentPhoto.isSaved}
+                onFileUpload={studentPhoto.handleFileUpload}
+                onUploadImage={handleStudentPhotoUpload}
+                onRemovePhoto={studentPhoto.removePhoto}
               />
             </div>
-          </div>
 
-          {/* Educational Details Section */}
-          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Educational Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-              <select 
-                name="standard" 
-                onChange={handleChange} 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              >
-                <option value="">Select Standard</option>
-                <option value="10th">10th</option>
-                <option value="12th">12th</option>
-              </select>
-              
-              {show10thBranchDropdown ? (
-                <select 
-                  name="branch" 
-                  value={formData.branch} 
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  required
-                >
-                  <option value="">Select Branch</option>
-                  <option value="English">English</option>
-                  <option value="Marathi">Marathi</option>
-                  <option value="Semi-English">Semi-English</option>
-                </select>
-              ) : showBranchDropdown ? (
-                <select 
-                  name="branch" 
-                  value={formData.branch} 
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  required
-                >
-                  <option value="">Select Branch</option>
-                  <option value="PCM">PCM</option>
-                  <option value="PCB">PCB</option>
-                  <option value="PCMB">PCMB</option>
-                </select>
-              ) : (
+            {/* Personal Details Section */}
+            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Personal Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <input 
                   type="text" 
-                  name="branch" 
-                  value={formData.branch} 
+                  name="studentName" 
+                  value={formData.studentName}
                   onChange={handleChange} 
-                  placeholder="Branch" 
+                  placeholder="Enter Student Name" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 />
-              )}
-              
-              <input 
-                type="text" 
-                name="schoolCollege" 
-                onChange={handleChange} 
-                placeholder="School/College" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Contact Details Section */}
-          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Contact Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-              <input 
-                type="email" 
-                name="email" 
-                onChange={handleChange} 
-                placeholder="Student Email" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-              />
-              <input 
-                type="tel" 
-                name="studentNo" 
-                onChange={handleChange} 
-                placeholder="Student No" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-                pattern="[0-9]{10}"
-                title="Phone number must be 10 digits"
-              />
-              <input 
-                type="tel" 
-                name="parentsNo" 
-                onChange={handleChange} 
-                placeholder="Parents No" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-                pattern="[0-9]{10}"
-                title="Phone number must be 10 digits"
-              />
-              <input 
-                type="tel" 
-                name="appNo" 
-                onChange={handleChange} 
-                placeholder="Application No for App Access" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-                pattern="[0-9]{10}"
-                title="Phone number must be 10 digits"
-              />
-            </div>
-          </div>
-
-          {/* Exam Centre and Form Details Section */}
-          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Exam Centre and Form Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-              <div>
                 <select 
-                  name="examCentre" 
+                  name="gender" 
+                  value={formData.gender}
                   onChange={handleChange} 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 >
-                  <option value="">Select Exam Centre</option>
-                  {examCentres.map((centre) => (
-                    <option key={centre.centerId} value={centre.centerName}>
-                      {centre.centerName}
-                    </option>
-                  ))}
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+                <div className="w-full flex flex-row items-center gap-1">
+                  <label className="text-[17px] mr-4 text-gray-600">DOB:</label>
+                  <input 
+                    type="date" 
+                    name="dob" 
+                    value={formData.dob}
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    required
+                  />
+                </div>
+                <input 
+                  type="text" 
+                  name="motherName" 
+                  value={formData.motherName}
+                  onChange={handleChange} 
+                  placeholder="Enter Mother's Name" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                />
+                <input 
+                  type="text" 
+                  name="address" 
+                  value={formData.address}
+                  onChange={handleChange} 
+                  placeholder="Enter Address" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
+                  required
+                />
+                <input 
+                  type="text" 
+                  name="pincode" 
+                  value={formData.pincode}
+                  onChange={handleChange} 
+                  placeholder="Enter Pincode" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                  pattern="\d{6}"
+                  title="Pincode must be 6 digits"
+                />
+              </div>
+            </div>
+
+            {/* Educational Details Section */}
+            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Educational Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <select 
+                  name="standard" 
+                  value={formData.standard}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
+                  <option value="">Select Standard</option>
+                  <option value="10th">10th</option>
+                  <option value="12th">12th</option>
+                </select>
+                
+                {show10thBranchDropdown ? (
+                  <select 
+                    name="branch" 
+                    value={formData.branch} 
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    required
+                  >
+                    <option value="">Select Branch</option>
+                    <option value="English">English</option>
+                    <option value="Marathi">Marathi</option>
+                    <option value="Semi-English">Semi-English</option>
+                  </select>
+                ) : showBranchDropdown ? (
+                  <select 
+                    name="branch" 
+                    value={formData.branch} 
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    required
+                  >
+                    <option value="">Select Branch</option>
+                    <option value="PCM">PCM</option>
+                    <option value="PCB">PCB</option>
+                    <option value="PCMB">PCMB</option>
+                  </select>
+                ) : (
+                  <input 
+                    type="text" 
+                    name="branch" 
+                    value={formData.branch} 
+                    onChange={handleChange} 
+                    placeholder="Enter Branch" 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    required
+                  />
+                )}
+                
+                <input 
+                  type="text" 
+                  name="schoolCollege" 
+                  value={formData.schoolCollege}
+                  onChange={handleChange} 
+                  placeholder="Enter School/College" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Contact Details Section */}
+            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Contact Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <input 
+                  type="email" 
+                  name="email" 
+                  value={formData.email}
+                  onChange={handleChange} 
+                  placeholder="Enter Student Email" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                />
+                <input 
+                  type="tel" 
+                  name="studentNo" 
+                  value={formData.studentNo}
+                  onChange={handleChange} 
+                  placeholder="Enter Student No" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                  pattern="[0-9]{10}"
+                  title="Phone number must be 10 digits"
+                />
+                <input 
+                  type="tel" 
+                  name="parentsNo" 
+                  value={formData.parentsNo}
+                  onChange={handleChange} 
+                  placeholder="Enter Parents No" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                  pattern="[0-9]{10}"
+                  title="Phone number must be 10 digits"
+                />
+                <select 
+                  name="appNo" 
+                  value={formData.appNo}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
+                  <option value="">Select App No.</option>
+                  <option value={formData.studentNo}>Student No.</option>
+                  <option value={formData.parentsNo}>Parent No.</option>
+                </select>
+                <select 
+                  name="notificationNo" 
+                  value={formData.notificationNo}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
+                  <option value="">Select Notification No.</option>
+                  <option value={formData.studentNo}>Student No.</option>
+                  <option value={formData.parentsNo}>Parent No.</option>
                 </select>
               </div>
-              
-              <div className="w-full flex flex-row items-center gap-1">
-                <label className="text-[17px] text-gray-600">December</label>
-                <select 
-                name="examYear" 
-                onChange={handleChange} 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              >
-                <option value="">Select Exam Year</option>
-                {Array.from({ length: 5 }, (_, i) => {
-                  const year = new Date().getFullYear() + i;
-                  return (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  );
-                })}
-              </select>
-              </div>
-              
-              <input 
-                type="text" 
-                name="formNo" 
-                onChange={handleChange} 
-                placeholder="Form Number" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              />
-              
-              <input 
-                type="text" 
-                name="receiptNo" 
-                onChange={handleChange} 
-                placeholder="Receipt Number" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              />
             </div>
-          </div>
 
-          {/* Payment Details Section */}
-          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Payment Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-              <input 
-                type="number" 
-                value={formData.totalamount}
-                name="totalamount" 
-                onChange={handleChange} 
-                placeholder="Total Amount" 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-                min="0"
-              />
-              <input 
-                type="number" 
-                name="amountPaid" 
-                value={formData.amountPaid}
-                onChange={handleChange} 
-                placeholder="Amount Paid" 
-                className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${
-                  paymentError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-blue-300'
-                }`}
-                required
-                min="0"
-                max={formData.totalamount}
-              />
-              {paymentError && (
-                <div className="md:col-span-2">
-                  <p className="text-red-500 text-sm mt-1">{paymentError}</p>
+            {/* Exam Centre and Form Details Section */}
+            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Exam Centre and Form Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <div>
+                  <select 
+                    name="examCentre" 
+                    value={formData.examCentre}
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    required
+                  >
+                    <option value="">Select Exam Centre</option>
+                    {examCentres.map((centre) => (
+                      <option key={centre.centerId} value={centre.centerName}>
+                        {centre.centerName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              )}
-              <select 
-                name="modeOfPayment" 
-                onChange={handleChange} 
-                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              >
-                <option value="">Select Payment Mode</option>
-                <option value="Cash">Cash</option>
-                <option value="Card">Check</option>
-                <option value="Online">Online</option>
-              </select>
-              
-              <div className="w-full flex flex-row items-center gap-1">
-                <label className="w-20 text-[15px] text-gray-600">Due Date:</label>
+                
+                <div className="w-full flex flex-row items-center gap-1">
+                  <label className="text-[17px] text-gray-600">December</label>
+                  <select 
+                    name="examYear" 
+                    value={formData.examYear}
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    required
+                  >
+                    <option value="">Select Exam Year</option>
+                    {Array.from({ length: 5 }, (_, i) => {
+                      const year = new Date().getFullYear() + i;
+                      return (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                
                 <input 
-                  type="date" 
-                  name="dueDate" 
+                  type="text" 
+                  name="formNo" 
+                  value={formData.formNo}
                   onChange={handleChange} 
+                  placeholder="Enter Form Number" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                />
+                
+                <input 
+                  type="text" 
+                  name="receiptNo" 
+                  value={formData.receiptNo}
+                  onChange={handleChange} 
+                  placeholder="Enter Receipt Number" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 />
               </div>
-              <input 
-                type="number" 
-                name="amountRemaining" 
-                value={formData.amountRemaining}
-                placeholder="Amount Remaining" 
-                className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
-                disabled
-                readOnly
+            </div>
+
+            {/* Payment Details Section */}
+            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Payment Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                <input 
+                  type="number" 
+                  value={formData.totalamount}
+                  name="totalamount" 
+                  onChange={handleChange} 
+                  placeholder="Enter Total Amount" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                  min="0"
+                />
+                <input 
+                  type="number" 
+                  name="amountPaid" 
+                  value={formData.amountPaid}
+                  onChange={handleChange} 
+                  placeholder="Enter Amount Paid" 
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${
+                    paymentError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-blue-300'
+                  }`}
+                  required
+                  min="0"
+                  max={formData.totalamount}
+                />
+                {paymentError && (
+                  <div className="md:col-span-2">
+                    <p className="text-red-500 text-sm mt-1">{paymentError}</p>
+                  </div>
+                )}
+                <select 
+                  name="modeOfPayment" 
+                  value={formData.modeOfPayment}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
+                  <option value="">Select Payment Mode</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Card">Check</option>
+                  <option value="Online">Online</option>
+                </select>
+                
+                <div className="w-full flex flex-row items-center gap-1">
+                  <label className="w-20 text-[15px] text-gray-600">Due Date:</label>
+                  <input 
+                    type="date" 
+                    name="dueDate" 
+                    value={formData.dueDate}
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    required
+                  />
+                </div>
+                <input 
+                  type="number" 
+                  name="amountRemaining" 
+                  value={formData.amountRemaining}
+                  placeholder="Amount Remaining" 
+                  className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
+                  disabled
+                  readOnly
+                />
+              </div>
+            </div>
+
+            {/* Documents Section */}
+            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Documents</h3>
+              
+              {/* Receipt Photo Upload */}
+              <FileUpload
+                title="Receipt Photo"
+                imageUrl={receiptPhoto.imageUrl}
+                error={receiptPhoto.error}
+                loader={receiptPhoto.loader}
+                isSaved={receiptPhoto.isSaved}
+                onFileUpload={receiptPhoto.handleFileUpload}
+                onUploadImage={handleReceiptPhotoUpload}
+                onRemovePhoto={receiptPhoto.removePhoto}
+              />
+
+              {/* Form Photo Upload */}
+              <FileUpload
+                title="Form Photo"
+                imageUrl={formPhoto.imageUrl}
+                error={formPhoto.error}
+                loader={formPhoto.loader}
+                isSaved={formPhoto.isSaved}
+                onFileUpload={formPhoto.handleFileUpload}
+                onUploadImage={handleFormPhotoUpload}
+                onRemovePhoto={formPhoto.removePhoto}
               />
             </div>
-          </div>
 
-          {/* Documents Section */}
-          <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Documents</h3>
-            
-            {/* Receipt Photo Upload */}
-            <div className="mb-6">
-              <h4 className="text-md font-medium mb-3 text-gray-700">Receipt Photo</h4>
-              <div className="flex flex-col items-center w-full">
-                {receiptImageUrl ? (
-                  <>
-                    <img 
-                      src={`${receiptImageUrl}`} 
-                      alt="Receipt" 
-                      className="w-56 max-w-md h-auto object-cover rounded-md mb-4"
-                    />
-                    <div className="flex space-x-4 w-full justify-center">
-                      {!isReceiptSaved && (
-                        <button 
-                          type="button" 
-                          onClick={removeReceiptPhoto} 
-                          disabled={receiptLoader}
-                          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
-                        >
-                          Remove Receipt
-                        </button>
-                      )}
-                      <button 
-                        type="button" 
-                        onClick={uploadReceiptImage} 
-                        disabled={isReceiptSaved || receiptLoader}
-                        className="px-4 py-2 min-w-28 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50 grid place-items-center"
-                      >
-                        {isReceiptSaved ? "Receipt Saved" : (receiptLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Save Receipt")}
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="w-full">
-                    <input 
-                      type="file" 
-                      onChange={handleReceiptFileUpload} 
-                      accept=".jpg,.jpeg"
-                      className="w-full px-3 py-2 border rounded"
-                    />
-                    {receiptError && <p className="text-red-500 text-sm mt-2">{receiptError}</p>}
-                    <p className="text-sm text-gray-500 mt-2">Supported formats: JPG, JPEG</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Form Photo Upload */}
-            <div className="mb-6">
-              <h4 className="text-md font-medium mb-3 text-gray-700">Form Photo</h4>
-              <div className="flex flex-col items-center w-full">
-                {formImageUrl ? (
-                  <>
-                    <img 
-                      src={`${formImageUrl}`} 
-                      alt="Form" 
-                      className="w-56 max-w-md h-auto object-cover rounded-md mb-4"
-                    />
-                    <div className="flex space-x-4 w-full justify-center">
-                      {!isFormSaved && (
-                        <button 
-                          type="button" 
-                          onClick={removeFormPhoto} 
-                          disabled={formLoader}
-                          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
-                        >
-                          Remove Form
-                        </button>
-                      )}
-                      <button 
-                        type="button" 
-                        onClick={uploadFormImage} 
-                        disabled={isFormSaved || formLoader}
-                        className="px-4 py-2 min-w-28 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50 grid place-items-center"
-                      >
-                        {isFormSaved ? "Form Saved" : (formLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Save Form")}
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="w-full">
-                    <input 
-                      type="file" 
-                      onChange={handleFormFileUpload} 
-                      accept=".jpg,.jpeg"
-                      className="w-full px-3 py-2 border rounded"
-                    />
-                    {formError && <p className="text-red-500 text-sm mt-2">{formError}</p>}
-                    <p className="text-sm text-gray-500 mt-2">Supported formats: JPG, JPEG</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
           <button 
-              type="reset" 
+              type="button"
+              onClick={handleReset}
               disabled={submitLoader}
               className="w-full py-3 disabled:opacity-50 bg-primary text-white rounded hover:bg-opacity-90 transition"
             >
               Reset
             </button>
-          {isPhotoSaved && !paymentError && (
+          {studentPhoto.isSaved && !paymentError && (
             <button 
               type="submit" 
               disabled={submitLoader}

@@ -139,9 +139,9 @@ const AddUser = () => {
                   onChange={handleChange}
                   required
                   className="w-full p-2 border rounded-md"
-                /><label className="block text-gray-700 font-semibold">commission in Percent: Ex. 20</label>
+                /><label className="block text-gray-700 font-semibold">Commission: Ex. 20%</label>
                 <input
-                  type="text"
+                  type="number"
                   name="commission"
                   value={formData.commission}
                   onChange={handleChange}
@@ -174,10 +174,10 @@ const AddUser = () => {
 
       {/* User Table */}
       <div className="mt-6">
-        <table className="w-full border-collapse border border-gray-300">
+        <table className="w-full border-collapse text-center border border-gray-300">
           <thead>
             <tr className="bg-gray-200">
-              <th className="border p-2">Sr. No</th>
+              <th className="border p-2">Sr. No.</th>
               <th className="border p-2">Name</th>
               <th className="border p-2">Email</th>
               <th className="border p-2">Role</th>
@@ -194,10 +194,10 @@ const AddUser = () => {
                   <td className="border p-2 text-center">{index + 1}</td>
                   <td className="border p-2">{user.name}</td>
                   <td className="border p-2">{user.email}</td>
-                  <td className="border p-2 text-center">{user.role}</td>
+                  <td className="border p-2 text-center">{user.role.toUpperCase()}</td>
                   <td className="border p-2 text-center">{user.contactNum}</td>
                   <td className="border p-2 text-center">{user.branch}</td>
-                  <td className="border p-2 text-center">{user.commission}%</td>
+                  <td className="border p-2 text-center">{user.commission}</td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => handleDelete(user.uuid)}

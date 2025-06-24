@@ -13,10 +13,15 @@ function Settings() {
   const [showModal, setShowModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
+  
   const [examData, setExamData] = useState({
     examDate: '',
-    examTimeFrom: '',
-    examTimeTo: ''
+    fromHour: '',
+    fromMinute: '',
+    fromPeriod: 'AM',
+    toHour: '',
+    toMinute: '',
+    toPeriod: 'AM',
   });
 
   const [error, setError] = useState(null);
@@ -55,9 +60,10 @@ function Settings() {
     const { name, value } = e.target;
     setExamData({
       ...examData,
-      [name]: value
+      [name]: value,
     });
   };
+
 
   const handleSubjectSubmit = async (e) => {
     e.preventDefault();
@@ -103,17 +109,47 @@ function Settings() {
     }
   };
 
+  // const openExamModal = (subject) => {
+  //   const [from, to] = subject.examTime?.split('-') || ['', ''];
+  //   setSelectedSubject(subject);
+  //   setExamData({
+  //     examDate: subject.examDate ? new Date(subject.examDate).toISOString().split('T')[0] : '',
+  //     examTimeFrom: from,
+  //     examTimeTo: to
+  //   });
+  //   setShowModal(true);
+  //   setModalError(null);
+  // };
   const openExamModal = (subject) => {
     const [from, to] = subject.examTime?.split('-') || ['', ''];
+
+    const parseTime = (timeStr = '') => {
+      const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (!match) return { hour: '1', minute: '00', period: 'AM' };
+      return {
+        hour: match[1].padStart(2, '0'),
+        minute: match[2].padStart(2, '0'),
+        period: match[3].toUpperCase(),
+      };
+    };
+
+    const fromTime = parseTime(from);
+    const toTime = parseTime(to);
+
     setSelectedSubject(subject);
     setExamData({
       examDate: subject.examDate ? new Date(subject.examDate).toISOString().split('T')[0] : '',
-      examTimeFrom: from,
-      examTimeTo: to
+      fromHour: fromTime.hour,
+      fromMinute: fromTime.minute,
+      fromPeriod: fromTime.period,
+      toHour: toTime.hour,
+      toMinute: toTime.minute,
+      toPeriod: toTime.period,
     });
     setShowModal(true);
     setModalError(null);
   };
+
 
   const closeExamModal = () => {
     setShowModal(false);
@@ -124,15 +160,27 @@ function Settings() {
   const handleExamSubmit = async (e) => {
     e.preventDefault();
     if (!selectedSubject) return;
-    if (!examData.examDate || !examData.examTimeFrom || !examData.examTimeTo) {
+
+    const {
+      examDate, fromHour, fromMinute, fromPeriod,
+      toHour, toMinute, toPeriod
+    } = examData;
+
+    console.log(examDate, fromHour, fromMinute, fromPeriod, toHour, toMinute, toPeriod);
+
+    if (!examDate || !fromHour || !fromMinute || !fromPeriod || !toHour || !toMinute || !toPeriod) {
       setModalError('All fields are required');
       return;
     }
 
+    const examTimeFrom = `${fromHour}:${fromMinute} ${fromPeriod}`;
+    const examTimeTo = `${toHour}:${toMinute} ${toPeriod}`;
+    console.log(examTimeFrom, examTimeTo)
     const updatedExamData = {
-      examDate: examData.examDate,
-      examTime: `${examData.examTimeFrom}-${examData.examTimeTo}`
+      examDate,
+      examTime: `${examTimeFrom}-${examTimeTo}`,
     };
+
     setUpdateLoader(true);
     try {
       await api.put(`/admin/addDates/${selectedSubject.subjectCode}`, updatedExamData);
@@ -141,13 +189,13 @@ function Settings() {
     } catch (err) {
       console.error('Error updating exam details:', err);
       setModalError(err.response?.data?.message || 'Failed to update exam details');
-    }
-    finally{
+    } finally {
       setUpdateLoader(false);
     }
   };
 
-  const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString() : 'Not set';
+
+  const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('en-GB') : 'Not set';
   const formatTime = (timeString) => timeString || 'Not set';
 
   return (
@@ -240,7 +288,7 @@ function Settings() {
           <p>No subjects found.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full border border-gray-300">
+            <table className="min-w-full border text-center border-gray-300">
               <thead className="bg-tertiary text-white">
                 <tr>
                   <th className="px-4 py-2 border">Code</th>
@@ -310,31 +358,49 @@ function Settings() {
                 />
               </div>
               <div className="mb-4 grid grid-cols-2 gap-4">
+                  {/* From */}
+                  <div>
+                    <label className="block mb-2">From*</label>
+                    <div className="flex gap-2">
+                      <select name="fromHour" value={examData.fromHour} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
+                        {[...Array(12)].map((_, i) => (
+                          <option key={i+1} value={String(i+1).padStart(2, '0')}>{i+1}</option>
+                        ))}
+                      </select>
+                      <select name="fromMinute" value={examData.fromMinute} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
+                        {[...Array(60)].map((_, i) => (
+                          <option key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</option>
+                        ))}
+                      </select>
+                      <select name="fromPeriod" value={examData.fromPeriod} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded">
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                      </select>
+                    </div>
+                  </div>
+
+                {/* To */}
                 <div>
-                  <label htmlFor="examTimeFrom" className="block mb-2">From*</label>
-                  <input
-                    type="time"
-                    id="examTimeFrom"
-                    name="examTimeFrom"
-                    value={examData.examTimeFrom}
-                    onChange={handleExamFormChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="examTimeTo" className="block mb-2">To*</label>
-                  <input
-                    type="time"
-                    id="examTimeTo"
-                    name="examTimeTo"
-                    value={examData.examTimeTo}
-                    onChange={handleExamFormChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    required
-                  />
+                  <label className="block mb-2">To*</label>
+                  <div className="flex gap-2">
+                    <select name="toHour" value={examData.toHour} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
+                      {[...Array(12)].map((_, i) => (
+                        <option key={i+1} value={String(i+1).padStart(2, '0')}>{i+1}</option>
+                      ))}
+                    </select>
+                    <select name="toMinute" value={examData.toMinute} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
+                      {[...Array(60)].map((_, i) => (
+                        <option key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</option>
+                      ))}
+                    </select>
+                    <select name="toPeriod" value={examData.toPeriod} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded">
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
                 </div>
               </div>
+
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"

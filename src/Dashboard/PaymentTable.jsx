@@ -6,6 +6,8 @@ import { Dialog, Transition } from "@headlessui/react";
 const PaymentTable = () => {
   const { user } = useAuth();
   const [paymentsData, setPaymentsData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState("");
@@ -19,6 +21,7 @@ const PaymentTable = () => {
       alert("No receipt image available.");
     }
   };
+
   useEffect(() => {
     api
       .get("/counsellor/getPayments", {
@@ -30,9 +33,37 @@ const PaymentTable = () => {
       .then((response) => {
         console.log(response);
         setPaymentsData(response.data.studentData);
+        setFilteredData(response.data.studentData);
       })
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
+
+  // Filter data based on search term
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredData(paymentsData);
+      return;
+    }
+
+    const filtered = paymentsData.filter(student => {
+      const searchLower = searchTerm.toLowerCase();
+      
+      // Check student name and ID
+      const studentMatch = 
+        student.studentName?.toLowerCase().includes(searchLower) ||
+        student.studentId?.toString().toLowerCase().includes(searchLower);
+      
+      // Check payment details
+      const paymentMatch = student.payments.some(payment =>
+        payment.paymentId?.toString().toLowerCase().includes(searchLower) ||
+        payment.receiptNo?.toString().toLowerCase().includes(searchLower)
+      );
+      
+      return studentMatch || paymentMatch;
+    });
+
+    setFilteredData(filtered);
+  }, [searchTerm, paymentsData]);
 
   const handleDownloadReceipt = async (student) => {
     try {
@@ -73,12 +104,25 @@ const PaymentTable = () => {
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Payment Records</h2>
+      
+      {/* Search Bar */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by student name, student ID, payment ID, or receipt number..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
       <div className="overflow-auto">
-        <table className="border border-gray-300 text-sm whitespace-nowrap min-w-full">
+        <table className="border border-gray-300 text-center text-sm whitespace-nowrap min-w-full">
           <thead>
             <tr className="bg-gray-200">
+              <th className="border px-4 py-2">Sr. No.</th>
               <th className="border px-4 py-2">Student ID</th>
-              <th className="border px-4 py-2">Name</th>
+              <th className="border px-4 py-2">Student Name</th>
               <th className="border px-4 py-2">Amount Paid</th>
               <th className="border px-4 py-2">Amount Remaining</th>
               <th className="border px-4 py-2">Due Date</th>
@@ -87,15 +131,16 @@ const PaymentTable = () => {
             </tr>
           </thead>
           <tbody>
-            {paymentsData.map((student) => (
-              <tr key={student.studentId} className="bg-white hover:bg-gray-100">
+            {filteredData.map((student, index) => (
+              <tr key={index} className="bg-white hover:bg-gray-100">
+                <td className="border px-4 py-2">{index+1}</td>
                 <td className="border px-4 py-2">{student.studentId}</td>
                 <td className="border px-4 py-2">{student.studentName}</td>
                 <td className="border px-4 py-2">{student.amountPaid}</td>
                 <td className="border px-4 py-2">{student.amountRemaining}</td>
                 <td className="border px-4 py-2">
                   {student.dueDate
-                    ? new Date(student.dueDate).toLocaleDateString()
+                    ? new Date(student.dueDate).toLocaleDateString('en-GB')
                     : "-"}
                 </td>
                 <td className="border px-4 py-2">
@@ -108,7 +153,7 @@ const PaymentTable = () => {
                           <th className="border px-2 py-1">Amount</th>
                           <th className="border px-2 py-1">Date</th>
                           <th className="border px-2 py-1">Mode</th>
-                          <th className="border px-2 py-1">View Receipt</th>
+                          <th className="border px-2 py-1">Receipt</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -118,7 +163,7 @@ const PaymentTable = () => {
                             <td className="border px-2 py-1">{payment.receiptNo}</td>
                             <td className="border px-2 py-1">{payment.amountPaid}</td>
                             <td className="border px-2 py-1">
-                              {new Date(payment.createdAt).toLocaleDateString()}
+                              {new Date(payment.createdAt).toLocaleDateString('en-GB')}
                             </td>
                             <td className="border px-2 py-1">{payment.paymentMode}</td>
                             <td className="border px-2 py-1">
@@ -155,60 +200,59 @@ const PaymentTable = () => {
           </tbody>
         </table>
       </div>
+      
       <Transition appear show={showReceiptModal} as={Fragment}>
-  <Dialog as="div" className="relative z-50" onClose={() => setShowReceiptModal(false)}>
-    <Transition.Child
-      as={Fragment}
-      enter="ease-out duration-300"
-      enterFrom="opacity-0"
-      enterTo="opacity-100"
-      leave="ease-in duration-200"
-      leaveFrom="opacity-100"
-      leaveTo="opacity-0"
-    >
-      <div className="fixed inset-0 bg-black bg-opacity-50" />
-    </Transition.Child>
+        <Dialog as="div" className="relative z-50" onClose={() => setShowReceiptModal(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-50" />
+          </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-full p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
-                  Receipt Image
-                </Dialog.Title>
-                <div className="mt-4">
-                  <img
-                    src={selectedReceiptUrl}
-                    alt="Receipt"
-                    className="max-h-[500px] w-full object-contain rounded border"
-                  />
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="button"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
-                    onClick={() => setShowReceiptModal(false)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-full p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                    Receipt Image
+                  </Dialog.Title>
+                  <div className="mt-4">
+                    <img
+                      src={selectedReceiptUrl}
+                      alt="Receipt"
+                      className="max-h-[500px] w-full object-contain rounded border"
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+                      onClick={() => setShowReceiptModal(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
           </div>
-        </div>
-      </Dialog>
-    </Transition>
-
+        </Dialog>
+      </Transition>
     </div>
-    
   );
 };
 

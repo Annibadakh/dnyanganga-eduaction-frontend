@@ -17,10 +17,10 @@ const RegistrationTable = () => {
   const [users, setUsers] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
   const [selectedExamCentre, setSelectedExamCentre] = useState("");
+  const [selectedStandard, setSelectedStandard] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-
 
   useEffect(() => {
     if (user.role === "admin") {
@@ -85,8 +85,14 @@ const RegistrationTable = () => {
       );
     }
 
+    if (selectedStandard) {
+      filteredResults = filteredResults.filter(
+        (student) => student.standard === selectedStandard
+      );
+    }
+
     setFiltered(filteredResults);
-  }, [searchQuery, registrations, selectedCounsellor, selectedExamCentre]);
+  }, [searchQuery, registrations, selectedCounsellor, selectedExamCentre, selectedStandard]);
 
   const handlePayment = (student) => {
     const newStudent = {
@@ -135,6 +141,7 @@ const RegistrationTable = () => {
       setLoadingPdfId(null);
     }
   };
+  
   const handleViewPhoto = (photoPath) => {
       if (photoPath) {
         const fullUrl = `${imgUrl}${photoPath}`;
@@ -146,7 +153,14 @@ const RegistrationTable = () => {
       }
     };
 
-
+  const formatTimeTo12Hour = (dateTimeString) => {
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
   return (
     <div className="p-6 bg-customwhite shadow-custom rounded-2xl">
       {!showPayment ? (
@@ -190,6 +204,16 @@ const RegistrationTable = () => {
                 </option>
               ))}
             </select>
+
+            <select
+              value={selectedStandard}
+              onChange={(e) => setSelectedStandard(e.target.value)}
+              className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
+            >
+              <option value="">All Standards</option>
+              <option value="10th">10th</option>
+              <option value="12th">12th</option>
+            </select>
           </div>
 
           {loading && (
@@ -199,25 +223,27 @@ const RegistrationTable = () => {
 
           {!loading && !error && filtered.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="table-auto w-full border border-customgray rounded-xl overflow-hidden shadow-lg text-sm">
+              <table className="table-auto w-full border text-center border-customgray rounded-xl overflow-hidden shadow-lg text-sm">
                 <thead className="bg-primary text-customwhite uppercase tracking-wider">
                   <tr>
+                    <th className="p-3 text-left border whitespace-nowrap">Sr. No.</th>
                     <th className="p-3 border text-left whitespace-nowrap">
                       Register Date
                     </th>
+                    <th className="p-3 text-left border whitespace-nowrap">Register Time</th>
                     <th className="p-3 text-left border whitespace-nowrap">Student ID</th>
                     <th className="p-3 text-left border whitespace-nowrap">Form No.</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Name</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Student Name</th>
                     <th className="p-3 text-left border whitespace-nowrap">Standard</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Medium/Group</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Med/Grp</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Student No.</th>
+                    <th className="p-3 text-left border whitespace-nowrap">Parent No.</th>
                     <th className="p-3 text-left border whitespace-nowrap">Exam Centre</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Student No</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Parent No</th>
                     {user.role === "admin" && (
                       <>
                         <th className="p-3 text-left border whitespace-nowrap">Counsellor</th>
                         <th className="p-3 text-left border whitespace-nowrap">
-                          Counsellor Branch
+                          Branch
                         </th>
                       </>
                     )}
@@ -234,17 +260,19 @@ const RegistrationTable = () => {
                       key={index}
                       className="border-b border-gray-200 hover:bg-gray-100 transition"
                     >
+                      <td className="p-3 border whitespace-nowrap">{index+1}</td>
                       <td className="p-3 border whitespace-nowrap">
-                        {new Date(student.createdAt).toLocaleDateString()}
+                        {new Date(student.createdAt).toLocaleDateString('en-GB')}
                       </td>
+                      <td className="p-3 border whitespace-nowrap">{formatTimeTo12Hour(student.createdAt)}</td>
                       <td className="p-3 border whitespace-nowrap">{student.studentId}</td>
                       <td className="p-3 border whitespace-nowrap">{student.formNo}</td>
                       <td className="p-3 border whitespace-nowrap">{student.studentName}</td>
                       <td className="p-3 border whitespace-nowrap">{student.standard}</td>
                       <td className="p-3 border whitespace-nowrap">{student.branch}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.examCentre}</td>
                       <td className="p-3 border whitespace-nowrap">{student.studentNo}</td>
                       <td className="p-3 border whitespace-nowrap">{student.parentsNo}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.examCentre}</td>
                       {user.role === "admin" && (
                         <>
                           <td className="p-3 border whitespace-nowrap">{student.counsellor}</td>
@@ -261,7 +289,7 @@ const RegistrationTable = () => {
                         {student.amountRemaining}
                       </td>
                       <td className="p-3 border whitespace-nowrap">
-                        {new Date(student.dueDate).toLocaleDateString()}
+                        {new Date(student.dueDate).toLocaleDateString('en-GB')}
                       </td>
                       <td className="p-3 border whitespace-nowrap">
                         <div className="flex items-center space-x-2">
@@ -327,7 +355,6 @@ const RegistrationTable = () => {
         </div>
       </div>
     )}
-
 
     </div>
   );
