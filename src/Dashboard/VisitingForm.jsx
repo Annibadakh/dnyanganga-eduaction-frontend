@@ -9,7 +9,7 @@ const VisitingForm = () => {
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
   const [showOtherReason, setShowOtherReason] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
@@ -24,6 +24,7 @@ const VisitingForm = () => {
     email: "",
     studentNo: "",
     parentsNo: "",
+    notificationNo: "",
     demoGiven: "",
     reason: "",
     otherReason: "",
@@ -33,7 +34,7 @@ const VisitingForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === "standard") {
       if (value === "10th") {
         setFormData({
@@ -73,6 +74,31 @@ const VisitingForm = () => {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      studentName: "",
+      gender: "",
+      dob: "",
+      motherName: "",
+      address: "",
+      pincode: "",
+      standard: "",
+      branch: "",
+      schoolCollege: "",
+      previousYearPercent: "",
+      email: "",
+      studentNo: "",
+      parentsNo: "",
+      notificationNo: "",
+      demoGiven: "",
+      reason: "",
+      otherReason: "",
+    });
+    setShowBranchDropdown(false);
+    setShow10thBranchDropdown(false);
+    setShowOtherReason(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -85,13 +111,13 @@ const VisitingForm = () => {
         formDataToSend.append(key, formData[key]);
       }
     });
-    
+
     if(user?.uuid){
       formDataToSend.append("uuid", user.uuid);
       formDataToSend.append("counsellor", user.userName);
       formDataToSend.append("counsellorBranch", user.branch);
     }
-    
+
     try {
       const response = await api.post("/counsellor/visiting", formDataToSend, {
         headers: { "Content-Type": "application/json" },
@@ -108,19 +134,19 @@ const VisitingForm = () => {
 
   return (
     <div className="w-full bg-white">
-      <div className="container mx-auto px-4 py-8 w-full">
+      <div className="container mx-auto p-1 w-full">
         <div className="w-full bg-white">
           <div className="bg-primary text-white text-center py-4">
-            <h2 className="text-2xl font-bold">Visiting Form</h2>
+            <h2 className="text-2xl font-bold">Student Visiting Form</h2>
           </div>
           <form onSubmit={handleSubmit} className="p-6 space-y-6 w-full">
             <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Personal Details</h3>
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Personal Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <input 
                   type="text" 
                   name="studentName" 
-                  placeholder="Student Name" 
+                  placeholder="Enter Student Name" 
                   value={formData.studentName} 
                   onChange={handleChange} 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
@@ -138,7 +164,7 @@ const VisitingForm = () => {
                   <option value="Female">Female</option>
                 </select>
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className="text-[17px] mr-4 text-gray-600">DOB:</label>
+                  <label className="text-[17px] min-w-fit text-gray-600">Date of Birth:</label>
                   <input 
                     type="date" 
                     name="dob" 
@@ -153,7 +179,7 @@ const VisitingForm = () => {
                   name="motherName" 
                   value={formData.motherName}
                   onChange={handleChange} 
-                  placeholder="Mother's Name" 
+                  placeholder="Enter Mother's Name" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 />
@@ -162,7 +188,7 @@ const VisitingForm = () => {
                   name="address" 
                   value={formData.address}
                   onChange={handleChange} 
-                  placeholder="Address" 
+                  placeholder="Enter Address" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
                   required
                 />
@@ -171,7 +197,7 @@ const VisitingForm = () => {
                   name="pincode" 
                   value={formData.pincode}
                   onChange={handleChange} 
-                  placeholder="PINCODE" 
+                  placeholder="Enter Pincode" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                   pattern="\d{6}"
@@ -179,10 +205,9 @@ const VisitingForm = () => {
                 />
               </div>
             </div>
-  
-            {/* Educational and Contact Details Section */}
+
             <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Educational and Contact Details</h3>
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Educational Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <select 
                   name="standard" 
@@ -195,7 +220,7 @@ const VisitingForm = () => {
                   <option value="10th">10th</option>
                   <option value="12th">12th</option>
                 </select>
-                
+
                 {show10thBranchDropdown ? (
                   <select 
                     name="branch" 
@@ -204,10 +229,10 @@ const VisitingForm = () => {
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                     required
                   >
-                    <option value="">Select Branch</option>
-                    <option value="English">English</option>
+                    <option value="">Select Medium</option>
                     <option value="Marathi">Marathi</option>
                     <option value="Semi-English">Semi-English</option>
+                    <option value="English">English</option>
                   </select>
                 ) : showBranchDropdown ? (
                   <select 
@@ -217,7 +242,7 @@ const VisitingForm = () => {
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                     required
                   >
-                    <option value="">Select Branch</option>
+                    <option value="">Select Group</option>
                     <option value="PCM">PCM</option>
                     <option value="PCB">PCB</option>
                     <option value="PCMB">PCMB</option>
@@ -228,25 +253,25 @@ const VisitingForm = () => {
                     name="branch" 
                     value={formData.branch} 
                     onChange={handleChange} 
-                    placeholder="Branch" 
+                    placeholder="Medium/Group" 
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                     required
                   />
                 )}
-                
+
                 <input 
                   type="text" 
                   name="schoolCollege" 
                   value={formData.schoolCollege}
                   onChange={handleChange} 
-                  placeholder="School/College" 
+                  placeholder="Enter School/College Name" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 />
                 <input 
                   type="number" 
                   name="previousYearPercent" 
-                  placeholder="Previous Year Percentage" 
+                  placeholder="Enter Previous Year Percentage" 
                   value={formData.previousYearPercent} 
                   onChange={handleChange} 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
@@ -255,16 +280,16 @@ const VisitingForm = () => {
                 />
               </div>
             </div>
-              
+
             <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Contact Details</h3>
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Contact Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <input 
                   type="email" 
                   name="email" 
                   value={formData.email}
                   onChange={handleChange} 
-                  placeholder="Student Email" 
+                  placeholder="Enter Student Email" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
@@ -274,7 +299,7 @@ const VisitingForm = () => {
                   name="studentNo" 
                   value={formData.studentNo}
                   onChange={handleChange} 
-                  placeholder="Student No" 
+                  placeholder="Enter Student Mobile No." 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                   pattern="[0-9]{10}"
@@ -285,16 +310,34 @@ const VisitingForm = () => {
                   name="parentsNo" 
                   value={formData.parentsNo}
                   onChange={handleChange} 
-                  placeholder="Parents No" 
+                  placeholder="Enter Parent Mobile No." 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                   pattern="[0-9]{10}"
                   title="Phone number must be 10 digits"
                 />
+                <select 
+                  name="notificationNo" 
+                  value={formData.notificationNo}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
+                  <option value="">Select Notification No.</option>
+                  {formData.studentNo && (
+                    <option value={formData.studentNo}>
+                      Student No. ({formData.studentNo})
+                    </option>
+                  )}
+                  {formData.parentsNo && (
+                    <option value={formData.parentsNo}>
+                      Parent No. ({formData.parentsNo})
+                    </option>
+                  )}
+                </select>
               </div>
             </div>
-            
-            {/* Additional Details Section */}
+
             <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Additional Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -302,7 +345,7 @@ const VisitingForm = () => {
                   name="demoGiven" 
                   value={formData.demoGiven}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 >
                   <option value="">Demo Given?</option>
@@ -313,10 +356,10 @@ const VisitingForm = () => {
                   name="reason" 
                   value={formData.reason}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 >
-                  <option value="">Select Reason</option>
+                  <option value="">Reason For Not Taking Admission</option>
                   <option value="पैश्याची अडचण">पैश्याची अडचण</option>
                   <option value="विश्वास नाही">विश्वास नाही</option>
                   <option value="विद्यार्थी इच्छुक नाही">विद्यार्थी इच्छुक नाही</option>
@@ -327,12 +370,12 @@ const VisitingForm = () => {
                   <option value="Other">Other (Enter Reason Below)</option>
                 </select>
               </div>
-              
+
               {showOtherReason && (
                 <div className="mt-4">
                   <textarea 
                     name="otherReason" 
-                    placeholder="Please enter your reason here..." 
+                    placeholder="Enter your reason here..." 
                     value={formData.otherReason} 
                     onChange={handleChange} 
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
@@ -342,14 +385,28 @@ const VisitingForm = () => {
                 </div>
               )}
             </div>
-            
-            <button 
-              type="submit" 
-              className="w-full py-3 min-h-12 bg-primary text-white rounded hover:bg-opacity-9 disabled:opacity-50 transition grid place-items-center"
-              disabled={loading}
-            >
-              {loading ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
-            </button>
+
+            <div className="flex flex-col md:flex-row gap-4 w-full">
+              <button
+                type="button"
+                onClick={resetForm}
+                className="w-full py-3 min-h-12 bg-gray-400 text-white rounded hover:bg-gray-500 transition grid place-items-center"
+                disabled={loading}
+              >
+                Reset
+              </button>
+              <button 
+                type="submit" 
+                className="w-full py-3 min-h-12 bg-primary text-white rounded hover:bg-opacity-90 disabled:opacity-50 transition grid place-items-center"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  "Submit"
+                )}
+              </button>
+            </div>
           </form>
         </div>
       </div>

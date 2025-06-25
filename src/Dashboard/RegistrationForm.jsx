@@ -35,6 +35,7 @@ const RegistrationForm = () => {
     notificationNo: "",
     standard: "",
     schoolCollege: "",
+    preYearPercent: "",
     branch: "",
     examCentre: "",
     examYear: "",
@@ -43,7 +44,8 @@ const RegistrationForm = () => {
     studentPhoto: "",
     receiptPhoto: "",
     formPhoto: "",
-    totalamount: 7900,
+    paymentStandard: "", // New field for payment standard
+    totalamount: 0,
     amountPaid: "",
     modeOfPayment: "",
     amountRemaining: "",
@@ -109,6 +111,23 @@ const RegistrationForm = () => {
         setShowBranchDropdown(false);
         setShow10thBranchDropdown(false);
       }
+    } else if (name === "paymentStandard") {
+      // Handle payment standard dropdown and update total amount
+      let newTotalAmount = 0; // default
+      
+      if (value === "10th") {
+        newTotalAmount = 6350;
+      } else if (value === "12th") {
+        newTotalAmount = 7900;
+      } else if (value === "11th+12th") {
+        newTotalAmount = 9850;
+      }
+      
+      setFormData({ 
+        ...formData, 
+        [name]: value,
+        totalamount: newTotalAmount
+      });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -185,6 +204,7 @@ const RegistrationForm = () => {
       notificationNo: "",
       standard: "",
       schoolCollege: "",
+      preYearPercent: "",
       branch: "",
       examCentre: "",
       examYear: "",
@@ -193,6 +213,7 @@ const RegistrationForm = () => {
       studentPhoto: "",
       receiptPhoto: "",
       formPhoto: "",
+      paymentStandard: "", // Reset payment standard
       totalamount: 7900,
       amountPaid: "",
       modeOfPayment: "",
@@ -259,7 +280,7 @@ const RegistrationForm = () => {
                   <option value="Female">Female</option>
                 </select>
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className="text-[17px] mr-4 text-gray-600">DOB:</label>
+                  <label className=" min-w-fit text-[17px] mr-2 text-gray-600">Date of Birth:</label>
                   <input 
                     type="date" 
                     name="dob" 
@@ -322,23 +343,24 @@ const RegistrationForm = () => {
                     name="branch" 
                     value={formData.branch} 
                     onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full px-3 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                     required
                   >
-                    <option value="">Select Branch</option>
-                    <option value="English">English</option>
+                    <option value="">Select Medium</option>
                     <option value="Marathi">Marathi</option>
                     <option value="Semi-English">Semi-English</option>
+                    <option value="English">English</option>
+
                   </select>
                 ) : showBranchDropdown ? (
                   <select 
                     name="branch" 
                     value={formData.branch} 
                     onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full px-3 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                     required
                   >
-                    <option value="">Select Branch</option>
+                    <option value="">Select Group</option>
                     <option value="PCM">PCM</option>
                     <option value="PCB">PCB</option>
                     <option value="PCMB">PCMB</option>
@@ -349,7 +371,7 @@ const RegistrationForm = () => {
                     name="branch" 
                     value={formData.branch} 
                     onChange={handleChange} 
-                    placeholder="Enter Branch" 
+                    placeholder="Branch/Medium" 
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                     required
                   />
@@ -360,9 +382,19 @@ const RegistrationForm = () => {
                   name="schoolCollege" 
                   value={formData.schoolCollege}
                   onChange={handleChange} 
-                  placeholder="Enter School/College" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
+                  placeholder="Enter School/College Name" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
+                />
+                <input 
+                  type="number" 
+                  name="preYearPercent" 
+                  placeholder="Enter Previous Year Percentage" 
+                  value={formData.preYearPercent} 
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
+                  required 
+                  min="0" max="100" step="0.01"
                 />
               </div>
             </div>
@@ -411,9 +443,18 @@ const RegistrationForm = () => {
                   required
                 >
                   <option value="">Select App No.</option>
-                  <option value={formData.studentNo}>Student No.</option>
-                  <option value={formData.parentsNo}>Parent No.</option>
+                  {formData.studentNo && (
+                    <option value={formData.studentNo}>
+                      Student No. ({formData.studentNo})
+                    </option>
+                  )}
+                  {formData.parentsNo && (
+                    <option value={formData.parentsNo}>
+                      Parent No. ({formData.parentsNo})
+                    </option>
+                  )}
                 </select>
+
                 <select 
                   name="notificationNo" 
                   value={formData.notificationNo}
@@ -422,15 +463,23 @@ const RegistrationForm = () => {
                   required
                 >
                   <option value="">Select Notification No.</option>
-                  <option value={formData.studentNo}>Student No.</option>
-                  <option value={formData.parentsNo}>Parent No.</option>
+                  {formData.studentNo && (
+                    <option value={formData.studentNo}>
+                      Student No. ({formData.studentNo})
+                    </option>
+                  )}
+                  {formData.parentsNo && (
+                    <option value={formData.parentsNo}>
+                      Parent No. ({formData.parentsNo})
+                    </option>
+                  )}
                 </select>
               </div>
             </div>
 
             {/* Exam Centre and Form Details Section */}
             <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Exam Centre and Form Details</h3>
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Exam Centre and Form Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <div>
                   <select 
@@ -449,8 +498,7 @@ const RegistrationForm = () => {
                   </select>
                 </div>
                 
-                <div className="w-full flex flex-row items-center gap-1">
-                  <label className="text-[17px] text-gray-600">December</label>
+        
                   <select 
                     name="examYear" 
                     value={formData.examYear}
@@ -458,7 +506,7 @@ const RegistrationForm = () => {
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                     required
                   >
-                    <option value="">Select Exam Year</option>
+                    <option value="">Select Dnyanganga Exam Year</option>
                     {Array.from({ length: 5 }, (_, i) => {
                       const year = new Date().getFullYear() + i;
                       return (
@@ -468,24 +516,13 @@ const RegistrationForm = () => {
                       );
                     })}
                   </select>
-                </div>
                 
                 <input 
                   type="text" 
                   name="formNo" 
                   value={formData.formNo}
                   onChange={handleChange} 
-                  placeholder="Enter Form Number" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  required
-                />
-                
-                <input 
-                  type="text" 
-                  name="receiptNo" 
-                  value={formData.receiptNo}
-                  onChange={handleChange} 
-                  placeholder="Enter Receipt Number" 
+                  placeholder="Enter Admission Form Number" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 />
@@ -494,18 +531,34 @@ const RegistrationForm = () => {
 
             {/* Payment Details Section */}
             <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Payment Details</h3>
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Payment Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                {/* New Payment Standard Dropdown */}
+                <select 
+                  name="paymentStandard" 
+                  value={formData.paymentStandard}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
+                  <option value="">Select Standard</option>
+                  <option value="10th">10th</option>
+                  <option value="12th">12th</option>
+                  <option value="11th+12th">11th+12th</option>
+                </select>
+                <div className="w-full flex flex-row items-center gap-1">
+                  <label className=" min-w-fit text-[17px] mr-2 text-gray-600">Total Amount: </label>
                 <input 
                   type="number" 
                   value={formData.totalamount}
                   name="totalamount" 
                   onChange={handleChange} 
-                  placeholder="Enter Total Amount" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  required
-                  min="0"
+                  placeholder="Total Amount" 
+                  className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
+                  disabled
+                  readOnly
                 />
+                </div>
                 <input 
                   type="number" 
                   name="amountPaid" 
@@ -519,11 +572,34 @@ const RegistrationForm = () => {
                   min="0"
                   max={formData.totalamount}
                 />
+                <div className="w-full flex flex-row items-center gap-1">
+                  <label className=" min-w-fit text-[17px] mr-2 text-gray-600">Amount Remaining: </label>
+                  <input 
+                      type="number" 
+                      name="amountRemaining" 
+                      value={formData.amountRemaining}
+                      placeholder="Amount Remaining" 
+                      className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
+                      disabled
+                      readOnly
+                    />
+                  </div>
+                
                 {paymentError && (
                   <div className="md:col-span-2">
                     <p className="text-red-500 text-sm mt-1">{paymentError}</p>
                   </div>
                 )}
+                
+                <input 
+                  type="text" 
+                  name="receiptNo" 
+                  value={formData.receiptNo}
+                  onChange={handleChange} 
+                  placeholder="Enter Fee Receipt Number" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                />
                 <select 
                   name="modeOfPayment" 
                   value={formData.modeOfPayment}
@@ -532,9 +608,9 @@ const RegistrationForm = () => {
                   required
                 >
                   <option value="">Select Payment Mode</option>
-                  <option value="Cash">Cash</option>
-                  <option value="Card">Check</option>
                   <option value="Online">Online</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Card">Cheque</option>
                 </select>
                 
                 <div className="w-full flex flex-row items-center gap-1">
@@ -548,37 +624,15 @@ const RegistrationForm = () => {
                     required
                   />
                 </div>
-                <input 
-                  type="number" 
-                  name="amountRemaining" 
-                  value={formData.amountRemaining}
-                  placeholder="Amount Remaining" 
-                  className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
-                  disabled
-                  readOnly
-                />
               </div>
             </div>
 
             {/* Documents Section */}
             <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Documents</h3>
-              
-              {/* Receipt Photo Upload */}
-              <FileUpload
-                title="Receipt Photo"
-                imageUrl={receiptPhoto.imageUrl}
-                error={receiptPhoto.error}
-                loader={receiptPhoto.loader}
-                isSaved={receiptPhoto.isSaved}
-                onFileUpload={receiptPhoto.handleFileUpload}
-                onUploadImage={handleReceiptPhotoUpload}
-                onRemovePhoto={receiptPhoto.removePhoto}
-              />
-
+              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Documents</h3>
               {/* Form Photo Upload */}
               <FileUpload
-                title="Form Photo"
+                title="Admission Form Photo"
                 imageUrl={formPhoto.imageUrl}
                 error={formPhoto.error}
                 loader={formPhoto.loader}
@@ -586,6 +640,18 @@ const RegistrationForm = () => {
                 onFileUpload={formPhoto.handleFileUpload}
                 onUploadImage={handleFormPhotoUpload}
                 onRemovePhoto={formPhoto.removePhoto}
+              />
+              
+              {/* Receipt Photo Upload */}
+              <FileUpload
+                title="Fee Receipt Photo"
+                imageUrl={receiptPhoto.imageUrl}
+                error={receiptPhoto.error}
+                loader={receiptPhoto.loader}
+                isSaved={receiptPhoto.isSaved}
+                onFileUpload={receiptPhoto.handleFileUpload}
+                onUploadImage={handleReceiptPhotoUpload}
+                onRemovePhoto={receiptPhoto.removePhoto}
               />
             </div>
 

@@ -293,14 +293,6 @@ const RegistrationTable = () => {
                       </td>
                       <td className="p-3 border whitespace-nowrap">
                         <div className="flex items-center space-x-2">
-                          {user.role === "counsellor" && student.amountRemaining > 0 && (
-                            <button
-                              onClick={() => handlePayment(student)}
-                              className="bg-secondary text-white px-3 py-1 rounded hover:bg-tertiary"
-                            >
-                              Make Payment
-                            </button>
-                          )}
                           <button
                             onClick={() => handleViewPDF(student)}
                             className="bg-primary text-white px-3 py-1 min-w-12 rounded hover:bg-blue-700 grid place-items-center"
@@ -318,6 +310,14 @@ const RegistrationTable = () => {
                           >
                             View
                           </button>
+                          {user.role === "counsellor" && student.amountRemaining > 0 && (
+                            <button
+                              onClick={() => handlePayment(student)}
+                              className="bg-secondary text-white px-3 py-1 rounded hover:bg-tertiary"
+                            >
+                              Make Payment
+                            </button>
+                          )}
                         </div>
                       </td>
 

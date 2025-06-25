@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     return storedUser;
   });
 
-  const login = (userData, tokenExpiryDuration = 30 * 60 * 1000) => {
+  const login = (userData, tokenExpiryDuration = 60 * 60 * 1000) => {
     const expiryTime = Date.now() + tokenExpiryDuration; // Default: 30 minutes
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("tokenExpiry", expiryTime);

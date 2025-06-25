@@ -11,8 +11,8 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
         { path: "user", label: "User Details", role: "admin"},
         { path: "examcenter", label: "Exam Centre", role: "admin"},
         { path: "register", label: "Registration Form", role: "counsellor"},
-        { path: "registertable", label: "Register Table"},
         { path: "visiting", label: "Visiting Form", role: "counsellor"},
+        { path: "registertable", label: "Register Table"},
         { path: "visitingtable", label: "Visiting Table"},
         {path: "paymenttable", label: "Payment Table"},
     ];

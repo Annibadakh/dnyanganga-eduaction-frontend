@@ -12,7 +12,7 @@ const FileUpload = ({
 }) => {
   return (
     <div className="mb-6">
-      <h4 className="text-md font-medium mb-3 text-gray-700">{title}</h4>
+      <h4 className="text-md font-bold mb-3 text-gray-700">{title}</h4>
       <div className="flex flex-col items-center w-full">
         {imageUrl ? (
           <>
