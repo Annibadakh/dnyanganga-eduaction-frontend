@@ -5,7 +5,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     const location = useLocation(); 
 
     const links = [
-        { path: "home", label: "Home", role:"admin" },
+        { path: "home", label: "Home"},
         { path: "profile", label: "Profile", role: "teacher" },
         { path: "settings", label: "Subjects Details", role: "admin" },
         { path: "user", label: "User Details", role: "admin"},

@@ -31,7 +31,7 @@ const RegistrationTable = () => {
             (user) => user.role === "counsellor"
           );
           setUsers(counsellors);
-          // console.log(counsellors);
+          console.log(counsellors);
         })
         .catch((error) => {
           console.error("Error fetching users", error);
@@ -40,7 +40,7 @@ const RegistrationTable = () => {
     api
       .get("/admin/getExamCenters")
       .then((response) => {
-        // console.log(response.data.data);
+        console.log(response.data.data);
         setExamCentres(response.data.data);
       })
       .catch((error) => {
