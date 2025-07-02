@@ -18,6 +18,7 @@ const RegistrationForm = () => {
   const [paymentError, setPaymentError] = useState("");
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
+  const [showPreviousYearDropdown, setShowPreviousYearDropdown] = useState(false);
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
 
@@ -34,6 +35,7 @@ const RegistrationForm = () => {
     appNo: "",
     notificationNo: "",
     standard: "",
+    previousYear: "", // New field for previous year
     schoolCollege: "",
     preYearPercent: "",
     branch: "",
@@ -90,26 +92,32 @@ const RegistrationForm = () => {
         setFormData({
           ...formData,
           [name]: value,
-          branch: ""
+          branch: "",
+          previousYear: ""
         });
         setShow10thBranchDropdown(true);
         setShowBranchDropdown(false);
+        setShowPreviousYearDropdown(true);
       } else if (value === "12th") {
         setFormData({
           ...formData,
           [name]: value,
-          branch: ""
+          branch: "",
+          previousYear: ""
         });
         setShowBranchDropdown(true);
         setShow10thBranchDropdown(false);
+        setShowPreviousYearDropdown(true);
       } else {
         setFormData({
           ...formData,
           [name]: value,
-          branch: ""
+          branch: "",
+          previousYear: ""
         });
         setShowBranchDropdown(false);
         setShow10thBranchDropdown(false);
+        setShowPreviousYearDropdown(false);
       }
     } else if (name === "paymentStandard") {
       // Handle payment standard dropdown and update total amount
@@ -203,6 +211,7 @@ const RegistrationForm = () => {
       appNo: "",
       notificationNo: "",
       standard: "",
+      previousYear: "", // Reset previous year
       schoolCollege: "",
       preYearPercent: "",
       branch: "",
@@ -229,6 +238,7 @@ const RegistrationForm = () => {
     setPaymentError("");
     setShowBranchDropdown(false);
     setShow10thBranchDropdown(false);
+    setShowPreviousYearDropdown(false);
   };
 
   return (
@@ -280,7 +290,7 @@ const RegistrationForm = () => {
                   <option value="Female">Female</option>
                 </select>
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className=" min-w-fit text-[17px] mr-2 text-gray-600">Date of Birth:</label>
+                  <label className=" min-w-fit  text-[17px] mr-2 text-black">Date of Birth:</label>
                   <input 
                     type="date" 
                     name="dob" 
@@ -337,7 +347,6 @@ const RegistrationForm = () => {
                   <option value="10th">10th</option>
                   <option value="12th">12th</option>
                 </select>
-                
                 {show10thBranchDropdown ? (
                   <select 
                     name="branch" 
@@ -366,26 +375,50 @@ const RegistrationForm = () => {
                     <option value="PCMB">PCMB</option>
                   </select>
                 ) : (
-                  <input 
-                    type="text" 
-                    name="branch" 
-                    value={formData.branch} 
-                    onChange={handleChange} 
-                    placeholder="Branch/Medium" 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    required
-                  />
+                  !showPreviousYearDropdown && (
+                    <input 
+                      type="text" 
+                      name="branch" 
+                      onChange={handleChange} 
+                      placeholder="Branch/Medium" 
+                      disabled={!showPreviousYearDropdown}
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      required
+                    />
+                  )
                 )}
-                
+                {/* Previous Year Dropdown */}
                 <input 
                   type="text" 
                   name="schoolCollege" 
                   value={formData.schoolCollege}
                   onChange={handleChange} 
                   placeholder="Enter School/College Name" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 col-span-2"
                   required
                 />
+                <select 
+                    name="previousYear" 
+                    value={formData.previousYear}
+                    disabled={!showPreviousYearDropdown}
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    required
+                  >
+                    <option value="">Select Previous Year</option>
+                    {formData.standard === "10th" && (
+                      <>
+                        <option value="8th">8th</option>
+                        <option value="9th">9th</option>
+                      </>
+                    )}
+                    {formData.standard === "12th" && (
+                      <>
+                        <option value="10th">10th</option>
+                        <option value="11th">11th</option>
+                      </>
+                    )}
+                  </select>
                 <input 
                   type="number" 
                   name="preYearPercent" 
@@ -418,7 +451,7 @@ const RegistrationForm = () => {
                   name="studentNo" 
                   value={formData.studentNo}
                   onChange={handleChange} 
-                  placeholder="Enter Student No" 
+                  placeholder="Enter Student Mobile No" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                   pattern="[0-9]{10}"
@@ -429,7 +462,7 @@ const RegistrationForm = () => {
                   name="parentsNo" 
                   value={formData.parentsNo}
                   onChange={handleChange} 
-                  placeholder="Enter Parents No" 
+                  placeholder="Enter Parents Mobile No" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                   pattern="[0-9]{10}"
@@ -442,7 +475,7 @@ const RegistrationForm = () => {
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 >
-                  <option value="">Select App No.</option>
+                  <option value="">Select App. No.</option>
                   {formData.studentNo && (
                     <option value={formData.studentNo}>
                       Student No. ({formData.studentNo})
@@ -465,12 +498,12 @@ const RegistrationForm = () => {
                   <option value="">Select Notification No.</option>
                   {formData.studentNo && (
                     <option value={formData.studentNo}>
-                      Student No. ({formData.studentNo})
+                      Student Mobile No. ({formData.studentNo})
                     </option>
                   )}
                   {formData.parentsNo && (
                     <option value={formData.parentsNo}>
-                      Parent No. ({formData.parentsNo})
+                      Parent Mobile No. ({formData.parentsNo})
                     </option>
                   )}
                 </select>
@@ -596,7 +629,7 @@ const RegistrationForm = () => {
                   name="receiptNo" 
                   value={formData.receiptNo}
                   onChange={handleChange} 
-                  placeholder="Enter Fee Receipt Number" 
+                  placeholder="Enter Fees Receipt Number" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
                 />
@@ -608,13 +641,13 @@ const RegistrationForm = () => {
                   required
                 >
                   <option value="">Select Payment Mode</option>
-                  <option value="Online">Online</option>
                   <option value="Cash">Cash</option>
-                  <option value="Card">Cheque</option>
+                  <option value="Online">Online</option>
+                  <option value="cheque">Cheque</option>
                 </select>
                 
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className="w-20 text-[15px] text-gray-600">Due Date:</label>
+                  <label className="min-w-fit text-[17px] text-black">Due Date:</label>
                   <input 
                     type="date" 
                     name="dueDate" 

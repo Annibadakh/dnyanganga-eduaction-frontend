@@ -230,28 +230,28 @@ const RegistrationTable = () => {
                     <th className="p-3 border text-left whitespace-nowrap">
                       Register Date
                     </th>
-                    <th className="p-3 text-left border whitespace-nowrap">Register Time</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Student ID</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Form No.</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Student Name</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Standard</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Med/Grp</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Student No.</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Parent No.</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Exam Centre</th>
+                    <th className="p-3 border whitespace-nowrap">Register Time</th>
+                    <th className="p-3 border whitespace-nowrap">Student ID.</th>
+                    <th className="p-3 border whitespace-nowrap">Form No.</th>
+                    <th className="p-3 border whitespace-nowrap">Student Name</th>
+                    <th className="p-3 border whitespace-nowrap">Standard</th>
+                    <th className="p-3 border whitespace-nowrap">Med/Grp</th>
+                    <th className="p-3 border whitespace-nowrap">Student No.</th>
+                    <th className="p-3 border whitespace-nowrap">Parent No.</th>
+                    <th className="p-3 border whitespace-nowrap">Exam Centre</th>
                     {user.role === "admin" && (
                       <>
-                        <th className="p-3 text-left border whitespace-nowrap">Counsellor</th>
-                        <th className="p-3 text-left border whitespace-nowrap">
+                        <th className="p-3 border whitespace-nowrap">Counsellor</th>
+                        <th className="p-3 border whitespace-nowrap">
                           Branch
                         </th>
                       </>
                     )}
-                    <th className="p-3 text-left border whitespace-nowrap">Total Amount</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Paid</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Remaining</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Due Date</th>
-                    <th className="p-3 text-left border whitespace-nowrap">Actions</th>
+                    <th className="p-3 border whitespace-nowrap">Total Amount</th>
+                    <th className="p-3 border whitespace-nowrap">Paid</th>
+                    <th className="p-3 border whitespace-nowrap">Remaining</th>
+                    <th className="p-3 border whitespace-nowrap">Due Date</th>
+                    <th className="p-3 border whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-customblack">

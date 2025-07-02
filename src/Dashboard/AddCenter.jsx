@@ -4,9 +4,9 @@ import api from "../Api";
 const AddCenter = () => {
   const [centers, setCenters] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ centerName: "", capicity: "", collegeName: "" });
+  const [formData, setFormData] = useState({ centerId: "", centerName: "", capicity: "", collegeName: "" });
   const [editId, setEditId] = useState(null);
-  const [editData, setEditData] = useState({ capicity: "", collegeName: "" });
+  const [editData, setEditData] = useState({ centerName: "", capicity: "", collegeName: "" });
   const [submitLoader, setSubmitLoader] = useState(false);
   const [deleteLoader, setDeleteLoader] = useState(null);
   const [updateLoader, setUpdateLoader] = useState(null);
@@ -39,7 +39,7 @@ const AddCenter = () => {
         alert("Centre added!");
         fetchCenters();
         setShowForm(false);
-        setFormData({ centerName: "", capicity: "", collegeName: "" });
+        setFormData({ centerId: "", centerName: "", capicity: "", collegeName: "" });
         setSubmitLoader(false);
       })
       .catch((error) => {
@@ -66,6 +66,7 @@ const AddCenter = () => {
 
   const handleEdit = (center) => {
     setEditData({ 
+      centerName: center.centerName,
       capicity: center.capicity, 
       collegeName: center.collegeName 
     });
@@ -76,6 +77,7 @@ const AddCenter = () => {
     setUpdateLoader(centerId);
     api
       .put(`/admin/editcapicity/${centerId}`, { 
+        centerName: editData.centerName,
         capicity: parseInt(editData.capicity), 
         collegeName: editData.collegeName 
       })
@@ -103,6 +105,9 @@ const AddCenter = () => {
         <div className="mt-4 bg-gray-100 p-4 rounded-lg shadow-md">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
+              <label className="block text-gray-700 font-semibold">Centre ID.</label>
+              <input type="number" name="centerId" value={formData.centerId} onChange={handleChange} required className="w-full p-2 border rounded-md" />
+            </div><div>
               <label className="block text-gray-700 font-semibold">Centre Name:</label>
               <input type="text" name="centerName" value={formData.centerName} onChange={handleChange} required className="w-full p-2 border rounded-md" />
             </div>
@@ -144,8 +149,16 @@ const AddCenter = () => {
               centers.map((center, index) => (
                 <tr key={center.centerId} className="hover:bg-gray-100">
                   <td className="border p-2 text-center">{index + 1}</td>
-                  <td className="border p-2">{center.centerId}</td>
-                  <td className="border p-2">{center.centerName}</td>
+                  <td className="border p-2">{center.centerId.toString().padStart(4, '0')}</td>
+                  <td className="border p-2">{
+                    editId === center.centerId ? (
+                      <input type="text" value={editData.centerName} onChange={(e) => setEditData({ ...editData, centerName: e.target.value })} className="w-28 p-1 border rounded-md" />
+                    ) : (
+                      center.centerName
+                    )
+                  }
+
+                   </td>
                   <td className="border p-2 text-center">
                     {editId === center.centerId ? (
                       <input type="text" value={editData.collegeName} onChange={(e) => setEditData({ ...editData, collegeName: e.target.value })} className="w-28 p-1 border rounded-md" />

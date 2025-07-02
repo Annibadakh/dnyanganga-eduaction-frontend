@@ -14,7 +14,7 @@ const VisitingForm = () => {
     studentName: "",
     gender: "",
     dob: "",
-    motherName: "",
+    motherName: "not require",
     address: "",
     pincode: "",
     standard: "",
@@ -79,7 +79,6 @@ const VisitingForm = () => {
       studentName: "",
       gender: "",
       dob: "",
-      motherName: "",
       address: "",
       pincode: "",
       standard: "",
@@ -164,7 +163,7 @@ const VisitingForm = () => {
                   <option value="Female">Female</option>
                 </select>
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className="text-[17px] min-w-fit text-gray-600">Date of Birth:</label>
+                  <label className="text-[17px] min-w-fit text-black">Date of Birth:</label>
                   <input 
                     type="date" 
                     name="dob" 
@@ -174,7 +173,7 @@ const VisitingForm = () => {
                     required
                   />
                 </div>
-                <input 
+                {/* <input 
                   type="text" 
                   name="motherName" 
                   value={formData.motherName}
@@ -182,7 +181,7 @@ const VisitingForm = () => {
                   placeholder="Enter Mother's Name" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   required
-                />
+                /> */}
                 <input 
                   type="text" 
                   name="address" 
@@ -326,12 +325,12 @@ const VisitingForm = () => {
                   <option value="">Select Notification No.</option>
                   {formData.studentNo && (
                     <option value={formData.studentNo}>
-                      Student No. ({formData.studentNo})
+                      Student Mobile No. ({formData.studentNo})
                     </option>
                   )}
                   {formData.parentsNo && (
                     <option value={formData.parentsNo}>
-                      Parent No. ({formData.parentsNo})
+                      Parent Mobile No. ({formData.parentsNo})
                     </option>
                   )}
                 </select>
