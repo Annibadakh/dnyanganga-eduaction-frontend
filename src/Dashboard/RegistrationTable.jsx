@@ -272,7 +272,7 @@ const RegistrationTable = () => {
                       <td className="p-3 border whitespace-nowrap">{student.branch}</td>
                       <td className="p-3 border whitespace-nowrap">{student.studentNo}</td>
                       <td className="p-3 border whitespace-nowrap">{student.parentsNo}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.examCentre}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.examCentre.split("-")[1]}</td>
                       {user.role === "admin" && (
                         <>
                           <td className="p-3 border whitespace-nowrap">{student.counsellor}</td>

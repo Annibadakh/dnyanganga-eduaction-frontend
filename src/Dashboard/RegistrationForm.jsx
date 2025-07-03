@@ -524,7 +524,7 @@ const RegistrationForm = () => {
                   >
                     <option value="">Select Exam Centre</option>
                     {examCentres.map((centre) => (
-                      <option key={centre.centerId} value={centre.centerName}>
+                      <option key={centre.centerId} value={`${centre.centerId}-${centre.centerName}`}>
                         {centre.centerName}
                       </option>
                     ))}
