@@ -289,7 +289,7 @@ function Settings() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full border text-center border-gray-300">
-              <thead className="bg-tertiary text-white">
+              <thead className="bg-primary text-white">
                 <tr>
                   <th className="px-4 py-2 border">Code</th>
                   <th className="px-4 py-2 border">Name</th>
