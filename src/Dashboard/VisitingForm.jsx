@@ -133,13 +133,13 @@ const VisitingForm = () => {
 
   return (
     <div className="w-full bg-white">
-      <div className="container mx-auto p-1 w-full">
+      <div className="container mx-auto w-full">
         <div className="w-full bg-white">
           <div className="bg-primary text-white text-center py-4">
             <h2 className="text-2xl font-bold">Student Visiting Form</h2>
           </div>
-          <form onSubmit={handleSubmit} className="p-6 space-y-6 w-full">
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+          <form onSubmit={handleSubmit} className="md:p-6 p-2 space-y-6 w-full">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Personal Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <input 
@@ -205,7 +205,7 @@ const VisitingForm = () => {
               </div>
             </div>
 
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Educational Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <select 
@@ -280,7 +280,7 @@ const VisitingForm = () => {
               </div>
             </div>
 
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Contact Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <input 
@@ -337,7 +337,7 @@ const VisitingForm = () => {
               </div>
             </div>
 
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Additional Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <select 

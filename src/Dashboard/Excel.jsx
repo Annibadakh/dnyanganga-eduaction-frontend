@@ -217,7 +217,7 @@ const Excel = () => {
   };
 
   return (
-    <div className="p-6 bg-customwhite shadow-custom rounded-2xl">
+    <div className="p-6 bg-customwhite shadow-custom">
       <h1 className="text-2xl mb-2 text-center font-bold text-primary">Excel Export Tool</h1>
 
       {error && (

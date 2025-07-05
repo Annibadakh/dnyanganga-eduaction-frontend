@@ -102,8 +102,8 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
     };
 
     return (
-        <div className="max-w-lg mx-auto p-6 border rounded shadow-lg">
-            <h2 className="text-2xl font-bold mb-4">Payment Form</h2>
+        <div className="max-w-lg bg-white shadow-custom mx-auto md:p-6 p-2">
+            <h2 className="text-2xl text-secondary text-center font-bold mb-4">Payment Form</h2>
             {error && <p className="text-red-500">{error}</p>}
             
             <form onSubmit={handleSubmit}>
@@ -161,7 +161,7 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
                     />
                 </div>
                 
-                <div>
+                <div className="flex gap-2">
                     {!error && receiptPhoto.isSaved ? (
                         <button type="submit" disabled={submitLoader} className="bg-green-500 min-w-36 disabled:opacity-50 grid place-items-center text-white px-4 py-2 rounded hover:bg-green-600 mr-2">
                             {submitLoader ? <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span> : "Submit Payment"}

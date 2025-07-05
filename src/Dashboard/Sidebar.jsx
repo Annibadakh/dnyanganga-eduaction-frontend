@@ -22,7 +22,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
         <>
         
         <aside className={`absolute z-50 top-0 bottom-0 left-0 sm:relative bg-primary text-white transition-all duration-200 
-        ${isSidebarOpen ? "w-56 p-4" : "w-0 overflow-hidden"}`}>
+        ${isSidebarOpen ? "w-48 sm:w-52 p-4" : "w-0 overflow-hidden"}`}>
             <nav className={`${isSidebarOpen ? "block" : "hidden"}`}>
                 <ul>
                     {links.map(({ path, label, role }) => {
@@ -31,7 +31,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
                             <li
                                 key={path}
                                 onClick={clickSidebar}
-                                className={`py-2 px-4 mb-1 rounded-full ${isActive(`/dashboard/${path}`) ? "bg-secondary" : "hover:bg-secondary"}`}
+                                className={`py-2 px-2 mb-1 rounded-full ${isActive(`/dashboard/${path}`) ? "bg-secondary" : "hover:bg-secondary"}`}
                             >
                                 <Link to={path}>{label}</Link>
                             </li>

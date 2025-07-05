@@ -53,7 +53,7 @@ export default function Home() {
       {user.role === "admin" ? (
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Admin Control Panel */}
-          <div className="w-full lg:w-1/3 bg-white p-6 rounded-xl shadow-custom space-y-6">
+          <div className="w-full lg:w-1/3 bg-white p-6 shadow-custom space-y-6">
             <h1 className="text-2xl font-bold text-primary text-center">Admin Controls</h1>
 
             {/* Hall Ticket Toggle */}

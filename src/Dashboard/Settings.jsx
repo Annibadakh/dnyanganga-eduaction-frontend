@@ -199,8 +199,8 @@ function Settings() {
   const formatTime = (timeString) => timeString || 'Not set';
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-primary">Subject Management System</h1>
+    <div className="container mx-auto p-2">
+      <h1 className="text-3xl font-bold mb-6 text-center text-primary">Subject Management</h1>
 
       {!showAddForm && (
         <div className="mb-6">
@@ -214,7 +214,7 @@ function Settings() {
       )}
 
       {showAddForm && (
-        <div className="bg-white p-6 rounded shadow-custom mb-6">
+        <div className="bg-white md:p-6 p-2 rounded shadow-custom mb-6">
           <h2 className="text-xl font-semibold mb-4 text-secondary">Add New Subject</h2>
           {formError && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -278,8 +278,8 @@ function Settings() {
         </div>
       )}
 
-      <div className="bg-white p-6 rounded shadow-custom">
-        <h2 className="text-xl font-semibold mb-4 text-secondary">Subjects List</h2>
+      <div className="bg-white md:p-6 p-2 rounded shadow-custom">
+        {/* <h2 className="text-xl font-semibold mb-4 text-secondary">Subjects List</h2> */}
         {error ? (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             {error}
@@ -291,25 +291,25 @@ function Settings() {
             <table className="min-w-full border text-center border-gray-300">
               <thead className="bg-primary text-white">
                 <tr>
-                  <th className="px-4 py-2 border">Code</th>
-                  <th className="px-4 py-2 border">Name</th>
-                  <th className="px-4 py-2 border">Language</th>
-                  <th className="px-4 py-2 border">Standard</th>
-                  <th className="px-4 py-2 border">Date</th>
-                  <th className="px-4 py-2 border">Time</th>
-                  <th className="px-4 py-2 border">Actions</th>
+                  <th className="px-4 py-2 whitespace-nowrap border">Code</th>
+                  <th className="px-4 py-2 whitespace-nowrap border">Name</th>
+                  <th className="px-4 py-2 whitespace-nowrap border">Language</th>
+                  <th className="px-4 py-2 whitespace-nowrap border">Standard</th>
+                  <th className="px-4 py-2 whitespace-nowrap border">Date</th>
+                  <th className="px-4 py-2 whitespace-nowrap border">Time</th>
+                  <th className="px-4 py-2 whitespace-nowrap border">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {subjects.map(subject => (
                   <tr key={subject.subjectCode} className="hover:bg-gray-100">
-                    <td className="px-4 py-2 border">{subject.subjectCode}</td>
-                    <td className="px-4 py-2 border">{subject.subjectName}</td>
-                    <td className="px-4 py-2 border">{subject.language}</td>
-                    <td className="px-4 py-2 border">{subject.standard}</td>
-                    <td className="px-4 py-2 border">{formatDate(subject.examDate)}</td>
-                    <td className="px-4 py-2 border">{formatTime(subject.examTime)}</td>
-                    <td className="px-4 py-2 border gap-2 flex flex-row justify-center">
+                    <td className="px-4 py-2 whitespace-nowrap border">{subject.subjectCode}</td>
+                    <td className="px-4 py-2 whitespace-nowrap border">{subject.subjectName}</td>
+                    <td className="px-4 py-2 whitespace-nowrap border">{subject.language}</td>
+                    <td className="px-4 py-2 whitespace-nowrap border">{subject.standard}</td>
+                    <td className="px-4 py-2 whitespace-nowrap border">{formatDate(subject.examDate)}</td>
+                    <td className="px-4 py-2 whitespace-nowrap border">{formatTime(subject.examTime)}</td>
+                    <td className="px-4 py-2 whitespace-nowrap border gap-2 flex flex-row justify-center">
                       <button
                         onClick={() => openExamModal(subject)}
                         className="bg-green-500 hover:bg-green-700 text-white w-24 h-8 rounded text-sm"

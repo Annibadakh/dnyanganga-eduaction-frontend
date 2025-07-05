@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../Context/AuthContext";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import logo from '../Images/logo4.png';
 import { Outlet } from "react-router-dom";
 import api from "../Api";
 
@@ -36,16 +35,14 @@ function Dashboard() {
       <Header />
       <div className="relative flex flex-1 overflow-hidden">
         <Sidebar isSidebarOpen={isSidebarOpen} clickSidebar={clickSidebar} userRole={userRole} />
-        <main className="relative flex-1 bg-gray-100 p-6 pt-16 overflow-auto max-h-full">
+        <main className="relative flex-1 bg-gray-100 p-2 overflow-auto max-h-full">
           <button
-            className={`fixed z-50 top-20 transition-all duration-200 ${isSidebarOpen ? "left-60" : "left-2"} text-white bg-primary px-4 py-2 rounded`}
+            className={`fixed z-50 top-20 shadow-custom transition-all duration-200 ${isSidebarOpen ? "left-52 sm:left-[216px]" : "left-2"} text-white bg-primary px-4 py-2`}
             onClick={toggleSidebar}
           >
             ☰
           </button>
-          <div className="-z-40 absolute left-0 right-0 top-0 bottom-0 flex justify-center items-center">
-            <img src={logo} alt="" className="h-[350px] opacity-30" />
-          </div>
+          
           <Outlet />
         </main>
       </div>

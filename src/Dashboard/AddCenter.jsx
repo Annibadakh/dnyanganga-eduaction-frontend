@@ -83,15 +83,16 @@ const AddCenter = () => {
   };
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-2xl">
-      <h1 className="text-3xl font-bold text-blue-600 mb-6">Exam Centre Management</h1>
+    <div className="p-2">
+      <h1 className="text-3xl font-bold text-center text-primary mb-6">Exam Centre</h1>
 
-      <button onClick={() => setShowForm(true)} className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700">
+      {!showForm && (<button onClick={() => setShowForm(true)} className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700">
         Add Centre
-      </button>
+      </button>)}
 
       {showForm && (
-        <div className="mt-4 bg-gray-100 p-4 rounded-lg shadow-inner">
+        <div className="mt-4 bg-gray-100 md:p-6 p-2 shadow-custom">
+          <h2 className="text-xl font-semibold mb-4 text-secondary">Add New Centre</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-gray-700 font-semibold">Centre ID</label>
@@ -117,46 +118,47 @@ const AddCenter = () => {
         </div>
       )}
 
-      <div className="mt-6 overflow-x-auto">
-        <table className="table-auto w-full border text-center border-gray-300 rounded-xl overflow-hidden text-sm">
+      <div className="mt-6 p-2 md:p-6 bg-white shadow-custom ">
+        <div className="overflow-x-auto">
+          <table className="table-auto w-full border text-center border-gray-300 overflow-hidden text-sm">
           <thead className="bg-primary text-white">
             <tr>
-              <th className="p-3 border">Sr. No.</th>
-              <th className="p-3 border">Centre ID</th>
-              <th className="p-3 border">Centre Name</th>
-              <th className="p-3 border">College Name</th>
-              <th className="p-3 border">Capacity</th>
-              <th className="p-3 border">Actions</th>
+              <th className="p-3 whitespace-nowrap border">Sr. No.</th>
+              <th className="p-3 whitespace-nowrap border">Centre ID</th>
+              <th className="p-3 whitespace-nowrap border">Centre Name</th>
+              <th className="p-3 whitespace-nowrap border">College Name</th>
+              <th className="p-3 whitespace-nowrap border">Capacity</th>
+              <th className="p-3 whitespace-nowrap border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {centers.length > 0 ? (
               centers.map((center, index) => (
                 <tr key={center.centerId} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="p-3 border">{index + 1}</td>
-                  <td className="p-3 border">{center.centerId.toString().padStart(4, '0')}</td>
-                  <td className="p-3 border">
+                  <td className="p-3 whitespace-nowrap border">{index + 1}</td>
+                  <td className="p-3 whitespace-nowrap border">{center.centerId.toString().padStart(4, '0')}</td>
+                  <td className="p-3 whitespace-nowrap border">
                     {editId === center.centerId ? (
                       <input type="text" value={editData.centerName} onChange={(e) => setEditData({ ...editData, centerName: e.target.value })} className="w-full p-1 border rounded-md" />
                     ) : (
                       center.centerName
                     )}
                   </td>
-                  <td className="p-3 bord">
+                  <td className="p-3 whitespace-nowrap border">
                     {editId === center.centerId ? (
                       <input type="text" value={editData.collegeName} onChange={(e) => setEditData({ ...editData, collegeName: e.target.value })} className="w-full p-1 border rounded-md" />
                     ) : (
                       center.collegeName
                     )}
                   </td>
-                  <td className="p-3 border">
+                  <td className="p-3 whitespace-nowrap border">
                     {editId === center.centerId ? (
                       <input type="number" value={editData.capicity} onChange={(e) => setEditData({ ...editData, capicity: e.target.value })} className="w-20 p-1 border rounded-md" />
                     ) : (
                       center.capicity
                     )}
                   </td>
-                  <td className="p-3 border">
+                  <td className="p-3 whitespace-nowrap border">
                     <div className="flex justify-center space-x-2">
                       {editId === center.centerId ? (
                         <button
@@ -192,6 +194,7 @@ const AddCenter = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

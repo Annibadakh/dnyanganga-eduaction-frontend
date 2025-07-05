@@ -179,18 +179,19 @@ const AddUser = () => {
   };
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-md">
-      <h1 className="text-3xl font-bold text-blue-600 mb-6">User Management</h1>
+    <div className="p-2 container mx-auto">
+      <h1 className="text-3xl font-bold text-center text-primary mb-6">User Management</h1>
 
-      <button
+      {!showForm && (<button
         onClick={() => setShowForm(true)}
         className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700"
       >
         Add User
-      </button>
+      </button>)}
 
       {showForm && (
-        <div className="mt-6 bg-gray-50 p-6 rounded-xl shadow-inner">
+        <div className="mt-6 bg-white md:p-6 p-2 shadow-custom">
+          <h2 className="text-xl font-semibold mb-4 text-secondary">Add New User</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required className="p-2 border rounded-md" />
@@ -230,9 +231,9 @@ const AddUser = () => {
 
       {showChangePasswordForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Change Password</h2>
-            <p className="text-sm mb-4 text-gray-700">For user: <strong>{selectedUser?.name}</strong></p>
+          <div className="bg-white m-2 p-4 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-xl text-secondary font-bold mb-4">Change Password</h2>
+            <p className="text-sm mb-4 text-gray-700">For user: <strong className="text-primary">{selectedUser?.name}</strong></p>
             <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
               <div className="relative">
                 <input type={showChangePassword ? "text" : "password"} name="password" placeholder="New Password" value={changePasswordData.password} onChange={handleChangePasswordChange} required className="w-full p-2 pr-10 border rounded-md" />
@@ -244,7 +245,7 @@ const AddUser = () => {
                 {changePasswordError && <p className="text-red-500 text-sm mt-1">{changePasswordError}</p>}
               </div>
               <div className="flex gap-2">
-                <button type="submit" disabled={changePasswordLoader} className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50">
+                <button type="submit" disabled={changePasswordLoader} className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50">
                   {changePasswordLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block"></span> : "Change Password"}
                 </button>
                 <button type="button" onClick={closeChangePasswordForm} className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cancel</button>
@@ -254,31 +255,32 @@ const AddUser = () => {
         </div>
       )}
 
-      <div className="mt-6 overflow-x-auto">
-        <table className="table-auto w-full text-center text-sm border border-gray-300 rounded-xl overflow-hidden">
+      <div className="mt-6 md:p-6 p-2 bg-white shadow-custom">
+        <div className="overflow-x-auto">
+          <table className="table-auto w-full text-center text-sm border border-gray-300 overflow-hidden">
           <thead className="bg-primary text-white">
             <tr>
-              <th className="p-3 border">Sr. No.</th>
-              <th className="p-3 border">Name</th>
-              <th className="p-3 border">Email</th>
-              <th className="p-3 border">Role</th>
-              <th className="p-3 border">Contact No.</th>
-              <th className="p-3 border">Branch</th>
-              <th className="p-3 border">Commission</th>
-              <th className="p-3 border">Actions</th>
+              <th className="p-3 whitespace-nowrap border">Name</th>
+              <th className="p-3 whitespace-nowrap border">Sr. No.</th>
+              <th className="p-3 whitespace-nowrap border">Email</th>
+              <th className="p-3 whitespace-nowrap border">Role</th>
+              <th className="p-3 whitespace-nowrap border">Contact No.</th>
+              <th className="p-3 whitespace-nowrap border">Branch</th>
+              <th className="p-3 whitespace-nowrap border">Commission</th>
+              <th className="p-3 whitespace-nowrap border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.length > 0 ? users.map((user, i) => (
               <tr key={user.uuid} className="hover:bg-gray-100 border-b">
-                <td className="p-3 border">{i + 1}</td>
-                <td className="p-3 border">{user.name}</td>
-                <td className="p-3 border">{user.email}</td>
-                <td className="p-3 border">{user.role.toUpperCase()}</td>
-                <td className="p-3 border">{user.contactNum}</td>
-                <td className="p-3 border">{user.branch}</td>
-                <td className="p-3 border">{user.commission}</td>
-                <td className="p-3 border">
+                <td className="p-3 whitespace-nowrap border">{i + 1}</td>
+                <td className="p-3 whitespace-nowrap border">{user.name}</td>
+                <td className="p-3 whitespace-nowrap border">{user.email}</td>
+                <td className="p-3 whitespace-nowrap border">{user.role.toUpperCase()}</td>
+                <td className="p-3 whitespace-nowrap border">{user.contactNum}</td>
+                <td className="p-3 whitespace-nowrap border">{user.branch}</td>
+                <td className="p-3 whitespace-nowrap border">{user.commission}</td>
+                <td className="p-3 whitespace-nowrap border">
                   <div className="flex justify-center gap-2">
                     <button onClick={() => handleDelete(user.uuid)} disabled={updateLoader === user.uuid} className={`${user.isActive ? "bg-red-500" : "bg-green-500"} text-white px-3 py-1 rounded-md hover:${user.isActive ? "bg-red-600" : "bg-green-600"} disabled:opacity-50`}>
                       {updateLoader === user.uuid ? <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span> : user.isActive ? "Deactivate" : "Activate"}
@@ -294,6 +296,7 @@ const AddUser = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

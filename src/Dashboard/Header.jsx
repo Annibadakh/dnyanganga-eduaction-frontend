@@ -19,11 +19,11 @@ const Header = () => {
             </div>
             
             <div>
-                <h1 className='text-lg sm:text-2xl font-bold'>Dnyanganga Education Pvt. Ltd</h1>
+                <h1 className='text-lg text-secondary sm:text-3xl font-bold'>Dnyanganga Education</h1>
             </div>
             
             <div>
-                <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">Logout</button>
+                <button onClick={handleLogout} className="bg-red-600 text-white hover:bg-red-400 px-4 py-2 rounded">Logout</button>
             </div>
         </nav>
     );

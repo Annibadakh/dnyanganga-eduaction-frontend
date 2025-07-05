@@ -48,7 +48,7 @@ function Login() {
             <label className="block text-gray-700 font-medium">Email</label>
             <input
               type="email"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Enter email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -59,7 +59,7 @@ function Login() {
             <label className="block text-gray-700 font-medium">Password</label>
             <input
               type="password"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -69,7 +69,7 @@ function Login() {
           <div>
             <label className="block text-gray-700 font-medium">Select Role</label>
             <select
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
@@ -81,7 +81,7 @@ function Login() {
           <button
             type="submit"
             disabled={loginLoader}
-            className="w-full min-h-10 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 flex items-center justify-center"
+            className="w-full min-h-10 bg-primary hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 flex items-center justify-center"
           >
             {loginLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> :  "Login"}
           </button>

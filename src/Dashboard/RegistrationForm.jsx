@@ -243,15 +243,15 @@ const RegistrationForm = () => {
 
   return (
     <div className="w-full bg-white">
-      <div className="container px-1 py-1 w-full">
+      <div className="container w-full">
         <div className="w-full bg-white">
           <div className="bg-primary text-white text-center py-4">
             <h2 className="text-2xl font-bold">Student Registration Form</h2>
           </div>
           
-          <form onSubmit={handleSubmit} className="p-6 space-y-6 w-full">
+          <form onSubmit={handleSubmit} className="md:p-6 p-2 space-y-6 w-full">
             {/* Photo Upload Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Photo</h3>
               <FileUpload
                 title=""
@@ -266,7 +266,7 @@ const RegistrationForm = () => {
             </div>
 
             {/* Personal Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Personal Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <input 
@@ -333,7 +333,7 @@ const RegistrationForm = () => {
             </div>
 
             {/* Educational Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Educational Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <select 
@@ -433,7 +433,7 @@ const RegistrationForm = () => {
             </div>
 
             {/* Contact Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Contact Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <input 
@@ -511,7 +511,7 @@ const RegistrationForm = () => {
             </div>
 
             {/* Exam Centre and Form Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Exam Centre and Form Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 <div>
@@ -563,7 +563,7 @@ const RegistrationForm = () => {
             </div>
 
             {/* Payment Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Payment Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 {/* New Payment Standard Dropdown */}
@@ -661,7 +661,7 @@ const RegistrationForm = () => {
             </div>
 
             {/* Documents Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm p-6">
+            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
               <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Documents</h3>
               {/* Form Photo Upload */}
               <FileUpload
@@ -688,7 +688,7 @@ const RegistrationForm = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
           <button 
               type="button"
               onClick={handleReset}

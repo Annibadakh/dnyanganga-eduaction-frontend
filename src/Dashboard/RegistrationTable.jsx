@@ -162,10 +162,10 @@ const RegistrationTable = () => {
     });
   };
   return (
-    <div className="p-6 bg-customwhite shadow-custom rounded-2xl">
+    <div className="p-2 container mx-auto">
       {!showPayment ? (
         <>
-          <h1 className="text-3xl font-bold text-primary mb-6">
+          <h1 className="text-3xl text-center font-bold text-primary mb-6">
             Registration Table
           </h1>
           <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
@@ -216,14 +216,15 @@ const RegistrationTable = () => {
             </select>
           </div>
 
-          {loading && (
+          <div className="bg-white p-2 md:p-6 shadow-custom">
+            {loading && (
             <p className="text-customgray text-lg">Loading...</p>
           )}
           {error && <p className="text-red-500 text-lg">{error}</p>}
 
           {!loading && !error && filtered.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="table-auto w-full border text-center border-customgray rounded-xl overflow-hidden shadow-lg text-sm">
+              <table className="table-auto w-full border text-center border-customgray overflow-hidden shadow-lg text-sm">
                 <thead className="bg-primary text-customwhite uppercase tracking-wider">
                   <tr>
                     <th className="p-3 text-left border whitespace-nowrap">Sr. No.</th>
@@ -331,26 +332,31 @@ const RegistrationTable = () => {
               <p className="text-lg text-customgray">No registrations found.</p>
             )
           )}
+          </div>
         </>
       ) : (
         <PaymentForm paymentData={paymentData} setShowPayment={setShowPayment} />
       )}
       {showPhotoModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-        <div className="relative bg-white rounded-lg shadow-lg w-[90%] max-w-3xl max-h-[90vh] overflow-y-auto p-4">
-          <button
-            onClick={() => setShowPhotoModal(false)}
-            className="absolute top-2 right-2 text-black hover:text-gray-800 text-xl"
-          >
-            ✕
-          </button>
+        <div className="relative bg-white rounded-lg shadow-lg w-[90%] max-w-3xl max-h-[90vh] overflow-auto p-4">
+          
           <h2 className="text-lg font-semibold mb-4">Form Photo</h2>
-          <div className="overflow-auto max-h-[75vh] border rounded">
+          <div className="border rounded">
             <img
               src={selectedPhoto}
               alt="Form"
               className="w-full h-auto object-contain"
             />
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+            type="button"
+            onClick={() => setShowPhotoModal(false)}
+            className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+          >
+            Close
+          </button>
           </div>
         </div>
       </div>

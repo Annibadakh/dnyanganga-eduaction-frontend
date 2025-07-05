@@ -70,8 +70,8 @@ const VisitingTable = () => {
   };
 
   return (
-    <div className="p-6 bg-customwhite shadow-custom rounded-2xl">
-      <h1 className="text-3xl font-bold text-primary mb-6">Visiting Table</h1>
+    <div className="p-2 container mx-auto">
+      <h1 className="text-3xl text-center font-bold text-primary mb-6">Visiting Table</h1>
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -110,7 +110,8 @@ const VisitingTable = () => {
       </div>
 
       {/* Table */}
-      {loading && <p className="text-customgray text-lg">Loading...</p>}
+      <div className="bg-white md:p-6 p-2 shadow-custom">
+        {loading && <p className="text-customgray text-lg">Loading...</p>}
       {error && <p className="text-red-500 text-lg">{error}</p>}
 
       {!loading && !error && filteredData.length > 0 ? (
@@ -170,6 +171,7 @@ const VisitingTable = () => {
       ) : (
         !loading && <p className="text-lg text-customgray">No visiting records found.</p>
       )}
+      </div>
     </div>
   );
 };
