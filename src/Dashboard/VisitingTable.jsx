@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
+import VisitingFormView from "./VisitingFormView"; // Import the new component
 
 const VisitingTable = () => {
   const { user } = useAuth();
@@ -15,6 +16,10 @@ const VisitingTable = () => {
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
   const [selectedStandard, setSelectedStandard] = useState("");
 
+  // New state for view modal
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedVisit, setSelectedVisit] = useState(null);
+
   useEffect(() => {
     if (user.role === "admin") {
       api.get("/admin/getUser").then((res) => {
@@ -25,6 +30,7 @@ const VisitingTable = () => {
     api
       .get(`/counsellor/getVisiting?uuid=${user.uuid}&role=${user.role}`)
       .then((response) => {
+        console.log(response.data.data); // Fixed typo: consolel0g -> console.log
         setVisitingData(response.data.data);
         setFilteredData(response.data.data);
         setLoading(false);
@@ -67,6 +73,18 @@ const VisitingTable = () => {
       minute: '2-digit',
       hour12: true
     });
+  };
+
+  // New function to handle view action
+  const handleViewVisit = (visit) => {
+    setSelectedVisit(visit);
+    setShowViewModal(true);
+  };
+
+  // Function to close view modal
+  const handleCloseView = () => {
+    setShowViewModal(false);
+    setSelectedVisit(null);
   };
 
   return (
@@ -123,19 +141,15 @@ const VisitingTable = () => {
                 <th className="p-3 border">Visit Date</th>
                 <th className="p-3 border">Visit Time</th>
                 <th className="p-3 border">Student Name</th>
-                {/* <th className="p-3 border">Gender</th> */}
-                {/* <th className="p-3 border">School/College</th> */}
                 <th className="p-3 border">Standard</th>
                 <th className="p-3 border">Med/Grp</th>
-                {/* <th className="p-3 border">Previous %</th> */}
                 <th className="p-3 border">Student No.</th>
                 <th className="p-3 border">Parent No.</th>
-                {/* <th className="p-3 border">Address</th> */}
                 <th className="p-3 border">Demo</th>
                 <th className="p-3 border">Reason</th>
                 <th className="p-3 border">Counsellor</th>
                 <th className="p-3 border">Branch</th>
-
+                <th className="p-3 border">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -150,19 +164,22 @@ const VisitingTable = () => {
                   </td>
                   <td className="p-2 border">{formatTimeTo12Hour(visit.createdAt)}</td>
                   <td className="p-2 border">{visit.studentName}</td>
-                  {/* <td className="p-2 border">{visit.gender}</td> */}
-                  {/* <td className="p-2 border">{visit.schoolCollege}</td> */}
                   <td className="p-2 border">{visit.standard}</td>
                   <td className="p-2 border">{visit.branch}</td>
-                  {/* <td className="p-2 border">{visit.previousYearPercent}</td> */}
                   <td className="p-2 border">{visit.studentNo}</td>
                   <td className="p-2 border">{visit.parentsNo}</td>
-                  {/* <td className="p-2 border">{visit.address}</td> */}
                   <td className="p-2 border">{visit.demoGiven}</td>
                   <td className="p-2 border">{visit.reason}</td>
                   <td className="p-2 border">{visit.counsellor}</td>
                   <td className="p-2 border">{visit.counsellorBranch}</td>
-
+                  <td className="p-2 border">
+                    <button
+                      onClick={() => handleViewVisit(visit)}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-xs"
+                    >
+                      View
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -172,6 +189,14 @@ const VisitingTable = () => {
         !loading && <p className="text-lg text-customgray">No visiting records found.</p>
       )}
       </div>
+
+      {/* View Modal */}
+      {showViewModal && selectedVisit && (
+        <VisitingFormView
+          visitData={selectedVisit}
+          onClose={handleCloseView}
+        />
+      )}
     </div>
   );
 };

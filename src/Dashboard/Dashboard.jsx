@@ -37,7 +37,7 @@ function Dashboard() {
         <Sidebar isSidebarOpen={isSidebarOpen} clickSidebar={clickSidebar} userRole={userRole} />
         <main className="relative flex-1 bg-gray-100 p-2 overflow-auto max-h-full">
           <button
-            className={`fixed z-50 top-20 shadow-custom transition-all duration-200 ${isSidebarOpen ? "left-52 sm:left-[216px]" : "left-2"} text-white bg-primary px-4 py-2`}
+            className={`fixed z-50 top-20 shadow-custom transition-all duration-200 ${isSidebarOpen ? "left-[216px]" : "left-2"} text-white bg-primary px-4 py-2`}
             onClick={toggleSidebar}
           >
             ☰

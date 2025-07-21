@@ -8,6 +8,7 @@ const VisitingForm = () => {
   const navigate = useNavigate();
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
+  const [showPreviousYearDropdown, setShowPreviousYearDropdown] = useState(false);
   const [showOtherReason, setShowOtherReason] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ const VisitingForm = () => {
     address: "",
     pincode: "",
     standard: "",
+    previousYear: "", // Added previousYear field
     branch: "",
     schoolCollege: "",
     previousYearPercent: "",
@@ -40,26 +42,32 @@ const VisitingForm = () => {
         setFormData({
           ...formData,
           [name]: value,
-          branch: ""
+          branch: "",
+          previousYear: ""
         });
         setShow10thBranchDropdown(true);
         setShowBranchDropdown(false);
+        setShowPreviousYearDropdown(true);
       } else if (value === "12th") {
         setFormData({
           ...formData,
           [name]: value,
-          branch: ""
+          branch: "",
+          previousYear: ""
         });
         setShowBranchDropdown(true);
         setShow10thBranchDropdown(false);
+        setShowPreviousYearDropdown(true);
       } else {
         setFormData({
           ...formData,
           [name]: value,
-          branch: ""
+          branch: "",
+          previousYear: ""
         });
         setShowBranchDropdown(false);
         setShow10thBranchDropdown(false);
+        setShowPreviousYearDropdown(false);
       }
     } else if (name === "reason") {
       setFormData({ ...formData, [name]: value });
@@ -82,6 +90,7 @@ const VisitingForm = () => {
       address: "",
       pincode: "",
       standard: "",
+      previousYear: "", // Reset previousYear
       branch: "",
       schoolCollege: "",
       previousYearPercent: "",
@@ -95,6 +104,7 @@ const VisitingForm = () => {
     });
     setShowBranchDropdown(false);
     setShow10thBranchDropdown(false);
+    setShowPreviousYearDropdown(false);
     setShowOtherReason(false);
   };
 
@@ -247,15 +257,18 @@ const VisitingForm = () => {
                     <option value="PCMB">PCMB</option>
                   </select>
                 ) : (
-                  <input 
-                    type="text" 
-                    name="branch" 
-                    value={formData.branch} 
-                    onChange={handleChange} 
-                    placeholder="Medium/Group" 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    required
-                  />
+                  !showPreviousYearDropdown && (
+                    <input 
+                      type="text" 
+                      name="branch" 
+                      value={formData.branch} 
+                      onChange={handleChange} 
+                      placeholder="Medium/Group" 
+                      disabled={!showPreviousYearDropdown}
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      required
+                    />
+                  )
                 )}
 
                 <input 
@@ -264,9 +277,34 @@ const VisitingForm = () => {
                   value={formData.schoolCollege}
                   onChange={handleChange} 
                   placeholder="Enter School/College Name" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 col-span-2"
                   required
                 />
+                
+                {/* Previous Year Dropdown - Added from RegistrationForm */}
+                <select 
+                  name="previousYear" 
+                  value={formData.previousYear}
+                  disabled={!showPreviousYearDropdown}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  required
+                >
+                  <option value="">Select Previous Year</option>
+                  {formData.standard === "10th" && (
+                    <>
+                      <option value="8th">8th</option>
+                      <option value="9th">9th</option>
+                    </>
+                  )}
+                  {formData.standard === "12th" && (
+                    <>
+                      <option value="10th">10th</option>
+                      <option value="11th">11th</option>
+                    </>
+                  )}
+                </select>
+
                 <input 
                   type="number" 
                   name="previousYearPercent" 
