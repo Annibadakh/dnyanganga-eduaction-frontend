@@ -47,7 +47,7 @@ function Login() {
         <div className="w-full grid place-items-center mb-4">
           <img src={logo} className="h-20 w-auto" alt="Logo" />
         </div>
-        <h2 className="text-2xl font-serif font-bold  text-center text-gray-800 mb-6">Login</h2>
+        <h2 className="text-2xl font-serif font-bold text-center text-gray-800 mb-6">Login</h2>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-gray-700 font-medium">Email</label>
