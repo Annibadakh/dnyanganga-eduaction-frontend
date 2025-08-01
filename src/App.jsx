@@ -18,6 +18,9 @@ import AddCenter from "./Dashboard/AddCenter";
 import PaymentTable from "./Dashboard/PaymentTable";
 import Result from "./Components/Result";
 import axios from "axios";
+import CoursesPage from "./Components/CoursesPage";
+import AchievementPage from "./Components/AchievementPage";
+import LandingPage from "./Components/LandingPage";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -38,12 +41,15 @@ function App() {
     
     <div className="font-custom">
       <BrowserRouter>
-        <Routes>    
-          <Route path='/' element={<Main />} />
-          <Route path="login" element={<Login />} />
+        <Routes>
+          <Route path="login" element={<Login />} /> 
           <Route path="hallticket" element={hallTicket ? <HallTicket /> : <h2>Hall Ticket not yet declare !!</h2>} />
-          <Route path="result" element={resultDeclared ? <Result /> : <h2>Result not yet declare</h2>} />
-          <Route path='register' element={<RegistrationForm />} />
+          <Route path="result" element={resultDeclared ? <Result /> : <h2>Result not yet declare</h2>} />   
+          <Route path='/' element={<LandingPage />}>
+            <Route path="" element={<Main />} />
+            <Route path="courses" element={<CoursesPage />} />
+            <Route path="achievement" element={<AchievementPage />} />
+          </Route>
           <Route element={<ProtectedRoute />}>
             <Route path='dashboard' element={<Dashboard />}>
               <Route path="" element={<Home />}/>

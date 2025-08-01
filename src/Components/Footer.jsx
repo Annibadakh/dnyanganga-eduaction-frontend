@@ -16,7 +16,7 @@ const Footer = () => {
             <img 
               src={logo3} // Replace with your logo path
               alt="Dnyanganga Coaching Classes Logo"
-              className="w-96 h-auto mb-4 bg-white rounded"  // Increased width (w-96) for a larger logo
+              className="w-96 p-1 h-auto mb-4 bg-white rounded"  // Increased width (w-96) for a larger logo
             />
             <p className=" font-semibold text-1xl">
               Best Coaching Classes In Kopargaon.

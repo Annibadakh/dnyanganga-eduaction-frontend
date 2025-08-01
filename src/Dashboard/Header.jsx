@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
-import logo from '../Images/logo4.png';
+import logo from '../Images/logo3.png';
 
 const Header = () => {
     const { logout } = useAuth();
@@ -15,7 +15,7 @@ const Header = () => {
     return (
         <nav className='flex  justify-between gap-2 px-5 md:px-20 py-4 sm:py-1 items-center shadow-custom min-h-18 bg-white'>
             <div>
-                <img src={logo} className='h-10 sm:h-16 ' alt="logo" />
+                <img src={logo} className='h-12 sm:p-1 sm:h-16 ' alt="logo" />
             </div>
             
             <div>
