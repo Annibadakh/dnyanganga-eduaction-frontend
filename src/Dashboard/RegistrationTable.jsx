@@ -155,7 +155,7 @@ const RegistrationTable = () => {
 
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString('en-GB', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true

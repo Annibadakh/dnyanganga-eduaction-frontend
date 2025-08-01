@@ -2,7 +2,7 @@ import React from "react";
 
 const VisitingFormView = ({ visitData, onClose }) => {
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+    return new Date(dateString).toLocaleDateString('en-GB', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -10,7 +10,7 @@ const VisitingFormView = ({ visitData, onClose }) => {
   };
 
   const formatDateTime = (dateString) => {
-    return new Date(dateString).toLocaleString('en-IN', {
+    return new Date(dateString).toLocaleString('en-GB', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

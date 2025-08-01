@@ -68,7 +68,7 @@ const VisitingTable = () => {
 
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString('en-GB', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
@@ -160,7 +160,7 @@ const VisitingTable = () => {
                 >
                   <td className="p-2 border">{index + 1}</td>
                   <td className="p-2 border">
-                    {new Date(visit.createdAt).toLocaleDateString()}
+                    {new Date(visit.createdAt).toLocaleDateString('en-GB')}
                   </td>
                   <td className="p-2 border">{formatTimeTo12Hour(visit.createdAt)}</td>
                   <td className="p-2 border">{visit.studentName}</td>

@@ -1,10 +1,12 @@
 import React from 'react';
 import homeImage from '../Images/book.jpg'; 
+import ImageSlider from './ImageSLider';
+import ContentSlide from './ContentSlide';
 
 function Home() {
   return (
-    <section className="relative p-0 border-0">
-      <div className="relative">
+    <section className="relative mt-16 mb-10 sm:mt-0 p-0 border-0">
+      {/* <div className="relative">
         <img
           src={homeImage}
           alt="Home"
@@ -24,7 +26,9 @@ function Home() {
           </button>
           </div>
         </div>
-      </div>
+      </div> */}
+      <ImageSlider />
+      <ContentSlide />
     </section>
   );
 }

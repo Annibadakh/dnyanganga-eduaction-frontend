@@ -83,13 +83,22 @@ function Login() {
               <option value="admin">Admin</option>
             </select>
           </div>
+          <div className="flex justify-between">
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg"
+            >
+              Back to Home 
+            </button>
           <button
             type="submit"
             disabled={loginLoader}
-            className="w-full min-h-10 bg-primary hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 flex items-center justify-center"
+            className="w-28 min-h-10 bg-primary hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 flex items-center justify-center"
           >
             {loginLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> :  "Login"}
           </button>
+          </div>
         </form>
       </div>
     </div>
