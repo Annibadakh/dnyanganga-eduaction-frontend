@@ -21,6 +21,7 @@ const RegistrationForm = () => {
   const [showPreviousYearDropdown, setShowPreviousYearDropdown] = useState(false);
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
+  const [handleDue, setHandleDue] = useState(false);
 
   const [formData, setFormData] = useState({
     studentName: "",
@@ -77,11 +78,16 @@ const RegistrationForm = () => {
     }
     
     const remaining = totalAmount - amountPaid;
-    
+    if(remaining == 0){
+      setHandleDue(true);  // Should be true to disable the field
+    } else {
+      setHandleDue(false); // Enable the field when there's remaining amount
+    }
     setFormData(prevData => ({
       ...prevData,
       amountRemaining: remaining >= 0 ? remaining.toString() : "0"
     }));
+    
   }, [formData.totalamount, formData.amountPaid]);
 
   const handleChange = (e) => {
@@ -646,14 +652,15 @@ const RegistrationForm = () => {
                   <option value="cheque">Cheque</option>
                 </select>
                 
-                <div className="w-full flex flex-row items-center gap-1">
+                <div  className="w-full flex flex-row items-center gap-1">
                   <label className="min-w-fit text-[17px] text-black">Due Date:</label>
                   <input 
+                    disabled={handleDue}
                     type="date" 
                     name="dueDate" 
                     value={formData.dueDate}
                     onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full px-3 py-2 border disabled:opacity-50 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                     required
                   />
                 </div>
