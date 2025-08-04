@@ -60,7 +60,7 @@ const ImageSlider = () => {
                 style={{ backgroundImage: `url(${slide.image})` }}
             >
                 <div className="bg-white bg-opacity-40  p-4 sm:p-6 rounded-lg max-w-xs sm:min-h-72 sm:max-w-xl">
-                <h2 className="text-lg text-primary sm:text-3xl font-bold mb-5">{slide.title}</h2>
+                <h2 className="text-lg capitalize text-primary sm:text-3xl font-bold mb-5">{slide.title}</h2>
                 <p className="text-sm text-black text-justify sm:text-lg">{slide.description}</p>
                 </div>
             </div>

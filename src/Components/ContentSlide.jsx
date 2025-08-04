@@ -28,6 +28,11 @@ const slides = [
 
 const ContentSlide = () => {
   return (
+    <>
+    <div className='mb-10 mt-10'>
+                <h1 className='md:w-72 w-52 p-2 text-white capitalize text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Our Experts</h1>
+                <div className='md:w-48 w-32 h-2 bg-secondary'></div>
+    </div>
     <div className="w-full">
       <Swiper
         modules={[Autoplay]}
@@ -57,6 +62,8 @@ const ContentSlide = () => {
         ))}
       </Swiper>
     </div>
+    </>
+    
   );
 };
 

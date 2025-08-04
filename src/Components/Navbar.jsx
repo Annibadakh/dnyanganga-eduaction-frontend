@@ -48,7 +48,7 @@ const Navbar = () => {
                 <li><Link to="">Home</Link></li>
                 <li>About Us</li>
                 <li>Gallery</li>
-                <li className="border-l-2 pl-3 border-solid border-gray-400">Call us: 7030830520</li>
+                <li className="border-l-2 pl-3 border-solid border-gray-400">Contact: 7030830520</li>
             </div>
             <div className='hidden sm:block absolute -top-6 right-[434px] h-6 w-8 bg-primary' style={{transform: "skewX(-26deg)"}}></div>
             <button

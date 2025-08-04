@@ -3,8 +3,14 @@ import greendots from '../Images/greendots.png';
 
 const AboutUs = () => {
     return (
+        <>
+        <div className='mb-10'>
+                <h1 className='md:w-72 w-52 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>About Us</h1>
+                <div className='md:w-48 w-32 h-2 bg-secondary'></div>
+            </div>
         <section className="flex flex-col md:flex-row h-auto md:h-screen">
             {/* Image Section */}
+            
             <div className="w-full md:w-1/2 h-auto md:h-full pl-0 flex justify-center items-center relative">
                 <img
                     src={greendots}
@@ -26,6 +32,7 @@ const AboutUs = () => {
                 </p>
             </div>
         </section>
+        </>
     );
 }
 
