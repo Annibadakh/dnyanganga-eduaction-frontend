@@ -223,40 +223,60 @@ function Settings() {
           )}
           <form onSubmit={handleSubjectSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {['subjectCode', 'subjectName', 'language', 'standard'].map((field, idx) => (
-                <div key={idx}>
-                  <label className="block mb-2 text-customblack capitalize" htmlFor={field}>
-                    {field === 'subjectCode' ? 'Subject Code*' :
-                      field === 'subjectName' ? 'Subject Name*' :
-                      field === 'language' ? 'Language*' : 'Standard*'}
-                  </label>
-                  {field === 'standard' ? (
-                    <select
-                      id={field}
-                      name={field}
-                      value={formData[field]}
-                      onChange={handleFormChange}
-                      className="w-full p-2 border border-gray-300 rounded"
-                      required
-                    >
-                      <option value="">Select Standard</option>
-                      <option value="10th">10th</option>
-                      <option value="12th">12th</option>
-                    </select>
-                  ) : (
-                    <input
-                      type={field === 'subjectCode' ? 'number' : 'text'}
-                      id={field}
-                      name={field}
-                      value={formData[field]}
-                      onChange={handleFormChange}
-                      className="w-full p-2 border border-gray-300 rounded"
-                      required
-                    />
-                  )}
-                </div>
-              ))}
+              <div>
+                <label htmlFor="subjectCode" className="block mb-2 text-customblack">Subject Code*</label>
+                <input
+                  type="number"
+                  id="subjectCode"
+                  name="subjectCode"
+                  value={formData.subjectCode}
+                  onChange={handleFormChange}
+                  onWheel={(e) => e.target.blur()}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="subjectName" className="block mb-2 text-customblack">Subject Name*</label>
+                <input
+                  type="text"
+                  id="subjectName"
+                  name="subjectName"
+                  value={formData.subjectName}
+                  onChange={handleFormChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="language" className="block mb-2 text-customblack">Language*</label>
+                <input
+                  type="text"
+                  id="language"
+                  name="language"
+                  value={formData.language}
+                  onChange={handleFormChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="standard" className="block mb-2 text-customblack">Standard*</label>
+                <select
+                  id="standard"
+                  name="standard"
+                  value={formData.standard}
+                  onChange={handleFormChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                >
+                  <option value="">Select Standard</option>
+                  <option value="10th">10th</option>
+                  <option value="12th">12th</option>
+                </select>
+              </div>
             </div>
+
             <div className="flex justify-end space-x-2 mt-4">
               <button
                 type="button"
@@ -271,12 +291,17 @@ function Settings() {
                 disabled={submitLoader}
                 className="bg-primary min-w-24 hover:bg-secondary disabled:opacity-50 text-white font-bold py-2 px-4 rounded grid place-items-center"
               >
-                {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
+                {submitLoader ? (
+                  <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  "Submit"
+                )}
               </button>
             </div>
           </form>
         </div>
       )}
+
 
       <div className="bg-white md:p-6 p-2 rounded shadow-custom">
         {/* <h2 className="text-xl font-semibold mb-4 text-secondary">Subjects List</h2> */}

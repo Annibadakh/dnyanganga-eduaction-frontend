@@ -429,7 +429,8 @@ const RegistrationForm = () => {
                   type="number" 
                   name="preYearPercent" 
                   placeholder="Enter Previous Year Percentage" 
-                  value={formData.preYearPercent} 
+                  value={formData.preYearPercent}
+                  onWheel={(e) => e.target.blur()} 
                   onChange={handleChange} 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
                   required 
@@ -590,7 +591,8 @@ const RegistrationForm = () => {
                 <input 
                   type="number" 
                   value={formData.totalamount}
-                  name="totalamount" 
+                  name="totalamount"
+                  onWheel={(e) => e.target.blur()}
                   onChange={handleChange} 
                   placeholder="Total Amount" 
                   className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
@@ -602,6 +604,7 @@ const RegistrationForm = () => {
                   type="number" 
                   name="amountPaid" 
                   value={formData.amountPaid}
+                  onWheel={(e) => e.target.blur()}
                   onChange={handleChange} 
                   placeholder="Enter Amount Paid" 
                   className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${
@@ -617,6 +620,7 @@ const RegistrationForm = () => {
                       type="number" 
                       name="amountRemaining" 
                       value={formData.amountRemaining}
+                      onWheel={(e) => e.target.blur()}
                       placeholder="Amount Remaining" 
                       className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
                       disabled

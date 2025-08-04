@@ -213,7 +213,7 @@ const AddUser = () => {
               {formData.role === "counsellor" && (
                 <>
                   <input type="text" name="branch" placeholder="Branch" value={formData.branch} onChange={handleChange} required className="p-2 border rounded-md" />
-                  <input type="number" name="commission" placeholder="Commission %" value={formData.commission} onChange={handleChange} required className="p-2 border rounded-md" />
+                  <input type="number" name="commission" onWheel={(e) => e.target.blur()} placeholder="Commission %" value={formData.commission} onChange={handleChange} required className="p-2 border rounded-md" />
                 </>
               )}
             </div>

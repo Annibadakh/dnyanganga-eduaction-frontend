@@ -96,7 +96,7 @@ const AddCenter = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-gray-700 font-semibold">Centre ID</label>
-              <input type="number" name="centerId" value={formData.centerId} onChange={handleChange} required className="w-full p-2 border rounded-md" />
+              <input type="number" name="centerId" onWheel={(e) => e.target.blur()} value={formData.centerId} onChange={handleChange} required className="w-full p-2 border rounded-md" />
             </div>
             <div>
               <label className="block text-gray-700 font-semibold">Centre Name</label>
@@ -153,7 +153,7 @@ const AddCenter = () => {
                   </td>
                   <td className="p-3 whitespace-nowrap border">
                     {editId === center.centerId ? (
-                      <input type="number" value={editData.capicity} onChange={(e) => setEditData({ ...editData, capicity: e.target.value })} className="w-20 p-1 border rounded-md" />
+                      <input type="number" value={editData.capicity} onWheel={(e) => e.target.blur()} onChange={(e) => setEditData({ ...editData, capicity: e.target.value })} className="w-20 p-1 border rounded-md" />
                     ) : (
                       center.capicity
                     )}
@@ -164,7 +164,7 @@ const AddCenter = () => {
                         <button
                           onClick={() => handleSaveEdit(center.centerId)}
                           disabled={updateLoader === center.centerId}
-                          className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 disabled:opacity-50"
+                          className="bg-green-500 text-white px-3 py-1 min-w-14 flex items-center justify-center rounded-md hover:bg-green-600 disabled:opacity-50"
                         >
                           {updateLoader === center.centerId ? <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span> : "Save"}
                         </button>

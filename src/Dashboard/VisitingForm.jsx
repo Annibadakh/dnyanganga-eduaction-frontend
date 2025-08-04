@@ -309,7 +309,8 @@ const VisitingForm = () => {
                   type="number" 
                   name="previousYearPercent" 
                   placeholder="Enter Previous Year Percentage" 
-                  value={formData.previousYearPercent} 
+                  value={formData.previousYearPercent}
+                  onWheel={(e) => e.target.blur()} 
                   onChange={handleChange} 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
                   required 
