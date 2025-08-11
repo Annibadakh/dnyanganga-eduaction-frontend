@@ -1,6 +1,6 @@
 import React from 'react';
 import homeImage from '../Images/book.jpg'; 
-import ImageSlider from './ImageSLider';
+import ImageSlider from './ImageSlider';
 import ContentSlide from './ContentSlide';
 
 function Home() {
@@ -28,7 +28,7 @@ function Home() {
         </div>
       </div> */}
       <ImageSlider />
-      <ContentSlide />
+      {/* <ContentSlide /> */}
     </section>
   );
 }
