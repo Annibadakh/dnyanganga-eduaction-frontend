@@ -62,6 +62,14 @@ const VisitingFormView = ({ visitData, onClose }) => {
                   <span className="font-medium text-gray-700">Mother's Name:</span>
                   <p className="text-gray-900">{visitData.motherName || 'N/A'}</p>
                 </div> */}
+                <div>
+                  <span className="font-medium text-gray-700">Address:</span>
+                  <p className="text-gray-900">{visitData.address || 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700">Pincode:</span>
+                  <p className="text-gray-900">{visitData.pincode || 'N/A'}</p>
+                </div>
               </div>
             </div>
 
@@ -87,11 +95,12 @@ const VisitingFormView = ({ visitData, onClose }) => {
                   <span className="font-medium text-gray-700">Email:</span>
                   <p className="text-gray-900">{visitData.email || 'N/A'}</p>
                 </div>
+                
               </div>
             </div>
 
             {/* Address Information */}
-            <div className="bg-gray-50 p-4 rounded-lg">
+            {/* <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-primary mb-4 border-b pb-2">
                 Address Information
               </h3>
@@ -105,7 +114,7 @@ const VisitingFormView = ({ visitData, onClose }) => {
                   <p className="text-gray-900">{visitData.pincode || 'N/A'}</p>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Academic Information */}
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -122,7 +131,7 @@ const VisitingFormView = ({ visitData, onClose }) => {
                   <p className="text-gray-900">{visitData.standard || 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">Branch/Stream:</span>
+                  <span className="font-medium text-gray-700">Group/Medium:</span>
                   <p className="text-gray-900">{visitData.branch || 'N/A'}</p>
                 </div>
                 <div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import VisitingFormView from "./VisitingFormView"; // Import the new component
@@ -20,6 +20,32 @@ const VisitingTable = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
 
+  // New state for searchable dropdowns
+  const [counsellorSearch, setCounsellorSearch] = useState("");
+  const [showCounsellorDropdown, setShowCounsellorDropdown] = useState(false);
+  
+  // Refs for dropdown containers
+  const counsellorDropdownRef = useRef(null);
+
+  // Filter functions for searchable dropdowns
+  const filteredCounsellors = users.filter(user =>
+    user.name.toLowerCase().includes(counsellorSearch.toLowerCase())
+  );
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (counsellorDropdownRef.current && !counsellorDropdownRef.current.contains(event.target)) {
+        setShowCounsellorDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     if (user.role === "admin") {
       api.get("/admin/getUser").then((res) => {
@@ -30,7 +56,7 @@ const VisitingTable = () => {
     api
       .get(`/counsellor/getVisiting?uuid=${user.uuid}&role=${user.role}`)
       .then((response) => {
-        console.log(response.data.data); // Fixed typo: consolel0g -> console.log
+        console.log(response.data.data);
         setVisitingData(response.data.data);
         setFilteredData(response.data.data);
         setLoading(false);
@@ -65,6 +91,17 @@ const VisitingTable = () => {
 
     setFilteredData(result);
   }, [searchQuery, selectedCounsellor, selectedStandard, visitingData, user]);
+
+  const handleCounsellorSelect = (counsellor) => {
+    setSelectedCounsellor(counsellor.uuid);
+    setCounsellorSearch(counsellor.name);
+    setShowCounsellorDropdown(false);
+  };
+
+  const clearCounsellorFilter = () => {
+    setSelectedCounsellor("");
+    setCounsellorSearch("");
+  };
 
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
@@ -102,18 +139,55 @@ const VisitingTable = () => {
         />
 
         {user.role === "admin" && (
-          <select
-            value={selectedCounsellor}
-            onChange={(e) => setSelectedCounsellor(e.target.value)}
-            className="p-2 border border-gray-300 rounded-lg w-full md:w-1/3"
-          >
-            <option value="">All Counsellors</option>
-            {users.map((u) => (
-              <option key={u.uuid} value={u.uuid}>
-                {u.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative w-full md:w-1/3" ref={counsellorDropdownRef}>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search counsellors..."
+                value={counsellorSearch}
+                onChange={(e) => {
+                  setCounsellorSearch(e.target.value);
+                  setShowCounsellorDropdown(true);
+                }}
+                onFocus={() => setShowCounsellorDropdown(true)}
+                className="p-2 w-full border border-gray-300 rounded-lg pr-8"
+              />
+              {selectedCounsellor && (
+                <button
+                  onClick={clearCounsellorFilter}
+                  className="absolute right-2 top-1/2 font-bold transform -translate-y-1/2 text-xl text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            
+            {showCounsellorDropdown && (
+              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+                <div
+                  className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+                  onClick={() => {
+                    clearCounsellorFilter();
+                    setShowCounsellorDropdown(false);
+                  }}
+                >
+                  All Counsellors
+                </div>
+                {filteredCounsellors.map((counsellor) => (
+                  <div
+                    key={counsellor.uuid}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleCounsellorSelect(counsellor)}
+                  >
+                    {counsellor.name}
+                  </div>
+                ))}
+                {filteredCounsellors.length === 0 && counsellorSearch && (
+                  <div className="p-2 text-gray-500">No counsellors found</div>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         <select

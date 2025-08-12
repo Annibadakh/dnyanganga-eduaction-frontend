@@ -143,29 +143,31 @@ const VisitingForm = () => {
 
   return (
     <div className="w-full bg-white">
-      <div className="container mx-auto w-full">
+      <div className="container w-full">
         <div className="w-full bg-white">
           <div className="bg-primary text-white text-center py-4">
             <h2 className="text-2xl font-bold">Student Visiting Form</h2>
           </div>
-          <form onSubmit={handleSubmit} className="md:p-6 p-2 space-y-6 w-full">
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Personal Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+          
+          <form onSubmit={handleSubmit} className="p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full">
+            {/* Personal Details Section */}
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Personal Details</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
                 <input 
                   type="text" 
                   name="studentName" 
                   placeholder="Enter Student Name" 
                   value={formData.studentName} 
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base" 
                   required 
                 />
                 <select 
                   name="gender" 
                   value={formData.gender}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
                   <option value="">Select Gender</option>
@@ -173,7 +175,7 @@ const VisitingForm = () => {
                   <option value="Female">Female</option>
                 </select>
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className="text-[17px] min-w-fit text-black">Date of Birth:</label>
+                  <label className=" min-w-fit md:text-[17px] text-md mr-2 text-black">Date of Birth:</label>
                   <input 
                     type="date" 
                     name="dob" 
@@ -183,22 +185,13 @@ const VisitingForm = () => {
                     required
                   />
                 </div>
-                {/* <input 
-                  type="text" 
-                  name="motherName" 
-                  value={formData.motherName}
-                  onChange={handleChange} 
-                  placeholder="Enter Mother's Name" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  required
-                /> */}
                 <input 
                   type="text" 
                   name="address" 
                   value={formData.address}
                   onChange={handleChange} 
                   placeholder="Enter Address" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 />
                 <input 
@@ -207,7 +200,7 @@ const VisitingForm = () => {
                   value={formData.pincode}
                   onChange={handleChange} 
                   placeholder="Enter Pincode" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="\d{6}"
                   title="Pincode must be 6 digits"
@@ -215,14 +208,15 @@ const VisitingForm = () => {
               </div>
             </div>
 
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Educational Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            {/* Educational Details Section */}
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Educational Details</h3>
+              <div className="flex flex-col gap-3 sm:gap-4 w-full lg:grid lg:grid-cols-2">
                 <select 
                   name="standard" 
                   value={formData.standard}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-1"
                   required
                 >
                   <option value="">Select Standard</option>
@@ -235,7 +229,7 @@ const VisitingForm = () => {
                     name="branch" 
                     value={formData.branch}
                     onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                     required
                   >
                     <option value="">Select Medium</option>
@@ -248,7 +242,7 @@ const VisitingForm = () => {
                     name="branch" 
                     value={formData.branch}
                     onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                     required
                   >
                     <option value="">Select Group</option>
@@ -265,7 +259,7 @@ const VisitingForm = () => {
                       onChange={handleChange} 
                       placeholder="Medium/Group" 
                       disabled={!showPreviousYearDropdown}
-                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                       required
                     />
                   )
@@ -277,17 +271,16 @@ const VisitingForm = () => {
                   value={formData.schoolCollege}
                   onChange={handleChange} 
                   placeholder="Enter School/College Name" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 col-span-2"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base order-5"
                   required
                 />
                 
-                {/* Previous Year Dropdown - Added from RegistrationForm */}
                 <select 
                   name="previousYear" 
                   value={formData.previousYear}
                   disabled={!showPreviousYearDropdown}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-2"
                   required
                 >
                   <option value="">Select Previous Year</option>
@@ -312,23 +305,24 @@ const VisitingForm = () => {
                   value={formData.previousYearPercent}
                   onWheel={(e) => e.target.blur()} 
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-4" 
                   required 
                   min="0" max="100" step="0.01"
                 />
               </div>
             </div>
 
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Contact Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            {/* Contact Details Section */}
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Contact Details</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
                 <input 
                   type="email" 
                   name="email" 
                   value={formData.email}
                   onChange={handleChange} 
                   placeholder="Enter Student Email" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                 />
@@ -338,7 +332,7 @@ const VisitingForm = () => {
                   value={formData.studentNo}
                   onChange={handleChange} 
                   placeholder="Enter Student Mobile No." 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="[0-9]{10}"
                   title="Phone number must be 10 digits"
@@ -349,7 +343,7 @@ const VisitingForm = () => {
                   value={formData.parentsNo}
                   onChange={handleChange} 
                   placeholder="Enter Parent Mobile No." 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="[0-9]{10}"
                   title="Phone number must be 10 digits"
@@ -358,7 +352,7 @@ const VisitingForm = () => {
                   name="notificationNo" 
                   value={formData.notificationNo}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
                   <option value="">Select Notification No.</option>
@@ -376,14 +370,15 @@ const VisitingForm = () => {
               </div>
             </div>
 
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Additional Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            {/* Additional Details Section */}
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Additional Details</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
                 <select 
                   name="demoGiven" 
                   value={formData.demoGiven}
                   onChange={handleChange} 
-                  className="w-full px-3 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
                   <option value="">Demo Given?</option>
@@ -394,7 +389,7 @@ const VisitingForm = () => {
                   name="reason" 
                   value={formData.reason}
                   onChange={handleChange} 
-                  className="w-full px-3 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
                   <option value="">Reason For Not Taking Admission</option>
@@ -410,13 +405,13 @@ const VisitingForm = () => {
               </div>
 
               {showOtherReason && (
-                <div className="mt-4">
+                <div className="mt-3 sm:mt-4">
                   <textarea 
                     name="otherReason" 
                     placeholder="Enter your reason here..." 
                     value={formData.otherReason} 
                     onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base resize-vertical" 
                     required
                     rows="3"
                   ></textarea>
@@ -424,18 +419,19 @@ const VisitingForm = () => {
               )}
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 w-full">
+            {/* Submit Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
               <button
                 type="button"
                 onClick={resetForm}
-                className="w-full py-3 min-h-12 bg-gray-400 text-white rounded hover:bg-gray-500 transition grid place-items-center"
+                className="w-full py-3 disabled:opacity-50 bg-gray-400 text-white rounded hover:bg-gray-500 transition text-sm sm:text-base"
                 disabled={loading}
               >
                 Reset
               </button>
               <button 
                 type="submit" 
-                className="w-full py-3 min-h-12 bg-primary text-white rounded hover:bg-opacity-90 disabled:opacity-50 transition grid place-items-center"
+                className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
                 disabled={loading}
               >
                 {loading ? (

@@ -113,7 +113,7 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
                 </div>
                 
                 <div className="mb-3">
-                    <label className="block">Receipt No</label>
+                    <label className="block">Receipt No.:</label>
                     <input type="text" value={receiptNo} onChange={handleOnChange} className="border p-2 w-full" />
                 </div>
                 
@@ -142,15 +142,15 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
                     <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} required className="border p-2 w-full">
                         <option value="">Select Payment Mode</option>
                         <option value="Cash">Cash</option>
-                        <option value="Card">Check</option>
                         <option value="Online">Online</option>
+                        <option value="Card">Cheque</option>
                     </select>
                 </div>
 
                 {/* Receipt Photo Upload Section using FileUpload component */}
                 <div className="mb-6">
                     <FileUpload
-                        title="Fee Receipt Photo"
+                        title="Fees Receipt Photo"
                         imageUrl={receiptPhoto.imageUrl}
                         error={receiptPhoto.error}
                         loader={receiptPhoto.loader}

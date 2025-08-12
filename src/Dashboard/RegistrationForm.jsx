@@ -130,7 +130,7 @@ const RegistrationForm = () => {
       let newTotalAmount = 0; // default
       
       if (value === "10th") {
-        newTotalAmount = 6350;
+        newTotalAmount = 5850;
       } else if (value === "12th") {
         newTotalAmount = 7900;
       } else if (value === "11th+12th") {
@@ -255,10 +255,10 @@ const RegistrationForm = () => {
             <h2 className="text-2xl font-bold">Student Registration Form</h2>
           </div>
           
-          <form onSubmit={handleSubmit} className="md:p-6 p-2 space-y-6 w-full">
+          <form onSubmit={handleSubmit} className="p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full">
             {/* Photo Upload Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Photo</h3>
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Photo</h3>
               <FileUpload
                 title=""
                 imageUrl={studentPhoto.imageUrl}
@@ -272,31 +272,42 @@ const RegistrationForm = () => {
             </div>
 
             {/* Personal Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Personal Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Personal Details</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
                 <input 
                   type="text" 
                   name="studentName" 
                   value={formData.studentName}
                   onChange={handleChange} 
                   placeholder="Enter Student Name" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 />
                 <select 
                   name="gender" 
                   value={formData.gender}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
                   <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
+                {/* <div className="w-full">
+                  <label className="block text-sm sm:text-base mb-1 text-black">Date of Birth:</label>
+                  <input 
+                    type="date" 
+                    name="dob" 
+                    value={formData.dob}
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
+                    required
+                  />
+                </div> */}
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className=" min-w-fit  text-[17px] mr-2 text-black">Date of Birth:</label>
+                  <label className=" min-w-fit md:text-[17px] text-md mr-2 text-black">Date of Birth:</label>
                   <input 
                     type="date" 
                     name="dob" 
@@ -312,16 +323,16 @@ const RegistrationForm = () => {
                   value={formData.motherName}
                   onChange={handleChange} 
                   placeholder="Enter Mother's Name" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 />
-                <input 
-                  type="text" 
+                <textarea 
                   name="address" 
                   value={formData.address}
                   onChange={handleChange} 
                   placeholder="Enter Address" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 md:col-span-2"
+                  rows="3"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base resize-vertical"
                   required
                 />
                 <input 
@@ -330,7 +341,7 @@ const RegistrationForm = () => {
                   value={formData.pincode}
                   onChange={handleChange} 
                   placeholder="Enter Pincode" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="\d{6}"
                   title="Pincode must be 6 digits"
@@ -339,14 +350,14 @@ const RegistrationForm = () => {
             </div>
 
             {/* Educational Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Educational Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Educational Details</h3>
+              <div className="flex flex-col gap-3 sm:gap-4 w-full lg:grid lg:grid-cols-2">
                 <select 
                   name="standard" 
                   value={formData.standard}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-1"
                   required
                 >
                   <option value="">Select Standard</option>
@@ -358,21 +369,20 @@ const RegistrationForm = () => {
                     name="branch" 
                     value={formData.branch} 
                     onChange={handleChange} 
-                    className="w-full px-3 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                     required
                   >
                     <option value="">Select Medium</option>
                     <option value="Marathi">Marathi</option>
                     <option value="Semi-English">Semi-English</option>
                     <option value="English">English</option>
-
                   </select>
                 ) : showBranchDropdown ? (
                   <select 
                     name="branch" 
                     value={formData.branch} 
                     onChange={handleChange} 
-                    className="w-full px-3 py-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                     required
                   >
                     <option value="">Select Group</option>
@@ -386,45 +396,44 @@ const RegistrationForm = () => {
                       type="text" 
                       name="branch" 
                       onChange={handleChange} 
-                      placeholder="Branch/Medium" 
+                      placeholder="Group/Medium" 
                       disabled={!showPreviousYearDropdown}
-                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                       required
                     />
                   )
                 )}
-                {/* Previous Year Dropdown */}
                 <input 
                   type="text" 
                   name="schoolCollege" 
                   value={formData.schoolCollege}
                   onChange={handleChange} 
                   placeholder="Enter School/College Name" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 col-span-2"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base order-5"
                   required
                 />
                 <select 
-                    name="previousYear" 
-                    value={formData.previousYear}
-                    disabled={!showPreviousYearDropdown}
-                    onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    required
-                  >
-                    <option value="">Select Previous Year</option>
-                    {formData.standard === "10th" && (
-                      <>
-                        <option value="8th">8th</option>
-                        <option value="9th">9th</option>
-                      </>
-                    )}
-                    {formData.standard === "12th" && (
-                      <>
-                        <option value="10th">10th</option>
-                        <option value="11th">11th</option>
-                      </>
-                    )}
-                  </select>
+                  name="previousYear" 
+                  value={formData.previousYear}
+                  disabled={!showPreviousYearDropdown}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-2"
+                  required
+                >
+                  <option value="">Select Previous Year</option>
+                  {formData.standard === "10th" && (
+                    <>
+                      <option value="8th">8th</option>
+                      <option value="9th">9th</option>
+                    </>
+                  )}
+                  {formData.standard === "12th" && (
+                    <>
+                      <option value="10th">10th</option>
+                      <option value="11th">11th</option>
+                    </>
+                  )}
+                </select>
                 <input 
                   type="number" 
                   name="preYearPercent" 
@@ -432,7 +441,7 @@ const RegistrationForm = () => {
                   value={formData.preYearPercent}
                   onWheel={(e) => e.target.blur()} 
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-4" 
                   required 
                   min="0" max="100" step="0.01"
                 />
@@ -440,16 +449,16 @@ const RegistrationForm = () => {
             </div>
 
             {/* Contact Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Contact Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Contact Details</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
                 <input 
                   type="email" 
                   name="email" 
                   value={formData.email}
                   onChange={handleChange} 
                   placeholder="Enter Student Email" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                 />
@@ -458,8 +467,8 @@ const RegistrationForm = () => {
                   name="studentNo" 
                   value={formData.studentNo}
                   onChange={handleChange} 
-                  placeholder="Enter Student Mobile No" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder="Enter Student Mobile No." 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="[0-9]{10}"
                   title="Phone number must be 10 digits"
@@ -469,8 +478,8 @@ const RegistrationForm = () => {
                   name="parentsNo" 
                   value={formData.parentsNo}
                   onChange={handleChange} 
-                  placeholder="Enter Parents Mobile No" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  placeholder="Enter Parents Mobile No." 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="[0-9]{10}"
                   title="Phone number must be 10 digits"
@@ -479,7 +488,7 @@ const RegistrationForm = () => {
                   name="appNo" 
                   value={formData.appNo}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
                   <option value="">Select App. No.</option>
@@ -499,7 +508,7 @@ const RegistrationForm = () => {
                   name="notificationNo" 
                   value={formData.notificationNo}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base"
                   required
                 >
                   <option value="">Select Notification No.</option>
@@ -518,44 +527,41 @@ const RegistrationForm = () => {
             </div>
 
             {/* Exam Centre and Form Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Exam Centre and Form Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                <div>
-                  <select 
-                    name="examCentre" 
-                    value={formData.examCentre}
-                    onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    required
-                  >
-                    <option value="">Select Exam Centre</option>
-                    {examCentres.map((centre) => (
-                      <option key={centre.centerId} value={`${centre.centerId}-${centre.centerName}`}>
-                        {centre.centerName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Exam Centre and Form Details</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
+                <select 
+                  name="examCentre" 
+                  value={formData.examCentre}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
+                  required
+                >
+                  <option value="">Select Exam Centre</option>
+                  {examCentres.map((centre) => (
+                    <option key={centre.centerId} value={`${centre.centerId}-${centre.centerName}`}>
+                      {centre.centerName}
+                    </option>
+                  ))}
+                </select>
                 
-        
-                  <select 
-                    name="examYear" 
-                    value={formData.examYear}
-                    onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    required
-                  >
-                    <option value="">Select Dnyanganga Exam Year</option>
-                    {Array.from({ length: 5 }, (_, i) => {
-                      const year = new Date().getFullYear() + i;
-                      return (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      );
-                    })}
-                  </select>
+                <select 
+                  name="examYear" 
+                  value={formData.examYear}
+                  onChange={handleChange} 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
+                  required
+                >
+                  <option value="">Select Dnyanganga Exam Year</option>
+                  {Array.from({ length: 5 }, (_, i) => {
+                    const year = new Date().getFullYear() + i;
+                    return (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    );
+                  })}
+                </select>
                 
                 <input 
                   type="text" 
@@ -563,22 +569,21 @@ const RegistrationForm = () => {
                   value={formData.formNo}
                   onChange={handleChange} 
                   placeholder="Enter Admission Form Number" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base"
                   required
                 />
               </div>
             </div>
 
             {/* Payment Details Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Payment Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                {/* New Payment Standard Dropdown */}
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Payment Details</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
                 <select 
                   name="paymentStandard" 
                   value={formData.paymentStandard}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
                   <option value="">Select Standard</option>
@@ -587,7 +592,7 @@ const RegistrationForm = () => {
                   <option value="11th+12th">11th+12th</option>
                 </select>
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className=" min-w-fit text-[17px] mr-2 text-gray-600">Total Amount: </label>
+                  <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Total Amount: </label>
                 <input 
                   type="number" 
                   value={formData.totalamount}
@@ -607,7 +612,7 @@ const RegistrationForm = () => {
                   onWheel={(e) => e.target.blur()}
                   onChange={handleChange} 
                   placeholder="Enter Amount Paid" 
-                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-sm sm:text-base ${
                     paymentError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-blue-300'
                   }`}
                   required
@@ -615,7 +620,7 @@ const RegistrationForm = () => {
                   max={formData.totalamount}
                 />
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className=" min-w-fit text-[17px] mr-2 text-gray-600">Amount Remaining: </label>
+                  <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Amount Remaining: </label>
                   <input 
                       type="number" 
                       name="amountRemaining" 
@@ -629,7 +634,7 @@ const RegistrationForm = () => {
                   </div>
                 
                 {paymentError && (
-                  <div className="md:col-span-2">
+                  <div className="lg:col-span-2">
                     <p className="text-red-500 text-sm mt-1">{paymentError}</p>
                   </div>
                 )}
@@ -640,14 +645,14 @@ const RegistrationForm = () => {
                   value={formData.receiptNo}
                   onChange={handleChange} 
                   placeholder="Enter Fees Receipt Number" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 />
                 <select 
                   name="modeOfPayment" 
                   value={formData.modeOfPayment}
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
                   <option value="">Select Payment Mode</option>
@@ -656,15 +661,15 @@ const RegistrationForm = () => {
                   <option value="cheque">Cheque</option>
                 </select>
                 
-                <div  className="w-full flex flex-row items-center gap-1">
-                  <label className="min-w-fit text-[17px] text-black">Due Date:</label>
+                <div className="w-full lg:col-span-2">
+                  <label className="block text-sm sm:text-base mb-1 text-black">Due Date:</label>
                   <input 
                     disabled={handleDue}
                     type="date" 
                     name="dueDate" 
                     value={formData.dueDate}
                     onChange={handleChange} 
-                    className="w-full px-3 py-2 border disabled:opacity-50 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full px-3 py-2 border disabled:opacity-50 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                     required
                   />
                 </div>
@@ -672,60 +677,60 @@ const RegistrationForm = () => {
             </div>
 
             {/* Documents Section */}
-            <div className="mb-6 w-full border rounded-lg shadow-sm md:p-6 p-2">
-              <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Documents</h3>
-              {/* Form Photo Upload */}
-              <FileUpload
-                title="Admission Form Photo"
-                imageUrl={formPhoto.imageUrl}
-                error={formPhoto.error}
-                loader={formPhoto.loader}
-                isSaved={formPhoto.isSaved}
-                onFileUpload={formPhoto.handleFileUpload}
-                onUploadImage={handleFormPhotoUpload}
-                onRemovePhoto={formPhoto.removePhoto}
-              />
-              
-              {/* Receipt Photo Upload */}
-              <FileUpload
-                title="Fee Receipt Photo"
-                imageUrl={receiptPhoto.imageUrl}
-                error={receiptPhoto.error}
-                loader={receiptPhoto.loader}
-                isSaved={receiptPhoto.isSaved}
-                onFileUpload={receiptPhoto.handleFileUpload}
-                onUploadImage={handleReceiptPhotoUpload}
-                onRemovePhoto={receiptPhoto.removePhoto}
-              />
+            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Documents</h3>
+              <div className="space-y-4">
+                {/* Form Photo Upload */}
+                <FileUpload
+                  title="Admission Form Photo"
+                  imageUrl={formPhoto.imageUrl}
+                  error={formPhoto.error}
+                  loader={formPhoto.loader}
+                  isSaved={formPhoto.isSaved}
+                  onFileUpload={formPhoto.handleFileUpload}
+                  onUploadImage={handleFormPhotoUpload}
+                  onRemovePhoto={formPhoto.removePhoto}
+                />
+                
+                {/* Receipt Photo Upload */}
+                <FileUpload
+                  title="Fees Receipt Photo"
+                  imageUrl={receiptPhoto.imageUrl}
+                  error={receiptPhoto.error}
+                  loader={receiptPhoto.loader}
+                  isSaved={receiptPhoto.isSaved}
+                  onFileUpload={receiptPhoto.handleFileUpload}
+                  onUploadImage={handleReceiptPhotoUpload}
+                  onRemovePhoto={receiptPhoto.removePhoto}
+                />
+              </div>
             </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-          <button 
-              type="button"
-              onClick={handleReset}
-              disabled={submitLoader}
-              className="w-full py-3 disabled:opacity-50 bg-primary text-white rounded hover:bg-opacity-90 transition"
-            >
-              Reset
-            </button>
-          {studentPhoto.isSaved && !paymentError && (
-            <button 
-              type="submit" 
-              disabled={submitLoader}
-              className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition"
-            >
-              {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
-            </button>
-          )}
-          </div>
-          
-        </form>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
+              <button 
+                type="button"
+                onClick={handleReset}
+                disabled={submitLoader}
+                className="w-full py-3 disabled:opacity-50 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
+              >
+                Reset
+              </button>
+              {studentPhoto.isSaved && !paymentError && (
+                <button 
+                  type="submit" 
+                  disabled={submitLoader}
+                  className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
+                >
+                  {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
+                </button>
+              )}
+            </div>
+            
+          </form>
+        </div>
       </div>
     </div>
-  </div>
-);
-  
-  
+  );
 }
 
 export default RegistrationForm;

@@ -105,7 +105,7 @@ const PaymentTable = () => {
           <thead className="bg-primary text-white uppercase">
             <tr>
               <th className="p-3 border">Sr. No.</th>
-              <th className="p-3 border">Student ID</th>
+              <th className="p-3 border">Student ID.</th>
               <th className="p-3 border">Student Name</th>
               <th className="p-3 border">Amount Paid</th>
               <th className="p-3 border">Amount Remaining</th>
@@ -131,7 +131,7 @@ const PaymentTable = () => {
                   <table className="w-full text-xs border border-gray-300">
                     <thead>
                       <tr className="bg-gray-100">
-                        <th className="p-1 border">Payment ID</th>
+                        <th className="p-1 border">Payment ID.</th>
                         <th className="p-1 border">Receipt No.</th>
                         <th className="p-1 border">Amount</th>
                         <th className="p-1 border">Date</th>

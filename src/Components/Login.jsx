@@ -10,7 +10,7 @@ function Login() {
   const { login, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("teacher");
+  const [role, setRole] = useState("admin");
   const navigate = useNavigate();
   const [loginLoader, setLoginLoader] = useState(false);
 
@@ -78,9 +78,9 @@ function Login() {
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
-              <option value="teacher">Teacher</option>
-              <option value="counsellor">Counsellor</option>
               <option value="admin">Admin</option>
+              <option value="counsellor">Counsellor</option>
+              <option value="teacher">Teacher</option>
             </select>
           </div>
           <div className="flex justify-between">

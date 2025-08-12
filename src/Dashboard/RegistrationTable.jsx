@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../Context/AuthContext";
 import api from "../Api";
 import PaymentForm from "./PaymentForm";
@@ -21,6 +21,42 @@ const RegistrationTable = () => {
   const [loadingPdfId, setLoadingPdfId] = useState(null);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+
+  // New state for searchable dropdowns
+  const [counsellorSearch, setCounsellorSearch] = useState("");
+  const [examCentreSearch, setExamCentreSearch] = useState("");
+  const [showCounsellorDropdown, setShowCounsellorDropdown] = useState(false);
+  const [showExamCentreDropdown, setShowExamCentreDropdown] = useState(false);
+  
+  // Refs for dropdown containers
+  const counsellorDropdownRef = useRef(null);
+  const examCentreDropdownRef = useRef(null);
+
+  // Filter functions for searchable dropdowns
+  const filteredCounsellors = users.filter(user =>
+    user.name.toLowerCase().includes(counsellorSearch.toLowerCase())
+  );
+
+  const filteredExamCentres = examCentres.filter(centre =>
+    centre.centerName.toLowerCase().includes(examCentreSearch.toLowerCase())
+  );
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (counsellorDropdownRef.current && !counsellorDropdownRef.current.contains(event.target)) {
+        setShowCounsellorDropdown(false);
+      }
+      if (examCentreDropdownRef.current && !examCentreDropdownRef.current.contains(event.target)) {
+        setShowExamCentreDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (user.role === "admin") {
@@ -94,6 +130,28 @@ const RegistrationTable = () => {
     setFiltered(filteredResults);
   }, [searchQuery, registrations, selectedCounsellor, selectedExamCentre, selectedStandard]);
 
+  const handleCounsellorSelect = (counsellor) => {
+    setSelectedCounsellor(counsellor.uuid);
+    setCounsellorSearch(counsellor.name);
+    setShowCounsellorDropdown(false);
+  };
+
+  const handleExamCentreSelect = (centre) => {
+    setSelectedExamCentre(centre.centerName);
+    setExamCentreSearch(centre.centerName);
+    setShowExamCentreDropdown(false);
+  };
+
+  const clearCounsellorFilter = () => {
+    setSelectedCounsellor("");
+    setCounsellorSearch("");
+  };
+
+  const clearExamCentreFilter = () => {
+    setSelectedExamCentre("");
+    setExamCentreSearch("");
+  };
+
   const handlePayment = (student) => {
     const newStudent = {
       studentId: student.studentId,
@@ -161,6 +219,7 @@ const RegistrationTable = () => {
       hour12: true
     });
   };
+
   return (
     <div className="p-2 container mx-auto">
       {!showPayment ? (
@@ -178,32 +237,106 @@ const RegistrationTable = () => {
             />
 
             {user.role === "admin" && (
-              <select
-                value={selectedCounsellor}
-                onChange={(e) => setSelectedCounsellor(e.target.value)}
-                className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
-              >
-                <option value="">All Counsellors</option>
-                {users.map((user) => (
-                  <option key={user.uuid} value={user.uuid}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative w-full md:w-1/4" ref={counsellorDropdownRef}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search counsellors..."
+                    value={counsellorSearch}
+                    onChange={(e) => {
+                      setCounsellorSearch(e.target.value);
+                      setShowCounsellorDropdown(true);
+                    }}
+                    onFocus={() => setShowCounsellorDropdown(true)}
+                    className="p-2 w-full border border-gray-300 rounded-lg pr-8"
+                  />
+                  {selectedCounsellor && (
+                    <button
+                      onClick={clearCounsellorFilter}
+                      className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+                
+                {showCounsellorDropdown && (
+                  <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+                    <div
+                      className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+                      onClick={() => {
+                        clearCounsellorFilter();
+                        setShowCounsellorDropdown(false);
+                      }}
+                    >
+                      All Counsellors
+                    </div>
+                    {filteredCounsellors.map((counsellor) => (
+                      <div
+                        key={counsellor.uuid}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleCounsellorSelect(counsellor)}
+                      >
+                        {counsellor.name}
+                      </div>
+                    ))}
+                    {filteredCounsellors.length === 0 && counsellorSearch && (
+                      <div className="p-2 text-gray-500">No counsellors found</div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
-            <select
-              value={selectedExamCentre}
-              onChange={(e) => setSelectedExamCentre(e.target.value)}
-              className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
-            >
-              <option value="">All Exam Centres</option>
-              {examCentres.map((centre) => (
-                <option key={centre.centerId} value={centre.centerName}>
-                  {centre.centerName}
-                </option>
-              ))}
-            </select>
+            <div className="relative w-full md:w-1/4" ref={examCentreDropdownRef}>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search exam centres..."
+                  value={examCentreSearch}
+                  onChange={(e) => {
+                    setExamCentreSearch(e.target.value);
+                    setShowExamCentreDropdown(true);
+                  }}
+                  onFocus={() => setShowExamCentreDropdown(true)}
+                  className="p-2 w-full border border-gray-300 rounded-lg pr-8"
+                />
+                {selectedExamCentre && (
+                  <button
+                    onClick={clearExamCentreFilter}
+                    className="absolute right-2 top-1/2 text-xl font-bold transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              
+              {showExamCentreDropdown && (
+                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+                  <div
+                    className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+                    onClick={() => {
+                      clearExamCentreFilter();
+                      setShowExamCentreDropdown(false);
+                    }}
+                  >
+                    All Exam Centres
+                  </div>
+                  {filteredExamCentres.map((centre) => (
+                    <div
+                      key={centre.centerId}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleExamCentreSelect(centre)}
+                    >
+                      {centre.centerName}
+                    </div>
+                  ))}
+                  {filteredExamCentres.length === 0 && examCentreSearch && (
+                    <div className="p-2 text-gray-500">No exam centres found</div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <select
               value={selectedStandard}

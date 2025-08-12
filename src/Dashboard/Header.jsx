@@ -19,7 +19,7 @@ const Header = () => {
             </div>
             
             <div>
-                <h1 className='hidden sm:block text-lg text-secondary sm:text-3xl font-bold'>Dnyanganga Education</h1>
+                <h1 className='hidden sm:block text-lg text-secondary sm:text-3xl font-bold'>Dnyanganga Education Pvt. Ltd.</h1>
             </div>
             
             <div>

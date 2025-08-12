@@ -124,7 +124,7 @@ const AddCenter = () => {
           <thead className="bg-primary text-white">
             <tr>
               <th className="p-3 whitespace-nowrap border">Sr. No.</th>
-              <th className="p-3 whitespace-nowrap border">Centre ID</th>
+              <th className="p-3 whitespace-nowrap border">Centre ID.</th>
               <th className="p-3 whitespace-nowrap border">Centre Name</th>
               <th className="p-3 whitespace-nowrap border">College Name</th>
               <th className="p-3 whitespace-nowrap border">Capacity</th>
