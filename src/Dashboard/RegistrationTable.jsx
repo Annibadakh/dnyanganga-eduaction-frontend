@@ -423,7 +423,10 @@ const RegistrationTable = () => {
                         {student.amountRemaining}
                       </td>
                       <td className="p-3 border whitespace-nowrap">
-                        {new Date(student.dueDate).toLocaleDateString('en-GB')}
+                        {student.dueDate
+                    ? new Date(student.dueDate).toLocaleDateString("en-GB")
+                    : "-"
+                        }
                       </td>
                       <td className="p-3 border whitespace-nowrap">
                         <div className="flex items-center space-x-2">

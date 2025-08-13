@@ -79,9 +79,13 @@ const RegistrationForm = () => {
     
     const remaining = totalAmount - amountPaid;
     if(remaining == 0){
-      setHandleDue(true);  // Should be true to disable the field
+      setFormData(prevDate => ({
+        ...prevDate,
+        dueDate: ""
+      }));
+      setHandleDue(true);  
     } else {
-      setHandleDue(false); // Enable the field when there's remaining amount
+      setHandleDue(false);
     }
     setFormData(prevData => ({
       ...prevData,
