@@ -192,19 +192,22 @@ const RegistrationForm = () => {
       const response = await api.post("/counsellor/register", formDataToSend, {
         headers: { "Content-Type": "application/json" },
       });
-      
-      if (response) {
-        console.log("Form Submitted Successfully", response.data.payment, response.data.student, response.data.student.studentPhoto);
-        alert("Student Register Successfully !!");
+
+      if (response.status === 201) {
+        alert("Student Registered Successfully!!");
         navigate("/dashboard/registertable");
-      } else {
-        console.error("Form Submission Failed");
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      if (error.response?.status === 400) {
+        alert(error.response.data.message); // Shows: "This email is already used. Please use another email."
+      } else {
+        console.error("Error submitting form:", error);
+        alert("Error registering student. Please try again.");
+      }
     } finally {
       setSubmitLoader(false);
     }
+
   };
 
   const handleReset = () => {

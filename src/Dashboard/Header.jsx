@@ -13,7 +13,7 @@ const Header = () => {
     };
 
     return (
-        <nav className='flex  justify-between gap-2 px-5 md:px-20 py-4 sm:py-1 items-center shadow-custom min-h-18 bg-white'>
+        <nav className='flex  justify-between border gap-2 px-5 md:px-20 py-4 sm:py-1 items-center shadow-custom min-h-18 bg-white'>
             <div>
                 <img src={logo} className='h-12 sm:p-1 sm:h-16 ' alt="logo" />
             </div>
