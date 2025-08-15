@@ -112,34 +112,36 @@ const VisitingForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    const formDataToSend = new FormData();
+    const formDataToSend = {};
     Object.keys(formData).forEach(key => {
       if (key === "reason" && formData.reason === "Other") {
-        formDataToSend.append(key, formData.otherReason);
+        formDataToSend[key] = formData.otherReason;
       } else if (key !== "otherReason") {
-        formDataToSend.append(key, formData[key]);
+        formDataToSend[key] = formData[key];
       }
     });
 
-    if(user?.uuid){
-      formDataToSend.append("uuid", user.uuid);
-      formDataToSend.append("counsellor", user.userName);
-      formDataToSend.append("counsellorBranch", user.branch);
+    if (user?.uuid) {
+      formDataToSend.uuid = user.uuid;
+      formDataToSend.counsellor = user.userName;
+      formDataToSend.counsellorBranch = user.branch;
     }
 
     try {
-      const response = await api.post("/counsellor/visiting", formDataToSend, {
-        headers: { "Content-Type": "application/json" },
-      });
-
+      const response = await api.post("/counsellor/visiting", formDataToSend);
       alert(response.data.message);
       navigate("/dashboard/visitingtable");
     } catch (error) {
-      alert(error.response?.data?.message || "Error submitting form.");
+      if (error.response?.status === 409) {
+        alert(error.response.data.message); // Show duplicate notification alert
+      } else {
+        alert(error.response?.data?.message || "Error submitting form.");
+      }
     } finally {
       setLoading(false);
     }
-  };
+};
+
 
   return (
     <div className="w-full bg-white">

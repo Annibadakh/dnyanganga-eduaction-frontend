@@ -10,7 +10,11 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
     // File upload hook for receipt
     const receiptPhoto = FileUploadHook();
     
-    // Form states
+    // Form states with receiptPhoto included in formData like RegistrationForm
+    const [formData, setFormData] = useState({
+        receiptPhoto: "", // Store image URL in formData like RegistrationForm
+    });
+    
     const [paymentMode, setPaymentMode] = useState("");
     const [responseData, setResponse] = useState();
     const [amount, setAmount] = useState("");
@@ -57,11 +61,12 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
         setNewRemainingAmount(updatedRemaining);
     };
 
-    // Handle receipt photo upload using the hook pattern
+    // Handle receipt photo upload same as RegistrationForm pattern
     const handleReceiptPhotoUpload = async () => {
         const imageUrl = await receiptPhoto.uploadImage();
-        // The imageUrl will be used directly in form submission
-        return imageUrl;
+        if (imageUrl) {
+            setFormData({ ...formData, receiptPhoto: imageUrl });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -75,7 +80,8 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
             return;
         }
 
-        const formData = {
+        // Create data object same as RegistrationForm pattern
+        const dataToSend = {
             studentId: student.studentId,
             receiptNo: receiptNo,
             amountPaid: amountValue,
@@ -84,12 +90,12 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
             newDueDate: newDueDate,
             counsellor: student.counsellor,
             createdBy: student.createdBy,
-            receiptPhoto: receiptPhoto.imageUrl || null, // Use the imageUrl from hook
+            receiptPhoto: formData.receiptPhoto, // Use from formData like RegistrationForm
         };
         
-        console.log("before submit", formData);
+        console.log("before submit", dataToSend);
         try {
-            const response = await api.post("/counsellor/makePayment", formData);
+            const response = await api.post("/counsellor/makePayment", dataToSend);
             setResponse(response);
             console.log("after submit", response);
             alert("Payment Successful !!");
