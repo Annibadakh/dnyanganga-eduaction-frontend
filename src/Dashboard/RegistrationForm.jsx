@@ -22,6 +22,14 @@ const RegistrationForm = () => {
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
   const [handleDue, setHandleDue] = useState(false);
+  
+  // Draft management states
+  const [hasDraft, setHasDraft] = useState(false);
+  const [showDraftButton, setShowDraftButton] = useState(false);
+  
+  const DRAFT_STORAGE_KEY = 'studentRegistrationDraft';
+  
+  
 
   const [formData, setFormData] = useState({
     studentName: "",
@@ -54,6 +62,108 @@ const RegistrationForm = () => {
     amountRemaining: "",
     dueDate: "",
   });
+
+  // Draft management functions
+  const saveDraftToLocalStorage = (data) => {
+    try {
+      // Exclude file-related fields from draft
+      const draftData = { ...data };
+      delete draftData.studentPhoto;
+      delete draftData.receiptPhoto;
+      delete draftData.formPhoto;
+      
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
+        data: draftData,
+        timestamp: new Date().toISOString()
+      }));
+    } catch (error) {
+      console.error('Error saving draft to localStorage:', error);
+    }
+  };
+
+  const loadDraftFromLocalStorage = () => {
+    try {
+      const draftString = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (draftString) {
+        const draft = JSON.parse(draftString);
+        return draft.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading draft from localStorage:', error);
+      return null;
+    }
+  };
+
+  const clearDraftFromLocalStorage = () => {
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      setHasDraft(false);
+      setShowDraftButton(false);
+    } catch (error) {
+      console.error('Error clearing draft from localStorage:', error);
+    }
+  };
+
+  const checkForExistingDraft = () => {
+    const draft = loadDraftFromLocalStorage();
+    if (draft && Object.values(draft).some(value => value !== "" && value !== 0)) {
+      setHasDraft(true);
+      setShowDraftButton(true);
+    } else {
+      setHasDraft(false);
+      setShowDraftButton(false);
+    }
+  };
+
+  const loadDraftData = () => {
+    const draftData = loadDraftFromLocalStorage();
+    if (draftData) {
+      setFormData(prevData => ({
+        ...prevData,
+        ...draftData
+      }));
+      
+      // Update dropdown states based on loaded data
+      if (draftData.standard === "10th") {
+        setShow10thBranchDropdown(true);
+        setShowBranchDropdown(false);
+        setShowPreviousYearDropdown(true);
+      } else if (draftData.standard === "12th") {
+        setShowBranchDropdown(true);
+        setShow10thBranchDropdown(false);
+        setShowPreviousYearDropdown(true);
+      }
+      
+      setShowDraftButton(false);
+      alert("Draft data loaded successfully!");
+    }
+  };
+
+  // Check for existing draft on component mount
+  useEffect(() => {
+    checkForExistingDraft();
+  }, []);
+
+  // Auto-save to localStorage whenever formData changes
+  useEffect(() => {
+    // Only auto-save if there's meaningful data in the form
+    const hasData = Object.entries(formData).some(([key, value]) => {
+      // Exclude file fields and calculated fields from the check
+      if (['studentPhoto', 'receiptPhoto', 'formPhoto', 'amountRemaining'].includes(key)) {
+        return false;
+      }
+      return value !== "" && value !== 0;
+    });
+
+    if (hasData) {
+      const timeoutId = setTimeout(() => {
+        saveDraftToLocalStorage(formData);
+      }, 1000); // Debounce auto-save by 1 second
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData]);
   
   useEffect(() => {
     api
@@ -194,6 +304,9 @@ const RegistrationForm = () => {
       });
 
       if (response.status === 201) {
+        // Clear draft from localStorage on successful submission
+        clearDraftFromLocalStorage();
+        
         alert("Student Registered Successfully!!");
         navigate("/dashboard/registertable");
       }
@@ -248,6 +361,10 @@ const RegistrationForm = () => {
     receiptPhoto.resetUpload();
     formPhoto.resetUpload();
     
+    // Clear draft from localStorage
+    clearDraftFromLocalStorage();
+    
+   
     setPaymentError("");
     setShowBranchDropdown(false);
     setShow10thBranchDropdown(false);
@@ -261,6 +378,43 @@ const RegistrationForm = () => {
           <div className="bg-primary text-white text-center py-4">
             <h2 className="text-2xl font-bold">Student Registration Form</h2>
           </div>
+          
+          
+          {/* Draft Recovery Button */}
+          {showDraftButton && (
+            <div className="p-4 bg-blue-50 border-l-4 border-blue-400 mb-4 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                {/* Message Section */}
+                <div className="flex items-start sm:items-center">
+                  <div className="ml-0 sm:ml-3">
+                    <p className="text-sm text-blue-700">
+                      <strong>Draft Found!</strong> You have unsaved form data. Would you like to continue where you left off?
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={loadDraftData}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-colors w-full sm:w-auto"
+                  >
+                    Load Draft
+                  </button>
+                  <button
+                    onClick={() => {
+                      clearDraftFromLocalStorage();
+                      setShowDraftButton(false);
+                    }}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded transition-colors w-full sm:w-auto"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           
           <form onSubmit={handleSubmit} className="p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full">
             {/* Photo Upload Section */}
