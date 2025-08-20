@@ -28,3 +28,22 @@ html::-webkit-scrollbar-thumb{
 }
 
 
+
+.animate-counter {
+  animation: counterAnimation 2s ease-out;
+}
+
+@keyframes counterAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--fourthcolor) 100%);
+}

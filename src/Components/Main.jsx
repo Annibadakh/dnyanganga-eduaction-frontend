@@ -1,22 +1,26 @@
-import AboutUs from './AboutUs.jsx';
-import Home from './Home.jsx';
-
-import ContactForm from './ContactForm.jsx';
-import OnlineLearning from './OnlineLearning.jsx';
-import Courses from './Courses.jsx';
-import Footer from './Footer.jsx';
-import { Outlet } from "react-router-dom";
+import Hero from './Hero.jsx';
+import AboutPreview from './AboutPreview.jsx';
+import CoursesSection from './CoursesSection.jsx';
+import AchievementsPreview from './AchievementsPreview.jsx';
+import StatisticsSection from './StatisticsSection.jsx';
+import TestimonialsSection from './TestimonialsSection.jsx';
+import ExamCentersPreview from './ExamCentersPreview.jsx';
+import Gallery from './Gallery.jsx';
+import EnquiryForm from './EnquiryForm.jsx';
 
 
 const Main = () => {
     return(
         <>
-        <Home />
-        <AboutUs />
-        <OnlineLearning/>
-        <Courses/>
-        <ContactForm/>
-        <Footer/>
+        <Hero />
+        <AboutPreview />
+        <CoursesSection />
+        <AchievementsPreview />
+        <StatisticsSection />
+        <TestimonialsSection />
+        <ExamCentersPreview />
+        <Gallery />
+        <EnquiryForm />
         </>
     )
 };

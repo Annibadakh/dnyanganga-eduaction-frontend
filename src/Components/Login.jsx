@@ -3,6 +3,7 @@ import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from '../Images/logo3.png';
+import AlertBox from "../Pages/AlertBox";
 
 
 function Login() {
@@ -14,11 +15,15 @@ function Login() {
   const navigate = useNavigate();
   const [loginLoader, setLoginLoader] = useState(false);
 
+  // ✅ Alert state
+  const [alert, setAlert] = useState({ show: false, type: "info", message: "" });
+
   useEffect(() => {
     if(user){
       navigate('/dashboard');
     }
   }, [navigate]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginLoader(true);
@@ -29,11 +34,23 @@ function Login() {
         role,
       });
       login(response.data);
-      console.log(response.data);
-      alert("Login successful");
-      navigate("/dashboard");
+
+      // ✅ Success alert
+      setAlert({ show: true, type: "success", message: "Login successful 🎉" });
+
+      setTimeout(() => {
+        setAlert({ show: false, type: "success", message: "" });
+        navigate("/dashboard");
+      }, 2000);
+
     } catch (error) {
-      alert(error.response.data.message);
+      // ✅ Error alert
+      setAlert({ show: true, type: "error", message: error.response?.data?.message || "Login failed" });
+
+      setTimeout(() => {
+        setAlert({ show: false, type: "error", message: "" });
+      }, 3000);
+
       console.error("Login failed:", error.response);
     }
     finally{
@@ -43,6 +60,14 @@ function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
+      {/* ✅ Global alert */}
+      <AlertBox
+        show={alert.show}
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ ...alert, show: false })}
+      />
+
       <div className="bg-white p-8 shadow-lg rounded-lg w-96">
         <div className="w-full grid place-items-center mb-4">
           <img src={logo} className="h-20 p-1 w-auto" alt="Logo" />
