@@ -9,10 +9,10 @@ const icons = {
 };
 
 const bgColors = {
-  success: "bg-green-50 border-green-500",
-  error: "bg-red-50 border-red-500",
-  warning: "bg-yellow-50 border-yellow-500",
-  info: "bg-blue-50 border-blue-500",
+  success: "bg-green-100 border-green-500",
+  error: "bg-red-100 border-red-500",
+  warning: "bg-yellow-100 border-yellow-500",
+  info: "bg-blue-100 border-blue-500",
 };
 
 export default function AlertBox({ show, type = "info", message, onClose }) {
@@ -24,13 +24,13 @@ export default function AlertBox({ show, type = "info", message, onClose }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
           transition={{ duration: 0.3 }}
-          className={`fixed top-5 right-5 z-50 border-l-4 ${bgColors[type]} rounded-lg shadow-lg p-4 flex items-center gap-3`}
+          className={`fixed top-5 right-5 z-50 font-bold border-l-4 ${bgColors[type]} rounded-lg shadow-lg p-4 flex items-center gap-3`}
         >
           {icons[type]}
-          <span className="text-gray-800 font-medium">{message}</span>
+          <span className="text-gray-800 font-bold">{message}</span>
           <button
             onClick={onClose}
-            className="ml-4 text-gray-500 hover:text-gray-700"
+            className="ml-4 text-gray-500 font-bold hover:text-gray-700"
           >
             ✕
           </button>
