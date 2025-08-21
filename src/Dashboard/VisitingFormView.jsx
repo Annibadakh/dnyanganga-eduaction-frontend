@@ -131,7 +131,7 @@ const VisitingFormView = ({ visitData, onClose }) => {
                   <p className="text-gray-900">{visitData.standard || 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">Group/Medium:</span>
+                  <span className="font-medium text-gray-700">Medium/Group:</span>
                   <p className="text-gray-900">{visitData.branch || 'N/A'}</p>
                 </div>
                 <div>

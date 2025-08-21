@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -27,10 +27,13 @@ const RegistrationForm = () => {
   const [hasDraft, setHasDraft] = useState(false);
   const [showDraftButton, setShowDraftButton] = useState(false);
   
+  // New states for searchable exam centre dropdown
+  const [examCentreSearch, setExamCentreSearch] = useState("");
+  const [showExamCentreDropdown, setShowExamCentreDropdown] = useState(false);
+  const examCentreDropdownRef = useRef(null);
+  
   const DRAFT_STORAGE_KEY = 'studentRegistrationDraft';
   
-  
-
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
@@ -44,7 +47,7 @@ const RegistrationForm = () => {
     appNo: "",
     notificationNo: "",
     standard: "",
-    previousYear: "", // New field for previous year
+    previousYear: "",
     schoolCollege: "",
     preYearPercent: "",
     branch: "",
@@ -55,7 +58,7 @@ const RegistrationForm = () => {
     studentPhoto: "",
     receiptPhoto: "",
     formPhoto: "",
-    paymentStandard: "", // New field for payment standard
+    paymentStandard: "",
     totalamount: 0,
     amountPaid: "",
     modeOfPayment: "",
@@ -63,10 +66,48 @@ const RegistrationForm = () => {
     dueDate: "",
   });
 
+  // Filter function for searchable exam centre dropdown
+  const filteredExamCentres = examCentres.filter(centre =>
+    centre.centerName.toLowerCase().includes(examCentreSearch.toLowerCase())
+  );
+
+  // Click outside handler for exam centre dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (examCentreDropdownRef.current && !examCentreDropdownRef.current.contains(event.target)) {
+        setShowExamCentreDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle exam centre selection
+  const handleExamCentreSelect = (centre) => {
+    const examCentreValue = `${centre.centerId}-${centre.centerName}`;
+    setFormData(prevData => ({
+      ...prevData,
+      examCentre: examCentreValue
+    }));
+    setExamCentreSearch(centre.centerName);
+    setShowExamCentreDropdown(false);
+  };
+
+  // Clear exam centre filter
+  const clearExamCentreFilter = () => {
+    setFormData(prevData => ({
+      ...prevData,
+      examCentre: ""
+    }));
+    setExamCentreSearch("");
+  };
+
   // Draft management functions
   const saveDraftToLocalStorage = (data) => {
     try {
-      // Exclude file-related fields from draft
       const draftData = { ...data };
       delete draftData.studentPhoto;
       delete draftData.receiptPhoto;
@@ -135,6 +176,14 @@ const RegistrationForm = () => {
         setShowPreviousYearDropdown(true);
       }
       
+      // Update exam centre search if draft contains exam centre
+      if (draftData.examCentre) {
+        const centreName = draftData.examCentre.split('-')[1];
+        if (centreName) {
+          setExamCentreSearch(centreName);
+        }
+      }
+      
       setShowDraftButton(false);
       alert("Draft data loaded successfully!");
     }
@@ -147,9 +196,7 @@ const RegistrationForm = () => {
 
   // Auto-save to localStorage whenever formData changes
   useEffect(() => {
-    // Only auto-save if there's meaningful data in the form
     const hasData = Object.entries(formData).some(([key, value]) => {
-      // Exclude file fields and calculated fields from the check
       if (['studentPhoto', 'receiptPhoto', 'formPhoto', 'amountRemaining'].includes(key)) {
         return false;
       }
@@ -159,7 +206,7 @@ const RegistrationForm = () => {
     if (hasData) {
       const timeoutId = setTimeout(() => {
         saveDraftToLocalStorage(formData);
-      }, 1000); // Debounce auto-save by 1 second
+      }, 1000);
 
       return () => clearTimeout(timeoutId);
     }
@@ -172,7 +219,7 @@ const RegistrationForm = () => {
         setExamCentres(response.data.data);
       })
       .catch((error) => {
-        console.error("Error fetching users", error);
+        console.error("Error fetching exam centers", error);
       });
   }, []);
 
@@ -188,9 +235,9 @@ const RegistrationForm = () => {
     }
     
     const remaining = totalAmount - amountPaid;
-    if(remaining == 0){
-      setFormData(prevDate => ({
-        ...prevDate,
+    if(remaining === 0){
+      setFormData(prevData => ({
+        ...prevData,
         dueDate: ""
       }));
       setHandleDue(true);  
@@ -240,8 +287,7 @@ const RegistrationForm = () => {
         setShowPreviousYearDropdown(false);
       }
     } else if (name === "paymentStandard") {
-      // Handle payment standard dropdown and update total amount
-      let newTotalAmount = 0; // default
+      let newTotalAmount = 0;
       
       if (value === "10th") {
         newTotalAmount = 5850;
@@ -304,15 +350,13 @@ const RegistrationForm = () => {
       });
 
       if (response.status === 201) {
-        // Clear draft from localStorage on successful submission
         clearDraftFromLocalStorage();
-        
         alert("Student Registered Successfully!!");
         navigate("/dashboard/registertable");
       }
     } catch (error) {
       if (error.response?.status === 400) {
-        alert(error.response.data.message); // Shows: "This email is already used. Please use another email."
+        alert(error.response.data.message);
       } else {
         console.error("Error submitting form:", error);
         alert("Error registering student. Please try again.");
@@ -320,7 +364,6 @@ const RegistrationForm = () => {
     } finally {
       setSubmitLoader(false);
     }
-
   };
 
   const handleReset = () => {
@@ -337,7 +380,7 @@ const RegistrationForm = () => {
       appNo: "",
       notificationNo: "",
       standard: "",
-      previousYear: "", // Reset previous year
+      previousYear: "",
       schoolCollege: "",
       preYearPercent: "",
       branch: "",
@@ -348,7 +391,7 @@ const RegistrationForm = () => {
       studentPhoto: "",
       receiptPhoto: "",
       formPhoto: "",
-      paymentStandard: "", // Reset payment standard
+      paymentStandard: "",
       totalamount: 7900,
       amountPaid: "",
       modeOfPayment: "",
@@ -356,15 +399,13 @@ const RegistrationForm = () => {
       dueDate: "",
     });
     
-    // Reset all file uploads
     studentPhoto.resetUpload();
     receiptPhoto.resetUpload();
     formPhoto.resetUpload();
     
-    // Clear draft from localStorage
     clearDraftFromLocalStorage();
+    setExamCentreSearch("");
     
-   
     setPaymentError("");
     setShowBranchDropdown(false);
     setShow10thBranchDropdown(false);
@@ -379,12 +420,10 @@ const RegistrationForm = () => {
             <h2 className="text-2xl font-bold">Student Registration Form</h2>
           </div>
           
-          
           {/* Draft Recovery Button */}
           {showDraftButton && (
             <div className="p-4 bg-blue-50 border-l-4 border-blue-400 mb-4 rounded-lg">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                {/* Message Section */}
                 <div className="flex items-start sm:items-center">
                   <div className="ml-0 sm:ml-3">
                     <p className="text-sm text-blue-700">
@@ -392,8 +431,6 @@ const RegistrationForm = () => {
                     </p>
                   </div>
                 </div>
-
-                {/* Action Buttons */}
                 <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={loadDraftData}
@@ -415,7 +452,6 @@ const RegistrationForm = () => {
             </div>
           )}
 
-          
           <form onSubmit={handleSubmit} className="p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full">
             {/* Photo Upload Section */}
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
@@ -456,17 +492,6 @@ const RegistrationForm = () => {
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                 </select>
-                {/* <div className="w-full">
-                  <label className="block text-sm sm:text-base mb-1 text-black">Date of Birth:</label>
-                  <input 
-                    type="date" 
-                    name="dob" 
-                    value={formData.dob}
-                    onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
-                    required
-                  />
-                </div> */}
                 <div className="w-full flex flex-row items-center gap-1">
                   <label className=" min-w-fit md:text-[17px] text-md mr-2 text-black">Date of Birth:</label>
                   <input 
@@ -557,7 +582,7 @@ const RegistrationForm = () => {
                       type="text" 
                       name="branch" 
                       onChange={handleChange} 
-                      placeholder="Group/Medium" 
+                      placeholder="Medium/Group" 
                       disabled={!showPreviousYearDropdown}
                       className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                       required
@@ -691,20 +716,58 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Exam Centre and Form Details</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                <select 
-                  name="examCentre" 
-                  value={formData.examCentre}
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
-                  required
-                >
-                  <option value="">Select Exam Centre</option>
-                  {examCentres.map((centre) => (
-                    <option key={centre.centerId} value={`${centre.centerId}-${centre.centerName}`}>
-                      {centre.centerName}
-                    </option>
-                  ))}
-                </select>
+                
+                {/* Searchable Exam Centre Dropdown */}
+                <div className="relative w-full" ref={examCentreDropdownRef}>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search exam centres..."
+                      value={examCentreSearch}
+                      onChange={(e) => {
+                        setExamCentreSearch(e.target.value);
+                        setShowExamCentreDropdown(true);
+                      }}
+                      onFocus={() => setShowExamCentreDropdown(true)}
+                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base pr-8"
+                    />
+                    {formData.examCentre && (
+                      <button
+                        type="button"
+                        onClick={clearExamCentreFilter}
+                        className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                  
+                  {showExamCentreDropdown && (
+                    <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+                      <div
+                        className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+                        onClick={() => {
+                          clearExamCentreFilter();
+                          setShowExamCentreDropdown(false);
+                        }}
+                      >
+                        Select Exam Centre
+                      </div>
+                      {filteredExamCentres.map((centre) => (
+                        <div
+                          key={centre.centerId}
+                          className="p-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleExamCentreSelect(centre)}
+                        >
+                          {centre.centerName}
+                        </div>
+                      ))}
+                      {filteredExamCentres.length === 0 && examCentreSearch && (
+                        <div className="p-2 text-gray-500">No exam centres found</div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 
                 <select 
                   name="examYear" 
@@ -867,19 +930,11 @@ const RegistrationForm = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
-              <button 
-                type="button"
-                onClick={handleReset}
-                disabled={submitLoader}
-                className="w-full py-3 disabled:opacity-50 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
-              >
-                Reset
-              </button>
+            <div className="grid place-items-center w-full">
               {studentPhoto.isSaved && !paymentError && (
                 <button 
                   type="submit" 
-                  disabled={submitLoader}
+                  disabled={submitLoader || !formData.examCentre}
                   className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
                 >
                   {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}

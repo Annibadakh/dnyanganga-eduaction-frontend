@@ -11,7 +11,7 @@ function Login() {
   const { login, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("counsellor");
   const navigate = useNavigate();
   const [loginLoader, setLoginLoader] = useState(false);
 
@@ -103,19 +103,19 @@ function Login() {
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
-              <option value="admin">Admin</option>
               <option value="counsellor">Counsellor</option>
+              <option value="admin">Admin</option>
               <option value="teacher">Teacher</option>
             </select>
           </div>
-          <div className="flex justify-between">
-            <button
+          <div className="flex justify-center">
+            {/* <button
               type="button"
               onClick={() => navigate('/')}
               className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg"
             >
               Back to Home 
-            </button>
+            </button> */}
           <button
             type="submit"
             disabled={loginLoader}

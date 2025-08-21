@@ -422,15 +422,15 @@ const VisitingForm = () => {
             </div>
 
             {/* Submit Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
-              <button
+            <div className="grid place-items-center  w-full">
+              {/* <button
                 type="button"
                 onClick={resetForm}
                 className="w-full py-3 disabled:opacity-50 bg-gray-400 text-white rounded hover:bg-gray-500 transition text-sm sm:text-base"
                 disabled={loading}
               >
                 Reset
-              </button>
+              </button> */}
               <button 
                 type="submit" 
                 className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
