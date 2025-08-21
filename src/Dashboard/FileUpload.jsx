@@ -50,12 +50,40 @@ const FileUpload = ({
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
       
-      // Set canvas dimensions to match video
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      // Passport photo dimensions (3:4 aspect ratio)
+      const passportWidth = 300;
+      const passportHeight = 400;
       
-      // Draw the video frame to canvas
-      context.drawImage(video, 0, 0);
+      // Set canvas to passport photo dimensions
+      canvas.width = passportWidth;
+      canvas.height = passportHeight;
+      
+      // Calculate source dimensions to crop from center of video
+      const videoAspect = video.videoWidth / video.videoHeight;
+      const targetAspect = passportWidth / passportHeight;
+      
+      let sourceX, sourceY, sourceWidth, sourceHeight;
+      
+      if (videoAspect > targetAspect) {
+        // Video is wider than target, crop horizontally
+        sourceHeight = video.videoHeight;
+        sourceWidth = sourceHeight * targetAspect;
+        sourceX = (video.videoWidth - sourceWidth) / 2;
+        sourceY = 0;
+      } else {
+        // Video is taller than target, crop vertically
+        sourceWidth = video.videoWidth;
+        sourceHeight = sourceWidth / targetAspect;
+        sourceX = 0;
+        sourceY = (video.videoHeight - sourceHeight) / 2;
+      }
+      
+      // Draw the cropped video frame to canvas
+      context.drawImage(
+        video, 
+        sourceX, sourceY, sourceWidth, sourceHeight,
+        0, 0, passportWidth, passportHeight
+      );
       
       // Convert to blob and create file
       canvas.toBlob((blob) => {
@@ -82,14 +110,22 @@ const FileUpload = ({
       <h4 className="text-md font-bold mb-3 text-gray-700">{title}</h4>
       <div className="flex flex-col items-center w-full">
         {showCamera ? (
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-xs">
             <div className="relative bg-black rounded-lg overflow-hidden mb-4">
-              <video 
-                ref={videoRef}
-                autoPlay 
-                playsInline
-                className="w-full h-64 object-cover"
-              />
+              {/* Container with passport photo aspect ratio (3:4) - smaller size */}
+              <div className="relative w-48 mx-auto" style={{ aspectRatio: '3/4' }}>
+                <video 
+                  ref={videoRef}
+                  autoPlay 
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                {/* Overlay frame to show capture area */}
+                <div className="absolute inset-0 border-2 border-white border-dashed opacity-50 pointer-events-none"></div>
+                <div className="absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 py-0.5 rounded">
+                  Photo Frame
+                </div>
+              </div>
               <canvas ref={canvasRef} className="hidden" />
             </div>
             <div className="flex space-x-4 justify-center">
@@ -116,7 +152,8 @@ const FileUpload = ({
             <img 
               src={imageUrl} 
               alt={title} 
-              className="w-56 max-w-md h-auto object-cover rounded-md mb-4"
+              className="w-48 h-auto object-cover rounded-md mb-4"
+              style={{ aspectRatio: '3/4' }}
             />
             <div className="flex space-x-4 w-full justify-center">
               {!isSaved && (
@@ -170,7 +207,7 @@ const FileUpload = ({
             
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <p className="text-sm text-gray-500">
-              Supported formats: JPG, JPEG. You can upload a file or take a photo with your camera.
+              Supported formats: JPG, JPEG. You can upload a file or take a photo with your camera. Photos will be cropped to passport photo dimensions (3:4 ratio).
             </p>
           </div>
         )}
@@ -179,4 +216,55 @@ const FileUpload = ({
   );
 };
 
-export default FileUpload;
+// Demo component to show how it works
+const App = () => {
+  const [imageUrl, setImageUrl] = useState('');
+  const [error, setError] = useState('');
+  const [loader, setLoader] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+      setError('');
+      setIsSaved(false);
+    }
+  };
+
+  const handleUploadImage = () => {
+    setLoader(true);
+    // Simulate upload delay
+    setTimeout(() => {
+      setLoader(false);
+      setIsSaved(true);
+    }, 2000);
+  };
+
+  const handleRemovePhoto = () => {
+    setImageUrl('');
+    setIsSaved(false);
+    setError('');
+  };
+
+  return (
+    <div className="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+        Passport Photo Upload
+      </h2>
+      <FileUpload
+        title="Passport Photo"
+        imageUrl={imageUrl}
+        error={error}
+        loader={loader}
+        isSaved={isSaved}
+        onFileUpload={handleFileUpload}
+        onUploadImage={handleUploadImage}
+        onRemovePhoto={handleRemovePhoto}
+      />
+    </div>
+  );
+};
+
+export default App;
