@@ -457,11 +457,12 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Photo</h3>
               <FileUpload
-                title=""
+                title="Student Photo"
                 imageUrl={studentPhoto.imageUrl}
                 error={studentPhoto.error}
                 loader={studentPhoto.loader}
                 isSaved={studentPhoto.isSaved}
+                imageType="passport"
                 onFileUpload={studentPhoto.handleFileUpload}
                 onUploadImage={handleStudentPhotoUpload}
                 onRemovePhoto={studentPhoto.removePhoto}
@@ -911,6 +912,7 @@ const RegistrationForm = () => {
                   error={formPhoto.error}
                   loader={formPhoto.loader}
                   isSaved={formPhoto.isSaved}
+                  imageType="receipt"
                   onFileUpload={formPhoto.handleFileUpload}
                   onUploadImage={handleFormPhotoUpload}
                   onRemovePhoto={formPhoto.removePhoto}
@@ -923,6 +925,7 @@ const RegistrationForm = () => {
                   error={receiptPhoto.error}
                   loader={receiptPhoto.loader}
                   isSaved={receiptPhoto.isSaved}
+                  imageType="receipt"
                   onFileUpload={receiptPhoto.handleFileUpload}
                   onUploadImage={handleReceiptPhotoUpload}
                   onRemovePhoto={receiptPhoto.removePhoto}

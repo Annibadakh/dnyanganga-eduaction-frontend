@@ -161,6 +161,7 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
                         error={receiptPhoto.error}
                         loader={receiptPhoto.loader}
                         isSaved={receiptPhoto.isSaved}
+                        imageType="receipt"
                         onFileUpload={receiptPhoto.handleFileUpload}
                         onUploadImage={handleReceiptPhotoUpload}
                         onRemovePhoto={receiptPhoto.removePhoto}
