@@ -943,6 +943,13 @@ const RegistrationForm = () => {
                   {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
                 </button>
               )}
+              {!studentPhoto.isSaved && (
+                <div className="mb-4">
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3 mb-2">
+                        📸 Please upload and save Student photo first
+                    </p>
+                </div>
+              )}
             </div>
             
           </form>
