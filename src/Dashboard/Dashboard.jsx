@@ -7,9 +7,27 @@ import api from "../Api";
 
 function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showExploreComment, setShowExploreComment] = useState(false);
   const {user} = useAuth();
 
   const userRole = user;
+
+  // Show "explore more" comment after component loads
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowExploreComment(true);
+      
+      // Hide the comment after 3 seconds
+      const hideTimer = setTimeout(() => {
+        setShowExploreComment(false);
+      }, 3000);
+
+      return () => clearTimeout(hideTimer);
+    }, 500); // Show after 500ms of loading
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // useEffect(() => {
   //     api.get("/dashboard")
   //     .then(response => {
@@ -42,6 +60,23 @@ function Dashboard() {
           >
             ☰
           </button>
+
+          {/* Explore More Comment */}
+          {showExploreComment && (
+            <div className={`fixed z-40 top-16 ${isSidebarOpen ? "left-[260px]" : "left-[80px]"} bg-white border-r-4 border-blue-500 shadow-lg rounded-l-md p-3 animate-pulse transition-all duration-200`}>
+              <div className="flex items-center">
+                <span className="text-sm font-medium text-gray-700 mr-3">
+                  Explore more
+                </span>
+                <div className="flex flex-col space-y-1">
+                  <div className="w-6 h-0.5 bg-gray-400"></div>
+                  <div className="w-6 h-0.5 bg-gray-400"></div>
+                  <div className="w-6 h-0.5 bg-gray-400"></div>
+                </div>
+              </div>
+              <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-white"></div>
+            </div>
+          )}
           
           <Outlet />
         </main>
