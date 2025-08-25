@@ -111,26 +111,31 @@ const AddUser = () => {
     delete newUser.reenterPassword;
 
     setSubmitLoader(true);
-    api.post("/auth/register", newUser).then(() => {
-      alert("User added!");
-      fetchUsers();
-      setShowForm(false);
-      setFormData({
-        name: "",
-        email: "",
-        role: "counsellor",
-        contactNum: "",
-        branch: "",
-        commission: "",
-        password: "",
-        reenterPassword: ""
+    api.post("/auth/register", newUser)
+      .then((res) => {
+        alert(res.data.message); // <-- Show message from backend
+        fetchUsers();
+        setShowForm(false);
+        setFormData({
+          name: "",
+          email: "",
+          role: "counsellor",
+          contactNum: "",
+          branch: "",
+          commission: "",
+          password: "",
+          reenterPassword: ""
+        });
+      })
+      .catch((err) => {
+        console.error("Error adding user", err);
+        alert(err.response?.data?.message || "Something went wrong");
+      })
+      .finally(() => {
+        setSubmitLoader(false);
       });
-      setSubmitLoader(false);
-    }).catch((err) => {
-      console.error("Error adding user", err);
-      setSubmitLoader(false);
-    });
   };
+
 
   const handleChangePasswordSubmit = (e) => {
     e.preventDefault();
