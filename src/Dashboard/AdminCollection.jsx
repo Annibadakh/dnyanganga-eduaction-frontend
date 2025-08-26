@@ -200,6 +200,7 @@ const AdminCollection = () => {
                 min="0"
                 step="0.01"
                 value={commissionRate}
+                onWheel={(e) => e.target.blur()}
                 onChange={(e) => setCommissionRate(e.target.value)}
                 className="w-full p-2 border rounded-md"
                 placeholder="Leave empty to use existing rate"

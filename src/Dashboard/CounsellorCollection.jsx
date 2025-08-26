@@ -187,6 +187,7 @@ const CounsellorCollection = () => {
                 min="1"
                 step="0.01"
                 value={settleAmount}
+                onWheel={(e) => e.target.blur()}
                 onChange={handleSettleAmountChange}
                 className="w-full p-2 border rounded-md"
                 placeholder="Enter amount ≤ balance"
