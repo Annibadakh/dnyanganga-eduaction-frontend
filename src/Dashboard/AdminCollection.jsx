@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Fragment } from "react";
 import api from "../Api";
+import { Dialog, Transition } from "@headlessui/react";
 
 const AdminCollection = () => {
+    const imgUrl = import.meta.env.VITE_IMG_URL;
   const [users, setUsers] = useState([]);
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
   const [collection, setCollection] = useState(null);
@@ -13,7 +15,10 @@ const AdminCollection = () => {
   const [settlementDate, setSettlementDate] = useState("");
   const [settleResult, setSettleResult] = useState(null);
 
-  // Fetch counsellors
+  // Proof modal state
+  const [showProofModal, setShowProofModal] = useState(false);
+  const [selectedProofUrl, setSelectedProofUrl] = useState("");
+
   const fetchUsers = async () => {
     try {
       const res = await api.get("/admin/getUser?role=counsellor");
@@ -90,6 +95,15 @@ const AdminCollection = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleViewProof = (url) => {
+    if (url) {
+      setSelectedProofUrl(`${imgUrl}${url}`);
+      setShowProofModal(true);
+    } else {
+      alert("No proof image available.");
+    }
+  };
 
   return (
     <div className="p-4 container mx-auto">
@@ -258,14 +272,12 @@ const AdminCollection = () => {
                     <td className="p-2 border">₹{txn.amountPaid}</td>
                     <td className="p-2 border">
                       {txn.proofUrl ? (
-                        <a
-                          href={txn.proofUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => handleViewProof(txn.proofUrl)}
                           className="text-blue-500 underline"
                         >
                           View Proof
-                        </a>
+                        </button>
                       ) : (
                         "No Proof"
                       )}
@@ -278,11 +290,65 @@ const AdminCollection = () => {
         </div>
       )}
 
-      {selectedCounsellor && !loading && !collection && (
-        <p className="text-center text-gray-500">
-          No collection record found for this counsellor.
-        </p>
-      )}
+      {/* Proof Modal */}
+      <Transition appear show={showProofModal} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() => setShowProofModal(false)}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-50" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-full p-2 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-xl bg-white md:p-6 p-2 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Payment Proof
+                  </Dialog.Title>
+                  <div className="mt-4">
+                    <img
+                      src={selectedProofUrl}
+                      alt="Proof"
+                      className="max-h-[500px] w-full object-contain rounded border"
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+                      onClick={() => setShowProofModal(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 };
