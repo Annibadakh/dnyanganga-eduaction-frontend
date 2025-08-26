@@ -260,7 +260,9 @@ const RegistrationForm = () => {
           ...formData,
           [name]: value,
           branch: "",
-          previousYear: ""
+          previousYear: "",
+          paymentStandard: "10th",
+          totalamount: 5850
         });
         setShow10thBranchDropdown(true);
         setShowBranchDropdown(false);
@@ -270,7 +272,9 @@ const RegistrationForm = () => {
           ...formData,
           [name]: value,
           branch: "",
-          previousYear: ""
+          previousYear: "",
+          paymentStandard: "",
+          totalamount: 0
         });
         setShowBranchDropdown(true);
         setShow10thBranchDropdown(false);
@@ -280,7 +284,9 @@ const RegistrationForm = () => {
           ...formData,
           [name]: value,
           branch: "",
-          previousYear: ""
+          previousYear: "",
+          paymentStandard: "",
+          totalamount: 0
         });
         setShowBranchDropdown(false);
         setShow10thBranchDropdown(false);
@@ -337,6 +343,20 @@ const RegistrationForm = () => {
     Object.keys(formData).forEach(key => {
       formDataToSend.append(key, formData[key]);
     });
+    
+    // Add packageType based on paymentStandard
+    let packageType = "";
+    if (formData.paymentStandard === "10th") {
+      packageType = "10th";
+    } else if (formData.paymentStandard === "12th") {
+      packageType = "12th";
+    } else if (formData.paymentStandard === "11th+12th") {
+      packageType = "11th+12th";
+    }
+    
+    if (packageType) {
+      formDataToSend.append("packageType", packageType);
+    }
     
     if(user?.uuid){
       formDataToSend.append("uuid", user.uuid);
@@ -804,18 +824,34 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Payment Details</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                <select 
-                  name="paymentStandard" 
-                  value={formData.paymentStandard}
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
-                  required
-                >
-                  <option value="">Select Standard</option>
-                  <option value="10th">10th</option>
-                  <option value="12th">12th</option>
-                  <option value="11th+12th">11th+12th</option>
-                </select>
+                {formData.standard === "10th" ? (
+                  <div className="w-full px-3 py-2 border rounded bg-gray-100 text-sm sm:text-base flex items-center">
+                    <span className="text-gray-600">Standard: 10th (Auto-selected)</span>
+                  </div>
+                ) : formData.standard === "12th" ? (
+                  <select 
+                    name="paymentStandard" 
+                    value={formData.paymentStandard}
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
+                    required
+                  >
+                    <option value="">Select Standard</option>
+                    <option value="12th">12th</option>
+                    <option value="11th+12th">11th+12th</option>
+                  </select>
+                ) : (
+                  <select 
+                    name="paymentStandard" 
+                    value={formData.paymentStandard}
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
+                    required
+                    disabled
+                  >
+                    <option value="">Select Educational Standard First</option>
+                  </select>
+                )}
                 <div className="w-full flex flex-row items-center gap-1">
                   <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Total Amount: </label>
                 <input 

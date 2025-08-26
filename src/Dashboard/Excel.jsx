@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import * as XLSX from "xlsx";
 import api from "../Api";
 
@@ -15,6 +15,7 @@ const Excel = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
+  const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
 
   const allColumns = [
     "studentId", "studentName", "formNo", "standard", "branch", "studentNo",
@@ -118,6 +119,7 @@ const Excel = () => {
         fromDate: fromDate || null,
         toDate: toDate || null,
         onlyZeroRemaining,
+        onlyNonZeroRemaining,
         columns: selectedColumns
       };
 
@@ -182,10 +184,33 @@ const Excel = () => {
         <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading} placeholder="From Date" />
         <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading} placeholder="To Date" />
 
-        <label className="flex items-center space-x-2">
-          <input type="checkbox" checked={onlyZeroRemaining} onChange={(e) => setOnlyZeroRemaining(e.target.checked)} disabled={loading} />
-          <span>Amount Remaining = 0</span>
-        </label>
+        <div className="flex flex-col space-y-2">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={onlyZeroRemaining}
+              onChange={(e) => {
+                setOnlyZeroRemaining(e.target.checked);
+                if (e.target.checked) setOnlyNonZeroRemaining(false);
+              }}
+              disabled={loading}
+            />
+            <span>Amount Remaining = 0</span>
+          </label>
+
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={onlyNonZeroRemaining}
+              onChange={(e) => {
+                setOnlyNonZeroRemaining(e.target.checked);
+                if (e.target.checked) setOnlyZeroRemaining(false);
+              }}
+              disabled={loading}
+            />
+            <span>Amount Remaining != 0</span>
+          </label>
+        </div>
       </div>
 
       <div>

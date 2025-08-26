@@ -30,6 +30,8 @@ import { ProtectedRoute, ProtectedRoleBasedRoute } from './ProtectedRoute';
 import Gallery from "./Pages/GalleryPage";
 import PageNotFound from "./Pages/PageNotFound";
 import InfoPage from "./Pages/InfoPage";
+import AddBookEntry from "./Dashboard/AddBookEntry";
+import CounsellorBooks from "./Dashboard/CounsellorBooks";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -85,6 +87,8 @@ function App() {
                 <Route path='visitingtable' element={<VisitingTable />} />
                 <Route path='registertable' element={<RegistrationTable />} />
                 <Route path='paymenttable' element={<PaymentTable />} />
+                <Route path='bookdistribution' element={<CounsellorBooks />} />
+
               </Route>
               
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor']} />}>
@@ -94,6 +98,7 @@ function App() {
               
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['admin']} />}>
                 <Route path='user' element={<AddUser />} />
+                <Route path='bookentries' element={<AddBookEntry />} />
                 <Route path='examcenter' element={<AddCenter />} />
               </Route>
 

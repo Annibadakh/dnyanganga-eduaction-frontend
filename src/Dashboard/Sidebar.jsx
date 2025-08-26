@@ -10,6 +10,8 @@ import {
   FaClipboardList,
   FaTable,
   FaMoneyBill,
+  FaBook,
+  FaShippingFast
 } from "react-icons/fa";
 
 const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
@@ -26,6 +28,8 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     { path: "registertable", label: "Register Table", icon: <FaTable className="text-lg" /> },
     { path: "visitingtable", label: "Visiting Table", icon: <FaTable className="text-lg" /> },
     { path: "paymenttable", label: "Payment Table", icon: <FaMoneyBill className="text-lg" /> },
+    { path: "bookentries", label: "Book Entries", role: "admin", icon: <FaBook className="text-lg" /> },
+    { path: "bookdistribution", label: "Book Distribution", role: "counsellor", icon: <FaShippingFast className="text-lg" /> },
   ];
 
   const isActive = (path) => location.pathname === `/dashboard/${path}`;
