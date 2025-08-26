@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css';
+import { Navigate } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import axios from "axios";
 
@@ -32,6 +33,8 @@ import PageNotFound from "./Pages/PageNotFound";
 import InfoPage from "./Pages/InfoPage";
 import AddBookEntry from "./Dashboard/AddBookEntry";
 import CounsellorBooks from "./Dashboard/CounsellorBooks";
+import AdminCollection from "./Dashboard/AdminCollection";
+import CounsellorCollection from "./Dashboard/CounsellorCollection";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -78,8 +81,9 @@ function App() {
 
           {/* ✅ Dashboard (Protected) */}
           <Route element={<ProtectedRoute />}>
-            <Route path='dashboard' element={<Dashboard />}>
-              <Route index element={<Home />} />
+            <Route path="dashboard" element={<Dashboard />}>
+              <Route index element={<Navigate to="home" replace />} />
+              
               <Route path="home" element={<Home />} />
               <Route path='profile' element={<Profile />} />
               
@@ -87,22 +91,25 @@ function App() {
                 <Route path='visitingtable' element={<VisitingTable />} />
                 <Route path='registertable' element={<RegistrationTable />} />
                 <Route path='paymenttable' element={<PaymentTable />} />
-                <Route path='bookdistribution' element={<CounsellorBooks />} />
 
               </Route>
               
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor']} />}>
                 <Route path='register' element={<RegistrationForm />} />
                 <Route path='visiting' element={<VisitingForm />} />
+                <Route path='bookdistribution' element={<CounsellorBooks />} />
+                <Route path='settlement' element={<CounsellorCollection />} />
+
               </Route>
               
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['admin']} />}>
                 <Route path='user' element={<AddUser />} />
+                <Route path='settings' element={<Settings />} />
                 <Route path='bookentries' element={<AddBookEntry />} />
                 <Route path='examcenter' element={<AddCenter />} />
+                <Route path='collection' element={<AdminCollection />} />
               </Route>
 
-              <Route path='settings' element={<Settings />} />
             </Route>
           </Route>
 

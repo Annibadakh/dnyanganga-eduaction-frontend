@@ -1,0 +1,347 @@
+import React, { useEffect, useState, Fragment } from "react";
+import api from "../Api";
+import { useAuth } from "../Context/AuthContext";
+import { FileUploadHook } from "./FileUploadHook";
+import FileUpload from "./FileUpload";
+import { Dialog, Transition } from "@headlessui/react";
+
+const CounsellorCollection = () => {
+  const { user } = useAuth();
+  const [collection, setCollection] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const [settleAmount, setSettleAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState(""); // added payment date input
+  const [error, setError] = useState("");
+  const [submitLoader, setSubmitLoader] = useState(false);
+
+  // File upload hook
+  const paymentProof = FileUploadHook();
+  const [formData, setFormData] = useState({
+    proofUrl: "",
+  });
+
+  // Modal state for proof view
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [selectedReceiptUrl, setSelectedReceiptUrl] = useState("");
+
+    const imgUrl = import.meta.env.VITE_IMG_URL;
+
+  // Fetch collection summary
+  const fetchCollection = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/counsellor/collection/${user.uuid}`);
+      setCollection(res.data || null);
+    } catch (err) {
+      console.error("Error fetching collection", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch settlement history
+  const fetchTransactions = async () => {
+    try {
+      const res = await api.get(
+        `/counsellor/collection/payments/${user.uuid}`
+      );
+      setTransactions(res.data || []);
+    } catch (err) {
+      console.error("Error fetching transactions", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCollection();
+    fetchTransactions();
+  }, []);
+
+  const handleProofUpload = async () => {
+    const imageUrl = await paymentProof.uploadImage();
+    if (imageUrl) {
+      setFormData({ ...formData, proofUrl: imageUrl });
+    }
+  };
+
+  const handleSettleAmountChange = (e) => {
+    const value = parseFloat(e.target.value) || 0;
+    setSettleAmount(e.target.value);
+    if (collection && value > collection.balance) {
+      setError("Amount cannot exceed available balance.");
+    } else if (value <= 0) {
+      setError("Amount must be greater than 0.");
+    } else {
+      setError("");
+    }
+  };
+
+  const handleSettle = async (e) => {
+    e.preventDefault();
+
+    if (!collection) return;
+    const value = parseFloat(settleAmount);
+    if (!value || value <= 0 || value > collection.balance) {
+      setError("Enter a valid settlement amount.");
+      return;
+    }
+    if (!formData.proofUrl) {
+      setError("Please upload and save payment proof before submitting.");
+      return;
+    }
+    if (!paymentDate) {
+      setError("Please select a payment date.");
+      return;
+    }
+
+    setSubmitLoader(true);
+    try {
+      const payload = {
+        counsellorId: user.uuid,
+        counsellorName: user.userName,
+        amountPaid: value,
+        proofUrl: formData.proofUrl,
+        paymentDate,
+      };
+      await api.post("/counsellor/myCollection/settle", payload);
+      alert("Settlement submitted successfully!");
+      setSettleAmount("");
+      setPaymentDate("");
+      setFormData({ proofUrl: "" });
+      paymentProof.removePhoto();
+      fetchCollection();
+      fetchTransactions();
+    } catch (err) {
+      console.error("Error settling:", err);
+      setError("Failed to settle. Please try again.");
+    } finally {
+      setSubmitLoader(false);
+    }
+  };
+
+  const handleViewProof = (url) => {
+    if (url) {
+      setSelectedReceiptUrl(`${imgUrl}${url}`);
+      setShowReceiptModal(true);
+    } else {
+      alert("No proof available.");
+    }
+  };
+
+  return (
+    <div className="p-4 container mx-auto">
+      <h1 className="text-3xl font-bold text-center text-primary mb-6">
+        My Collection
+      </h1>
+
+      {loading && <p className="text-center">Loading data...</p>}
+
+      {/* Collection Summary */}
+      {collection && (
+        <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
+          <h2 className="text-xl font-semibold text-secondary mb-4">
+            Collection Summary
+          </h2>
+          <table className="table-auto w-full text-center border border-gray-300">
+            <thead className="bg-primary text-white">
+              <tr>
+                <th className="p-2 border">Commission %</th>
+                <th className="p-2 border">Total Amount</th>
+                <th className="p-2 border">Actual Amount</th>
+                <th className="p-2 border">Collected</th>
+                <th className="p-2 border">Balance</th>
+                <th className="p-2 border">Last Collected Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="hover:bg-gray-100">
+                <td className="p-2 border">{collection.commissionRate}%</td>
+                <td className="p-2 border">₹{collection.totalAmount}</td>
+                <td className="p-2 border">₹{collection.actualAmount}</td>
+                <td className="p-2 border">₹{collection.collectedAmount}</td>
+                <td className="p-2 border">₹{collection.balance}</td>
+                <td className="p-2 border">
+                  {collection.lastCollectedDate || "-"}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Settlement Form */}
+      {collection && (
+        <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
+          <h2 className="text-xl font-semibold text-secondary mb-4">
+            Send Settlement to Admin
+          </h2>
+
+          {error && <p className="text-red-500 mb-3">{error}</p>}
+
+          <form onSubmit={handleSettle} className="space-y-4">
+            <div>
+              <label className="block mb-2 font-medium">Amount to Settle</label>
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                value={settleAmount}
+                onChange={handleSettleAmountChange}
+                className="w-full p-2 border rounded-md"
+                placeholder="Enter amount ≤ balance"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 font-medium">Payment Date</label>
+              <input
+                type="date"
+                value={paymentDate}
+                onChange={(e) => setPaymentDate(e.target.value)}
+                className="w-full p-2 border rounded-md"
+                required
+              />
+            </div>
+
+            {/* Payment Proof Upload */}
+            <div className="mb-6">
+              <FileUpload
+                title="Upload Payment Proof"
+                imageUrl={paymentProof.imageUrl}
+                error={paymentProof.error}
+                loader={paymentProof.loader}
+                isSaved={paymentProof.isSaved}
+                imageType="proof"
+                onFileUpload={paymentProof.handleFileUpload}
+                onUploadImage={handleProofUpload}
+                onRemovePhoto={paymentProof.removePhoto}
+              />
+            </div>
+
+            {!error && paymentProof.isSaved ? (
+              <button
+                type="submit"
+                disabled={submitLoader}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 min-w-36 grid place-items-center"
+              >
+                {submitLoader ? (
+                  <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  "Submit Settlement"
+                )}
+              </button>
+            ) : (
+              <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                📸 Please upload and save payment proof first
+              </p>
+            )}
+          </form>
+        </div>
+      )}
+
+      {/* Transaction History */}
+      {transactions.length > 0 && (
+        <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
+          <h2 className="text-xl font-semibold text-secondary mb-4">
+            Settlement History
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="table-auto w-full text-center border border-gray-300">
+              <thead className="bg-primary text-white">
+                <tr>
+                  <th className="p-2 border">Date</th>
+                  <th className="p-2 border">Amount Paid</th>
+                  <th className="p-2 border">Proof</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map((txn, idx) => (
+                  <tr key={idx} className="hover:bg-gray-100">
+                    <td className="p-2 border">{txn.paymentDate}</td>
+                    <td className="p-2 border">₹{txn.amountPaid}</td>
+                    <td className="p-2 border">
+                      {txn.proofUrl ? (
+                        <button
+                          onClick={() => handleViewProof(txn.proofUrl)}
+                          className="text-blue-500 underline"
+                        >
+                          View Proof
+                        </button>
+                      ) : (
+                        "No Proof"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Proof Modal */}
+      <Transition appear show={showReceiptModal} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() => setShowReceiptModal(false)}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-50" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-full p-2 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-xl bg-white md:p-6 p-2 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Proof Image
+                  </Dialog.Title>
+                  <div className="mt-4">
+                    <img
+                      src={selectedReceiptUrl}
+                      alt="Proof"
+                      className="max-h-[500px] w-full object-contain rounded border"
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+                      onClick={() => setShowReceiptModal(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+    </div>
+  );
+};
+
+export default CounsellorCollection;
