@@ -263,6 +263,7 @@ const AdminCollection = () => {
                 <tr>
                   <th className="p-2 border">Date</th>
                   <th className="p-2 border">Amount Paid</th>
+                  <th className="p-2 border">Remark</th>
                   <th className="p-2 border">Proof</th>
                 </tr>
               </thead>
@@ -271,6 +272,7 @@ const AdminCollection = () => {
                   <tr key={idx} className="hover:bg-gray-100">
                     <td className="p-2 border">{txn.paymentDate}</td>
                     <td className="p-2 border">₹{txn.amountPaid}</td>
+                    <td className="p-2 border">{txn.remark}</td>
                     <td className="p-2 border">
                       {txn.proofUrl ? (
                         <button
