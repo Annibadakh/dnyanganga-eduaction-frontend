@@ -12,6 +12,7 @@ const CounsellorCollection = () => {
   const [loading, setLoading] = useState(false);
 
   const [settleAmount, setSettleAmount] = useState("");
+  const [remark, setRemark] = useState("");
   const [paymentDate, setPaymentDate] = useState(""); // added payment date input
   const [error, setError] = useState("");
   const [submitLoader, setSubmitLoader] = useState(false);
@@ -101,6 +102,7 @@ const CounsellorCollection = () => {
         counsellorId: user.uuid,
         counsellorName: user.userName,
         amountPaid: value,
+        remark: remark,
         proofUrl: formData.proofUrl,
         paymentDate,
       };
@@ -205,7 +207,18 @@ const CounsellorCollection = () => {
                 required
               />
             </div>
-
+            <div>
+              <label className="block mb-2 font-medium">Remark</label>
+              <input
+                type="text"
+                
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
+                className="w-full p-2 border rounded-md"
+                placeholder="Enter amount ≤ balance"
+                required
+              />
+            </div>
             {/* Payment Proof Upload */}
             <div className="mb-6">
               <FileUpload
@@ -254,6 +267,7 @@ const CounsellorCollection = () => {
                 <tr>
                   <th className="p-2 border">Date</th>
                   <th className="p-2 border">Amount Paid</th>
+                  <th className="p-2 border">Remark</th>
                   <th className="p-2 border">Proof</th>
                 </tr>
               </thead>
@@ -262,6 +276,7 @@ const CounsellorCollection = () => {
                   <tr key={idx} className="hover:bg-gray-100">
                     <td className="p-2 border">{txn.paymentDate}</td>
                     <td className="p-2 border">₹{txn.amountPaid}</td>
+                    <td className="p-2 border">{txn.remark}</td>
                     <td className="p-2 border">
                       {txn.proofUrl ? (
                         <button
