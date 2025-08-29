@@ -13,21 +13,20 @@ const CounsellorCollection = () => {
 
   const [settleAmount, setSettleAmount] = useState("");
   const [remark, setRemark] = useState("");
-  const [paymentDate, setPaymentDate] = useState(""); // added payment date input
+  const [paymentDate, setPaymentDate] = useState("");
   const [error, setError] = useState("");
   const [submitLoader, setSubmitLoader] = useState(false);
 
   // File upload hook
   const paymentProof = FileUploadHook();
-  const [formData, setFormData] = useState({
-    proofUrl: "",
-  });
+  const [formData, setFormData] = useState({ proofUrl: "" });
 
   // Modal state for proof view
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState("");
+  const [proofLoading, setProofLoading] = useState(false); // loader for proof
 
-    const imgUrl = import.meta.env.VITE_IMG_URL;
+  const imgUrl = import.meta.env.VITE_IMG_URL;
 
   // Fetch collection summary
   const fetchCollection = async () => {
@@ -45,9 +44,7 @@ const CounsellorCollection = () => {
   // Fetch settlement history
   const fetchTransactions = async () => {
     try {
-      const res = await api.get(
-        `/counsellor/collection/payments/${user.uuid}`
-      );
+      const res = await api.get(`/counsellor/collection/payments/${user.uuid}`);
       setTransactions(res.data || []);
     } catch (err) {
       console.error("Error fetching transactions", err);
@@ -80,8 +77,8 @@ const CounsellorCollection = () => {
 
   const handleSettle = async (e) => {
     e.preventDefault();
-
     if (!collection) return;
+
     const value = parseFloat(settleAmount);
     if (!value || value <= 0 || value > collection.balance) {
       setError("Enter a valid settlement amount.");
@@ -109,6 +106,7 @@ const CounsellorCollection = () => {
       await api.post("/counsellor/myCollection/settle", payload);
       alert("Settlement submitted successfully!");
       setSettleAmount("");
+      setRemark("");
       setPaymentDate("");
       setFormData({ proofUrl: "" });
       paymentProof.removePhoto();
@@ -124,6 +122,7 @@ const CounsellorCollection = () => {
 
   const handleViewProof = (url) => {
     if (url) {
+      setProofLoading(true);
       setSelectedReceiptUrl(`${imgUrl}${url}`);
       setShowReceiptModal(true);
     } else {
@@ -145,30 +144,35 @@ const CounsellorCollection = () => {
           <h2 className="text-xl font-semibold text-secondary mb-4">
             Collection Summary
           </h2>
-          <table className="table-auto w-full text-center border border-gray-300">
-            <thead className="bg-primary text-white">
-              <tr>
-                <th className="p-2 border">Commission %</th>
-                <th className="p-2 border">Total Amount</th>
-                <th className="p-2 border">Actual Amount</th>
-                <th className="p-2 border">Collected</th>
-                <th className="p-2 border">Balance</th>
-                <th className="p-2 border">Last Collected Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="hover:bg-gray-100">
-                <td className="p-2 border">{collection.commissionRate}%</td>
-                <td className="p-2 border">₹{collection.totalAmount}</td>
-                <td className="p-2 border">₹{collection.actualAmount}</td>
-                <td className="p-2 border">₹{collection.collectedAmount}</td>
-                <td className="p-2 border">₹{collection.balance}</td>
-                <td className="p-2 border">
-                  {collection.lastCollectedDate || "-"}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+
+          <div className="overflow-x-auto">
+            <table className="table-auto min-w-full text-center border border-gray-300">
+              <thead className="bg-primary text-white">
+                <tr>
+                  <th className="p-2 border whitespace-nowrap">Commission %</th>
+                  <th className="p-2 border whitespace-nowrap">Total Amount</th>
+                  <th className="p-2 border whitespace-nowrap">Actual Amount</th>
+                  <th className="p-2 border whitespace-nowrap">Collected</th>
+                  <th className="p-2 border whitespace-nowrap">Balance</th>
+                  <th className="p-2 border whitespace-nowrap">
+                    Last Collected Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="hover:bg-gray-100">
+                  <td className="p-2 border">{collection.commissionRate}%</td>
+                  <td className="p-2 border">₹{collection.totalAmount}</td>
+                  <td className="p-2 border">₹{collection.actualAmount}</td>
+                  <td className="p-2 border">₹{collection.collectedAmount}</td>
+                  <td className="p-2 border">₹{collection.balance}</td>
+                  <td className="p-2 border">
+                    {collection.lastCollectedDate || "-"}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -207,18 +211,19 @@ const CounsellorCollection = () => {
                 required
               />
             </div>
+
             <div>
               <label className="block mb-2 font-medium">Remark</label>
               <input
                 type="text"
-                
                 value={remark}
                 onChange={(e) => setRemark(e.target.value)}
                 className="w-full p-2 border rounded-md"
-                placeholder="Enter amount ≤ balance"
+                placeholder="Enter remark"
                 required
               />
             </div>
+
             {/* Payment Proof Upload */}
             <div className="mb-6">
               <FileUpload
@@ -262,7 +267,7 @@ const CounsellorCollection = () => {
             Settlement History
           </h2>
           <div className="overflow-x-auto">
-            <table className="table-auto w-full text-center border border-gray-300">
+            <table className="table-auto min-w-full text-center border border-gray-300">
               <thead className="bg-primary text-white">
                 <tr>
                   <th className="p-2 border">Date</th>
@@ -281,9 +286,13 @@ const CounsellorCollection = () => {
                       {txn.proofUrl ? (
                         <button
                           onClick={() => handleViewProof(txn.proofUrl)}
-                          className="text-blue-500 underline"
+                          className="text-blue-500 underline flex items-center gap-2"
                         >
-                          View Proof
+                          {proofLoading ? (
+                            <span className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></span>
+                          ) : (
+                            "View Proof"
+                          )}
                         </button>
                       ) : (
                         "No Proof"
@@ -334,10 +343,14 @@ const CounsellorCollection = () => {
                   >
                     Proof Image
                   </Dialog.Title>
-                  <div className="mt-4">
+                  <div className="mt-4 flex justify-center">
+                    {proofLoading && (
+                      <span className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"></span>
+                    )}
                     <img
                       src={selectedReceiptUrl}
                       alt="Proof"
+                      onLoad={() => setProofLoading(false)}
                       className="max-h-[500px] w-full object-contain rounded border"
                     />
                   </div>
