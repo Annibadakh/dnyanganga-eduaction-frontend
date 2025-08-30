@@ -102,10 +102,10 @@ const CounsellorBooks = () => {
                   <th className="p-2 border whitespace-nowrap">Sr.</th>
                   <th className="p-2 border whitespace-nowrap">Book Name</th>
                   <th className="p-2 border whitespace-nowrap">Total Count</th>
-                  <th className="p-2 border whitespace-nowrap">Remaining Count</th>
                   <th className="p-2 border whitespace-nowrap">
                     Distributed Count
                   </th>
+                  <th className="p-2 border whitespace-nowrap">Remaining Count</th>
                   <th className="p-2 border whitespace-nowrap">New Stock</th>
                   <th className="p-2 border whitespace-nowrap">Action</th>
                 </tr>
@@ -121,10 +121,10 @@ const CounsellorBooks = () => {
                       {book.totalCount + book.distributedCount}
                     </td>
                     <td className="p-2 border whitespace-nowrap">
-                      {book.totalCount}
+                      {book.distributedCount}
                     </td>
                     <td className="p-2 border whitespace-nowrap">
-                      {book.distributedCount}
+                      {book.totalCount}
                     </td>
                     <td className="p-2 border whitespace-nowrap">
                       {book.newStock}
