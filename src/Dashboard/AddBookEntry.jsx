@@ -425,7 +425,7 @@ const AddBookEntry = () => {
                   <tr key={book.id} className="hover:bg-gray-100 border-b">
                     <td className="p-2 border whitespace-nowrap">{i + 1}</td>
                     <td className="p-2 border whitespace-nowrap">{book.bookName}</td>
-                    <td className="p-2 border whitespace-nowrap">{book.totalCount+ book.distributedCount}</td>
+                    <td className="p-2 border whitespace-nowrap">{book.totalCount + book.distributedCount}</td>
                     <td className="p-2 border whitespace-nowrap">{book.totalCount}</td>
                     <td className="p-2 border whitespace-nowrap">{book.distributedCount}</td>
                     <td className="p-2 border whitespace-nowrap">{book.newStock}</td>

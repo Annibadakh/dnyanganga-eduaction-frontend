@@ -75,18 +75,7 @@ function Login() {
         </div>
         <h2 className="text-2xl font-serif font-bold text-center text-gray-800 mb-6">Login</h2>
         <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 font-medium">Select Role</label>
-            <select
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="counsellor">Counsellor</option>
-              <option value="admin">Admin</option>
-              <option value="teacher">Teacher</option>
-            </select>
-          </div>
+          
           <div>
             <label className="block text-gray-700 font-medium">Email</label>
             <input
@@ -108,6 +97,18 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+          <div>
+            <label className="block text-gray-700 font-medium">Select Role</label>
+            <select
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="counsellor">Counsellor</option>
+              <option value="admin">Admin</option>
+              <option value="teacher">Teacher</option>
+            </select>
           </div>
           {/* <div>
             <label className="block text-gray-700 font-medium">Select Role</label>
