@@ -402,6 +402,7 @@ const VisitingForm = () => {
                   <option value="उपक्रम समजला नाही">उपक्रम समजला नाही</option>
                   <option value="जागृकता नाही">जागृकता नाही</option>
                   <option value="उपक्रम न ऐकलेल्या व्यक्तीचा हस्तक्षेप">उपक्रम न ऐकलेल्या व्यक्तीचा हस्तक्षेप</option>
+                  <option value="मागील वर्षातील विद्यार्थ्यांचे नकारात्मक परिणाम / निरीक्षणे">मागील वर्षातील विद्यार्थ्यांचे नकारात्मक परिणाम / निरीक्षणे</option>
                   <option value="Other">Other (Enter Reason Below)</option>
                 </select>
               </div>
