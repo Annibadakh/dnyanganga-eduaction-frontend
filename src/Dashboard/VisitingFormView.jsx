@@ -170,7 +170,7 @@ const VisitingFormView = ({ visitData, onClose }) => {
                   <p className="text-gray-900">{visitData.reason || 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-700">Counsellor:</span>
+                  <span className="font-medium text-gray-700">Counsellor Name:</span>
                   <p className="text-gray-900">{visitData.counsellor || 'N/A'}</p>
                 </div>
                 <div>

@@ -31,9 +31,9 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     { path: "visitingtable", label: "Visiting Table", icon: <FaTable className="text-lg" /> },
     { path: "paymenttable", label: "Payment Table", icon: <FaMoneyBill className="text-lg" /> },
     { path: "bookentries", label: "Book Entries", role: "admin", icon: <FaBook className="text-lg" /> },
-    { path: "bookdistribution", label: "Book Distribution", role: "counsellor", icon: <FaShippingFast className="text-lg" /> },
+    { path: "bookdistribution", label: "Book Details", role: "counsellor", icon: <FaShippingFast className="text-lg" /> },
     { path: "collection", label: "Amount Collection", role: "admin", icon: <FaMoneyCheckAlt className="text-lg" /> },
-    { path: "settlement", label: "Amount Settlement", role: "counsellor", icon: <FaBalanceScale className="text-lg" /> },
+    { path: "settlement", label: "Collection Details", role: "counsellor", icon: <FaBalanceScale className="text-lg" /> },
   ];
 
   const isActive = (path) => location.pathname === `/dashboard/${path}`;

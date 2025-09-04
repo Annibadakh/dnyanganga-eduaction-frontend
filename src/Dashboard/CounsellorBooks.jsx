@@ -84,13 +84,13 @@ const CounsellorBooks = () => {
   return (
     <div className="p-4 container mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-center text-primary mb-6">
-        Counsellor Dashboard
+        My Book Details
       </h1>
 
       {/* --- Book Entries Table --- */}
       <div className="bg-white p-4 md:p-6 shadow-custom">
         <h2 className="text-xl font-semibold text-secondary mb-4">
-          My Book Entries
+          My Book Table
         </h2>
         {loadingBooks ? (
           <p className="text-center">Loading books...</p>
@@ -99,7 +99,7 @@ const CounsellorBooks = () => {
             <table className="table-auto min-w-full text-center border border-gray-300">
               <thead className="bg-primary text-white">
                 <tr>
-                  <th className="p-2 border whitespace-nowrap">Sr.</th>
+                  <th className="p-2 border whitespace-nowrap">Sr. No.</th>
                   <th className="p-2 border whitespace-nowrap">Book Name</th>
                   <th className="p-2 border whitespace-nowrap">Total Count</th>
                   <th className="p-2 border whitespace-nowrap">
@@ -164,12 +164,12 @@ const CounsellorBooks = () => {
             <table className="table-auto min-w-full text-center border border-gray-300">
               <thead className="bg-primary text-white">
                 <tr>
-                  <th className="p-2 border whitespace-nowrap">Sr.</th>
+                  <th className="p-2 border whitespace-nowrap">Sr. No.</th>
                   <th className="p-2 border whitespace-nowrap">Student ID</th>
                   <th className="p-2 border whitespace-nowrap">Student Name</th>
                   <th className="p-2 border whitespace-nowrap">Standard</th>
                   <th className="p-2 border whitespace-nowrap">Total Fees</th>
-                  <th className="p-2 border whitespace-nowrap">Remaining</th>
+                  {/* <th className="p-2 border whitespace-nowrap">Remaining</th> */}
                   <th className="p-2 border whitespace-nowrap">Book Set</th>
                   <th className="p-2 border whitespace-nowrap">Status</th>
                   <th className="p-2 border whitespace-nowrap">Action</th>
@@ -230,14 +230,14 @@ const CounsellorBooks = () => {
                             rowSpan={sets.length}
                             className="p-2 border whitespace-nowrap"
                           >
-                            {row.totalAmount}
+                            ₹ {row.totalAmount}
                           </td>
-                          <td
+                          {/* <td
                             rowSpan={sets.length}
                             className="p-2 border whitespace-nowrap"
                           >
                             {row.amountRemaining}
-                          </td>
+                          </td> */}
                         </>
                       )}
                       <td className="p-2 border whitespace-nowrap">

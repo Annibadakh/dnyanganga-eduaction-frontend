@@ -152,22 +152,22 @@ const CounsellorCollection = () => {
                   <th className="p-2 border whitespace-nowrap">Commission %</th>
                   <th className="p-2 border whitespace-nowrap">Total Amount</th>
                   <th className="p-2 border whitespace-nowrap">Actual Amount</th>
-                  <th className="p-2 border whitespace-nowrap">Collected</th>
-                  <th className="p-2 border whitespace-nowrap">Balance</th>
+                  <th className="p-2 border whitespace-nowrap">Given Amount</th>
+                  <th className="p-2 border whitespace-nowrap">Balance Amount</th>
                   <th className="p-2 border whitespace-nowrap">
-                    Last Collected Date
+                    Last Settle Date
                   </th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="hover:bg-gray-100">
-                  <td className="p-2 border">{collection.commissionRate}%</td>
-                  <td className="p-2 border">₹{collection.totalAmount}</td>
-                  <td className="p-2 border">₹{collection.actualAmount}</td>
-                  <td className="p-2 border">₹{collection.collectedAmount}</td>
-                  <td className="p-2 border">₹{collection.balance}</td>
+                  <td className="p-2 border">{collection.commissionRate} %</td>
+                  <td className="p-2 border">₹ {collection.totalAmount}</td>
+                  <td className="p-2 border">₹ {collection.actualAmount}</td>
+                  <td className="p-2 border">₹ {collection.collectedAmount}</td>
+                  <td className="p-2 border">₹ {collection.balance}</td>
                   <td className="p-2 border">
-                    {collection.lastCollectedDate || "-"}
+                    { new Date(collection.lastCollectedDate).toLocaleDateString("en-GB") || "-"}
                   </td>
                 </tr>
               </tbody>
@@ -180,14 +180,14 @@ const CounsellorCollection = () => {
       {collection && (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
-            Send Settlement to Admin
+            Send Collection to Dnyanganga
           </h2>
 
           {error && <p className="text-red-500 mb-3">{error}</p>}
 
           <form onSubmit={handleSettle} className="space-y-4">
             <div>
-              <label className="block mb-2 font-medium">Amount to Settle</label>
+              <label className="block mb-2 font-medium">Amount to Give</label>
               <input
                 type="number"
                 min="1"
@@ -212,16 +212,24 @@ const CounsellorCollection = () => {
               />
             </div>
 
+            {/* Remark Dropdown */}
             <div>
               <label className="block mb-2 font-medium">Remark</label>
-              <input
-                type="text"
+              <select
                 value={remark}
                 onChange={(e) => setRemark(e.target.value)}
                 className="w-full p-2 border rounded-md"
-                placeholder="Enter remark"
                 required
-              />
+              >
+                <option value="" disabled>
+                  Select Remark
+                </option>
+                <option value="Dnyanganga Axis Bank">Dnyanganga Axis Bank</option>
+                <option value="Dnyanganga Yes Bank">Dnyanganga Yes Bank</option>
+                <option value="Amol Sir Personal">Amol Sir Personal</option>
+                <option value="Sagar Sir Personal">Sagar Sir Personal</option>
+                <option value="Other Account">Other Account</option>
+              </select>
             </div>
 
             {/* Payment Proof Upload */}
@@ -257,6 +265,7 @@ const CounsellorCollection = () => {
               </p>
             )}
           </form>
+
         </div>
       )}
 
@@ -279,8 +288,8 @@ const CounsellorCollection = () => {
               <tbody>
                 {transactions.map((txn, idx) => (
                   <tr key={idx} className="hover:bg-gray-100">
-                    <td className="p-2 border">{txn.paymentDate}</td>
-                    <td className="p-2 border">₹{txn.amountPaid}</td>
+                    <td className="p-2 border">{new Date(txn.paymentDate).toLocaleDateString("en-GB") }</td>
+                    <td className="p-2 border">₹ {txn.amountPaid}</td>
                     <td className="p-2 border">{txn.remark}</td>
                     <td className="p-2 border">
                       {txn.proofUrl ? (
