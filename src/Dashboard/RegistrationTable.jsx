@@ -19,6 +19,12 @@ const RegistrationTable = () => {
   const [selectedStandard, setSelectedStandard] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
 
+  // New state for PDF preview dialog
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfFileName, setPdfFileName] = useState("");
+  const [currentPdfStudent, setCurrentPdfStudent] = useState(null);
+
   // New state for searchable dropdowns
   const [counsellorSearch, setCounsellorSearch] = useState("");
   const [examCentreSearch, setExamCentreSearch] = useState("");
@@ -54,6 +60,15 @@ const RegistrationTable = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Cleanup PDF URL when dialog closes
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        window.URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   useEffect(() => {
     if (user.role === "admin") {
@@ -174,15 +189,16 @@ const RegistrationTable = () => {
 
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
       const fileName = student.studentName
         ? `${student.studentName.replace(/\s+/g, "_")}_FORM.pdf`
         : `${student.studentId}_FORM.pdf`;
 
-      link.href = url;
-      link.download = fileName;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      // Set PDF preview data
+      setPdfUrl(url);
+      setPdfFileName(fileName);
+      setCurrentPdfStudent(student);
+      setShowPdfPreview(true);
+
     } catch (err) {
       if (err.response?.status === 403) {
         alert("Student not found!");
@@ -196,7 +212,25 @@ const RegistrationTable = () => {
       setLoadingPdfId(null);
     }
   };
-  
+
+  const handleDownloadPDF = () => {
+    if (pdfUrl && pdfFileName) {
+      const link = document.createElement("a");
+      link.href = pdfUrl;
+      link.download = pdfFileName;
+      link.click();
+    }
+  };
+
+  const handleClosePdfPreview = () => {
+    setShowPdfPreview(false);
+    if (pdfUrl) {
+      window.URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
+    setPdfFileName("");
+    setCurrentPdfStudent(null);
+  };
 
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
@@ -331,6 +365,7 @@ const RegistrationTable = () => {
               className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
             >
               <option value="">All Standards</option>
+              <option value="9th+10th">9th+10th</option>
               <option value="10th">10th</option>
               <option value="11th+12th">11th+12th</option>
               <option value="12th">12th</option>
@@ -456,8 +491,63 @@ const RegistrationTable = () => {
       ) : (
         <PaymentForm paymentData={paymentData} setShowPayment={setShowPayment} />
       )}
-     
 
+      {/* PDF Preview Dialog */}
+      {showPdfPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
+          <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[95vh] flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-800 truncate">
+                  PDF Preview - {currentPdfStudent?.studentName}
+                </h2>
+                <p className="text-sm text-gray-600 truncate">
+                  Student ID: {currentPdfStudent?.studentId}
+                </p>
+              </div>
+              <button
+                onClick={handleClosePdfPreview}
+                className="ml-4 text-gray-400 hover:text-gray-600 text-2xl font-bold flex-shrink-0"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* PDF Viewer */}
+            <div className="flex-1 p-2 md:p-4 overflow-hidden">
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full border border-gray-300 rounded"
+                title="PDF Preview"
+                style={{ minHeight: '400px' }}
+              />
+            </div>
+
+            {/* Footer with actions */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 md:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+              <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
+                File: {pdfFileName}
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handleDownloadPDF}
+                  className="flex-1 sm:flex-none bg-primary text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                >
+                  Download PDF
+                </button>
+                <button
+                  onClick={handleClosePdfPreview}
+                  className="flex-1 sm:flex-none bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

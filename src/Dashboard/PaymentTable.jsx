@@ -11,7 +11,23 @@ const PaymentTable = () => {
   const [loadingPdfId, setLoadingPdfId] = useState(null);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState("");
+  
+  // New state for PDF preview dialog
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfFileName, setPdfFileName] = useState("");
+  const [currentPdfStudent, setCurrentPdfStudent] = useState(null);
+  
   const imgUrl = import.meta.env.VITE_IMG_URL;
+
+  // Cleanup PDF URL when dialog closes
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        window.URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   useEffect(() => {
     api
@@ -58,7 +74,7 @@ const PaymentTable = () => {
     }
   };
 
-  const handleDownloadReceipt = async (student) => {
+  const handleViewReceiptPDF = async (student) => {
     try {
       setLoadingPdfId(student.studentId);
       const response = await api.get("/pdf/payment-receipt", {
@@ -68,21 +84,41 @@ const PaymentTable = () => {
 
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
       const fileName = student.studentName
         ? `${student.studentName.replace(/\s+/g, "_")}_RECEIPT.pdf`
         : `${student.studentId}_RECEIPT.pdf`;
 
-      link.href = url;
-      link.download = fileName;
-      link.click();
-      window.URL.revokeObjectURL(url);
+      // Set PDF preview data
+      setPdfUrl(url);
+      setPdfFileName(fileName);
+      setCurrentPdfStudent(student);
+      setShowPdfPreview(true);
+
     } catch (err) {
       alert(err.response?.status === 403 ? "Student not found!" : "Receipt download failed.");
       console.error(err);
     } finally {
       setLoadingPdfId(null);
     }
+  };
+
+  const handleDownloadReceiptPDF = () => {
+    if (pdfUrl && pdfFileName) {
+      const link = document.createElement("a");
+      link.href = pdfUrl;
+      link.download = pdfFileName;
+      link.click();
+    }
+  };
+
+  const handleClosePdfPreview = () => {
+    setShowPdfPreview(false);
+    if (pdfUrl) {
+      window.URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
+    setPdfFileName("");
+    setCurrentPdfStudent(null);
   };
 
   return (
@@ -164,7 +200,7 @@ const PaymentTable = () => {
                 </td>
                 <td className="p-2 border">
                   <button
-                    onClick={() => handleDownloadReceipt(student)}
+                    onClick={() => handleViewReceiptPDF(student)}
                     disabled={loadingPdfId === student.studentId}
                     className={`bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded grid place-items-center ${
                       loadingPdfId === student.studentId ? "opacity-60 cursor-not-allowed" : ""
@@ -184,7 +220,7 @@ const PaymentTable = () => {
       </div>
       </div>
 
-      {/* Receipt Modal */}
+      {/* Receipt Image Modal (existing) */}
       <Transition appear show={showReceiptModal} as={Fragment}>
         <Dialog as="div" className="relative z-50" onClose={() => setShowReceiptModal(false)}>
           <Transition.Child
@@ -236,6 +272,63 @@ const PaymentTable = () => {
           </div>
         </Dialog>
       </Transition>
+
+      {/* PDF Preview Dialog (new) */}
+      {showPdfPreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
+          <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[95vh] flex flex-col">
+            {/* Header */}
+            <div className="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-800 truncate">
+                  Receipt PDF Preview - {currentPdfStudent?.studentName}
+                </h2>
+                <p className="text-sm text-gray-600 truncate">
+                  Student ID: {currentPdfStudent?.studentId}
+                </p>
+              </div>
+              <button
+                onClick={handleClosePdfPreview}
+                className="ml-4 text-gray-400 hover:text-gray-600 text-2xl font-bold flex-shrink-0"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* PDF Viewer */}
+            <div className="flex-1 p-2 md:p-4 overflow-hidden">
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full border border-gray-300 rounded"
+                title="Receipt PDF Preview"
+                style={{ minHeight: '400px' }}
+              />
+            </div>
+
+            {/* Footer with actions */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 md:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+              <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
+                File: {pdfFileName}
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handleDownloadReceiptPDF}
+                  className="flex-1 sm:flex-none bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+                >
+                  Download Receipt
+                </button>
+                <button
+                  onClick={handleClosePdfPreview}
+                  className="flex-1 sm:flex-none bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

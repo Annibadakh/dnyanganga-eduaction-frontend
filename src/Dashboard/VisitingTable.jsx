@@ -196,7 +196,9 @@ const VisitingTable = () => {
           className="p-2 border border-gray-300 rounded-lg w-full md:w-1/3"
         >
           <option value="">All Standards</option>
+          <option value="9th+10th">9th+10th</option>
           <option value="10th">10th</option>
+          <option value="11th+12th">11th+12th</option>
           <option value="12th">12th</option>
         </select>
       </div>
@@ -221,8 +223,8 @@ const VisitingTable = () => {
                 <th className="p-3 border">Parent No.</th>
                 <th className="p-3 border">Demo</th>
                 <th className="p-3 border">Reason</th>
-                <th className="p-3 border">Counsellor</th>
-                <th className="p-3 border">Branch</th>
+                <th className="p-3 border">Counsellor Name</th>
+                <th className="p-3 border">Counsellor Branch</th>
                 <th className="p-3 border">Action</th>
               </tr>
             </thead>

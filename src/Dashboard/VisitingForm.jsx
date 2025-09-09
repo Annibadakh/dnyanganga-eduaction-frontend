@@ -38,37 +38,41 @@ const VisitingForm = () => {
     const { name, value } = e.target;
 
     if (name === "standard") {
-      if (value === "10th") {
-        setFormData({
-          ...formData,
-          [name]: value,
-          branch: "",
-          previousYear: ""
-        });
-        setShow10thBranchDropdown(true);
-        setShowBranchDropdown(false);
-        setShowPreviousYearDropdown(true);
+      // Updated auto-selection logic for all standards
+      let newPreviousYear = "";
+      let newBranch = "";
+      let showBranch = false;
+      let show10thBranch = false;
+      let showPrevYear = false;
+
+      if (value === "9th+10th") {
+        newPreviousYear = "8th";
+        show10thBranch = true;
+        showPrevYear = true;
+      } else if (value === "10th") {
+        newPreviousYear = "9th";
+        show10thBranch = true;
+        showPrevYear = true;
+      } else if (value === "11th+12th") {
+        newPreviousYear = "10th";
+        showBranch = true;
+        showPrevYear = true;
       } else if (value === "12th") {
-        setFormData({
-          ...formData,
-          [name]: value,
-          branch: "",
-          previousYear: ""
-        });
-        setShowBranchDropdown(true);
-        setShow10thBranchDropdown(false);
-        setShowPreviousYearDropdown(true);
-      } else {
-        setFormData({
-          ...formData,
-          [name]: value,
-          branch: "",
-          previousYear: ""
-        });
-        setShowBranchDropdown(false);
-        setShow10thBranchDropdown(false);
-        setShowPreviousYearDropdown(false);
+        newPreviousYear = "11th";
+        showBranch = true;
+        showPrevYear = true;
       }
+
+      setFormData({
+        ...formData,
+        [name]: value,
+        branch: newBranch,
+        previousYear: newPreviousYear
+      });
+      
+      setShow10thBranchDropdown(show10thBranch);
+      setShowBranchDropdown(showBranch);
+      setShowPreviousYearDropdown(showPrevYear);
     } else if (name === "reason") {
       setFormData({ ...formData, [name]: value });
       if (value === "Other") {
@@ -222,9 +226,24 @@ const VisitingForm = () => {
                   required
                 >
                   <option value="">Select Standard</option>
+                  <option value="9th+10th">9th+10th</option>
                   <option value="10th">10th</option>
+                  <option value="11th+12th">11th+12th</option>
                   <option value="12th">12th</option>
                 </select>
+
+                {/* Auto-filled Previous Year Field */}
+                <div className="w-full flex flex-row items-center gap-1 order-2">
+                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Previous Year:</label>
+                  <input 
+                    type="text" 
+                    name="previousYear" 
+                    value={formData.previousYear}
+                    className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed text-sm sm:text-base"
+                    disabled
+                    readOnly
+                  />
+                </div>
 
                 {show10thBranchDropdown ? (
                   <select 
@@ -268,39 +287,6 @@ const VisitingForm = () => {
                 )}
 
                 <input 
-                  type="text" 
-                  name="schoolCollege" 
-                  value={formData.schoolCollege}
-                  onChange={handleChange} 
-                  placeholder="Enter School/College Name" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base order-5"
-                  required
-                />
-                
-                <select 
-                  name="previousYear" 
-                  value={formData.previousYear}
-                  disabled={!showPreviousYearDropdown}
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-2"
-                  required
-                >
-                  <option value="">Select Previous Year</option>
-                  {formData.standard === "10th" && (
-                    <>
-                      <option value="8th">8th</option>
-                      <option value="9th">9th</option>
-                    </>
-                  )}
-                  {formData.standard === "12th" && (
-                    <>
-                      <option value="10th">10th</option>
-                      <option value="11th">11th</option>
-                    </>
-                  )}
-                </select>
-
-                <input 
                   type="number" 
                   name="previousYearPercent" 
                   placeholder="Enter Previous Year Percentage" 
@@ -310,6 +296,16 @@ const VisitingForm = () => {
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-4" 
                   required 
                   min="0" max="100" step="0.01"
+                />
+
+                <input 
+                  type="text" 
+                  name="schoolCollege" 
+                  value={formData.schoolCollege}
+                  onChange={handleChange} 
+                  placeholder="Enter School/College Name" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base order-5"
+                  required
                 />
               </div>
             </div>
@@ -424,14 +420,6 @@ const VisitingForm = () => {
 
             {/* Submit Buttons */}
             <div className="grid place-items-center  w-full">
-              {/* <button
-                type="button"
-                onClick={resetForm}
-                className="w-full py-3 disabled:opacity-50 bg-gray-400 text-white rounded hover:bg-gray-500 transition text-sm sm:text-base"
-                disabled={loading}
-              >
-                Reset
-              </button> */}
               <button 
                 type="submit" 
                 className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"

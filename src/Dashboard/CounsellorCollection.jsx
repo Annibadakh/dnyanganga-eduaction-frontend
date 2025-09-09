@@ -228,9 +228,22 @@ const CounsellorCollection = () => {
                 <option value="Dnyanganga Yes Bank">Dnyanganga Yes Bank</option>
                 <option value="Amol Sir Personal">Amol Sir Personal</option>
                 <option value="Sagar Sir Personal">Sagar Sir Personal</option>
-                <option value="Other Account">Other Account</option>
+                <option value="Other">Other Account</option>
               </select>
+
+              {/* If "Other" is selected, show input field */}
+              {remark === "Other" && (
+                <input
+                  type="text"
+                  placeholder="Enter custom remark"
+                  className="mt-3 w-full p-2 border rounded-md"
+                  value={remark.startsWith("Other:") ? remark.replace("Other:", "") : ""}
+                  onChange={(e) => setRemark(`Other:${e.target.value}`)}
+                  required
+                />
+              )}
             </div>
+
 
             {/* Payment Proof Upload */}
             <div className="mb-6">

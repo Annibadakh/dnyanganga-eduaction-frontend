@@ -164,7 +164,7 @@ const RegistrationForm = () => {
       }));
       
       // Update dropdown states based on loaded data
-      if (draftData.standard === "9th") {
+      if (draftData.standard === "9th+10th") {
         setShow9thBranchDropdown(true);
         setShow10thBranchDropdown(false);
         setShow11thPlusBranchDropdown(false);
@@ -268,14 +268,14 @@ const RegistrationForm = () => {
       const currentYear = new Date().getFullYear();
       const nextYear = currentYear + 1;
       
-      if (value === "9th") {
+      if (value === "9th+10th") {
         setFormData({
           ...formData,
           [name]: value,
           branch: "",
           previousYear: "8th",
           examYear: nextYear.toString(), // Next Year for 9th
-          paymentStandard: "9th",
+          paymentStandard: "9th+10th",
           totalamount: 5850
         });
         setShow9thBranchDropdown(true);
@@ -342,7 +342,7 @@ const RegistrationForm = () => {
     } else if (name === "paymentStandard") {
       let newTotalAmount = 0;
       
-      if (value === "9th") {
+      if (value === "9th+10th") {
         newTotalAmount = 5850;
       } else if (value === "10th") {
         newTotalAmount = 5850;
@@ -386,22 +386,6 @@ const RegistrationForm = () => {
     Object.keys(formData).forEach(key => {
       formDataToSend.append(key, formData[key]);
     });
-    
-    // Add packageType based on paymentStandard
-    let packageType = "";
-    if (formData.paymentStandard === "9th") {
-      packageType = "9th";
-    } else if (formData.paymentStandard === "10th") {
-      packageType = "10th";
-    } else if (formData.paymentStandard === "12th") {
-      packageType = "12th";
-    } else if (formData.paymentStandard === "11th+12th") {
-      packageType = "11th+12th";
-    }
-    
-    if (packageType) {
-      formDataToSend.append("packageType", packageType);
-    }
     
     if(user?.uuid){
       formDataToSend.append("uuid", user.uuid);
@@ -554,7 +538,7 @@ const RegistrationForm = () => {
                   required
                 >
                   <option value="">Select Standard</option>
-                  <option value="9th">9th</option>
+                  <option value="9th+10th">9th+10th</option>
                   <option value="10th">10th</option>
                   <option value="11th+12th">11th+12th</option>
                   <option value="12th">12th</option>

@@ -168,6 +168,7 @@ const Excel = () => {
         <select value={selectedStandard} onChange={(e) => setSelectedStandard(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
           <option value="">All Standards</option>
           <option value="10th">10th</option>
+          <option value="12th">11th+12th</option>
           <option value="12th">12th</option>
         </select>
 
