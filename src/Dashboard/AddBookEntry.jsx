@@ -220,7 +220,7 @@ const AddBookEntry = () => {
     <div className="relative" ref={dropdownRef}>
       <div 
         onClick={toggleDropdown}
-        className="w-full p-2 border rounded-md cursor-pointer bg-white flex justify-between items-center hover:border-gray-400"
+        className="w-full p-2 border border-gray-300 rounded-lg cursor-pointer bg-white flex justify-between items-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <span className={selectedName ? "text-black" : "text-gray-500"}>
           {selectedName || "-- Select Counsellor --"}
@@ -236,14 +236,14 @@ const AddBookEntry = () => {
       </div>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-hidden">
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
           <div className="p-2 border-b">
             <input
               type="text"
               placeholder="Search counsellor..."
               value={internalSearch}
               onChange={(e) => setInternalSearch(e.target.value)}
-              className="w-full p-2 border rounded-md text-sm"
+              className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               autoFocus
             />
           </div>
@@ -261,7 +261,7 @@ const AddBookEntry = () => {
                   <div
                     key={counsellor.uuid}
                     onClick={() => onSelect(counsellor.uuid, counsellor.name)}
-                    className={`p-2 hover:bg-gray-100 cursor-pointer ${
+                    className={`p-2 hover:bg-gray-100 cursor-pointer transition ${
                       selectedCounsellor === counsellor.uuid ? 'bg-blue-50 text-blue-600' : ''
                     }`}
                   >
@@ -283,14 +283,16 @@ const AddBookEntry = () => {
   const groupedBooks = groupBooksByStandard();
 
   return (
-    <div className="p-4 container mx-auto">
-      <h1 className="text-3xl font-bold text-center text-blue-600 mb-6">Book Management</h1>
+    <div className="p-2 container mx-auto">
+      <h1 className="text-3xl text-center font-bold text-primary mb-6">
+        Book Management System
+      </h1>
 
       {/* Add Entry Button */}
       {!showForm && (
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mb-6"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg mb-6 transition"
         >
           Add Entry
         </button>
@@ -298,117 +300,140 @@ const AddBookEntry = () => {
 
       {/* Add Entry Form */}
       {showForm && (
-        <div className="bg-white p-4 md:p-6 shadow-lg border rounded-lg space-y-4 mb-6">
+        <div className="bg-white shadow-custom md:p-6 p-2 mb-6">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">Add New Book Entry</h2>
 
-          {/* Counsellor Selection */}
-          <div>
-            <label className="block mb-2 font-medium">Select Counsellor</label>
-            <CustomDropdown
-              isOpen={isFormDropdownOpen}
-              toggleDropdown={toggleFormDropdown}
-              internalSearch={formInternalSearch}
-              setInternalSearch={setFormInternalSearch}
-              filteredCounsellors={formFilteredCounsellors}
-              onSelect={handleFormCounsellorSelect}
-              selectedName={selectedCounsellorName}
-              dropdownRef={formDropdownRef}
-            />
-          </div>
+          <div className="space-y-4">
+            {/* Counsellor Selection */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">Select Counsellor</label>
+              <CustomDropdown
+                isOpen={isFormDropdownOpen}
+                toggleDropdown={toggleFormDropdown}
+                internalSearch={formInternalSearch}
+                setInternalSearch={setFormInternalSearch}
+                filteredCounsellors={formFilteredCounsellors}
+                onSelect={handleFormCounsellorSelect}
+                selectedName={selectedCounsellorName}
+                dropdownRef={formDropdownRef}
+              />
+            </div>
 
-          {/* Standard Selection */}
-          <div>
-            <label className="block mb-2 font-medium">Select Standard</label>
-            <select
-              value={selectedClass}
-              onChange={(e) => handleClassChange(e.target.value)}
-              className="w-full p-2 border rounded-md hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">-- Select Standard --</option>
-              <option value="10th">10th</option>
-              <option value="11th">11th</option>
-              <option value="12th">12th</option>
-            </select>
-          </div>
+            {/* Standard Selection */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">Select Standard</label>
+              <select
+                value={selectedClass}
+                onChange={(e) => handleClassChange(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">-- Select Standard --</option>
+                <option value="10th">10th</option>
+                <option value="11th">11th</option>
+                <option value="12th">12th</option>
+              </select>
+            </div>
 
-          {/* Book Entries */}
-          <div>
-            <label className="block mb-2 font-medium">Book Entries</label>
+            {/* Book Entries */}
             {selectedClass && (
-              <div className="flex flex-col gap-2">
-                {bookEntries.map((entry, index) => (
-                  <div key={index} className="flex gap-2 items-center">
-                    <select
-                      value={entry.bookName}
-                      onChange={(e) => handleBookChange(index, "bookName", e.target.value)}
-                      className="p-2 border rounded-md min-w-[150px]"
-                      disabled={selectedClass} // Disable if class is selected (auto-populated)
-                    >
-                      <option value="">-- Select Book --</option>
-                      {getAvailableBooks().map(book => (
-                        <option key={book} value={book}>{book}</option>
+              <div>
+                <label className="block mb-2 font-medium text-gray-700">Book Entries</label>
+                <div className="overflow-auto">
+                  <table className="w-full border border-gray-300 rounded-lg text-sm">
+                    <thead className="bg-blue-500 text-white uppercase">
+                      <tr>
+                        <th className="p-3 border">Book Name</th>
+                        <th className="p-3 border">Count</th>
+                        {bookEntries.length > 1 && !selectedClass && (
+                          <th className="p-3 border">Action</th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bookEntries.map((entry, index) => (
+                        <tr key={index} className="text-center border-b hover:bg-gray-100 transition">
+                          <td className="p-2 border">
+                            <select
+                              value={entry.bookName}
+                              onChange={(e) => handleBookChange(index, "bookName", e.target.value)}
+                              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              disabled={selectedClass}
+                            >
+                              <option value="">-- Select Book --</option>
+                              {getAvailableBooks().map(book => (
+                                <option key={book} value={book}>{book}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="p-2 border">
+                            <input
+                              type="number"
+                              min="1"
+                              placeholder="Count"
+                              value={entry.count}
+                              onChange={(e) => handleBookChange(index, "count", e.target.value)}
+                              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </td>
+                          {bookEntries.length > 1 && !selectedClass && (
+                            <td className="p-2 border">
+                              <button
+                                type="button"
+                                onClick={() => removeBookRow(index)}
+                                className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-2 rounded-lg text-xs transition"
+                              >
+                                Remove
+                              </button>
+                            </td>
+                          )}
+                        </tr>
                       ))}
-                    </select>
-                    <input
-                      type="number"
-                      min="1"
-                      placeholder="Count"
-                      value={entry.count}
-                      onChange={(e) => handleBookChange(index, "count", e.target.value)}
-                      className="p-2 border rounded-md w-24"
-                    />
-                    {bookEntries.length > 1 && !selectedClass && (
-                      <button
-                        type="button"
-                        onClick={() => removeBookRow(index)}
-                        className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
-          </div>
 
-          {/* Form Buttons */}
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitLoader}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
-              {submitLoader ? (
-                <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block"></span>
-              ) : (
-                "Submit"
-              )}
-            </button>
-            <button
-              type="button"
-              disabled={submitLoader}
-              onClick={() => {
-                setShowForm(false);
-                setSelectedClass("");
-                setBookEntries([{ bookName: "", count: "" }]);
-              }}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 disabled:opacity-50"
-            >
-              Cancel
-            </button>
+            {/* Form Buttons */}
+            <div className="flex gap-4 pt-4">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={submitLoader}
+                className={`bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition grid place-items-center ${
+                  submitLoader ? "opacity-60 cursor-not-allowed" : ""
+                }`}
+              >
+                {submitLoader ? (
+                  <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  "Submit"
+                )}
+              </button>
+              <button
+                type="button"
+                disabled={submitLoader}
+                onClick={() => {
+                  setShowForm(false);
+                  setSelectedClass("");
+                  setBookEntries([{ bookName: "", count: "" }]);
+                }}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* View Books Section */}
-      <div className="bg-white p-4 md:p-6 shadow-lg border rounded-lg">
+      <div className="bg-white shadow-custom md:p-6 p-2">
         <h2 className="text-xl font-semibold text-gray-700 mb-4">View Books by Counsellor</h2>
         
         {/* Counsellor Selection for View */}
         <div className="mb-4">
-          <label className="block mb-2 font-medium">Select Counsellor</label>
+          <label className="block mb-2 font-medium text-gray-700">Select Counsellor</label>
           <CustomDropdown
             isOpen={isViewDropdownOpen}
             toggleDropdown={toggleViewDropdown}
@@ -423,36 +448,45 @@ const AddBookEntry = () => {
 
         {/* Books Table */}
         {selectedCounsellor && counsellorBooks.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="table-auto w-full text-center border border-gray-300">
-              <thead className="bg-blue-600 text-white">
+          <div className="overflow-auto">
+            <table className="w-full border border-gray-300 rounded-lg text-sm whitespace-nowrap">
+              <thead className="bg-blue-500 text-white uppercase">
                 <tr>
-                  <th className="p-2 border whitespace-nowrap">Sr.</th>
-                  <th className="p-2 border whitespace-nowrap">Standard</th>
-                  <th className="p-2 border whitespace-nowrap">Book Name</th>
-                  <th className="p-2 border whitespace-nowrap">Total Count</th>
-                  <th className="p-2 border whitespace-nowrap">Distributed Count</th>
-                  <th className="p-2 border whitespace-nowrap">Remaining Count</th>
-                  <th className="p-2 border whitespace-nowrap">New Stock</th>
+                  <th className="p-3 border">Sr. No.</th>
+                  <th className="p-3 border">Standard</th>
+                  <th className="p-3 border">Books Details</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.keys(groupedBooks).map((standard, standardIndex) => (
-                  groupedBooks[standard].map((book, bookIndex) => (
-                    <tr key={book.id} className="hover:bg-gray-100 border-b">
-                      <td className="p-2 border whitespace-nowrap">
-                        {bookIndex === 0 ? standardIndex + 1 : ''}
-                      </td>
-                      <td className="p-2 border whitespace-nowrap font-semibold text-blue-600">
-                        {bookIndex === 0 ? standard : ''}
-                      </td>
-                      <td className="p-2 border whitespace-nowrap">{book.bookName}</td>
-                      <td className="p-2 border whitespace-nowrap">{book.totalCount + book.distributedCount}</td>
-                      <td className="p-2 border whitespace-nowrap">{book.distributedCount}</td>
-                      <td className="p-2 border whitespace-nowrap">{book.totalCount}</td>
-                      <td className="p-2 border whitespace-nowrap">{book.newStock}</td>
-                    </tr>
-                  ))
+                  <tr key={standard} className="text-center border-b hover:bg-gray-100 transition">
+                    <td className="p-2 border">{standardIndex + 1}</td>
+                    <td className="p-2 border font-semibold text-blue-600">{standard}</td>
+                    <td className="p-2 border">
+                      <table className="w-full text-xs border border-gray-300">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="p-1 border">Book Name</th>
+                            <th className="p-1 border">Total Count</th>
+                            <th className="p-1 border">Distributed</th>
+                            <th className="p-1 border">Remaining</th>
+                            <th className="p-1 border">New Stock</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {groupedBooks[standard].map((book) => (
+                            <tr key={book.id}>
+                              <td className="p-1 border">{book.bookName}</td>
+                              <td className="p-1 border">{book.totalCount + book.distributedCount}</td>
+                              <td className="p-1 border">{book.distributedCount}</td>
+                              <td className="p-1 border">{book.totalCount}</td>
+                              <td className="p-1 border">{book.newStock}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -461,7 +495,7 @@ const AddBookEntry = () => {
         
         {/* No Books Message */}
         {selectedCounsellor && counsellorBooks.length === 0 && (
-          <p className="text-center text-gray-500">No books found for this counsellor</p>
+          <p className="text-center text-gray-500 py-4">No books found for this counsellor</p>
         )}
       </div>
     </div>
