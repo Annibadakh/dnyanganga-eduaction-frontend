@@ -12,13 +12,13 @@ const RegistrationForm = () => {
   // File upload hooks
   const studentPhoto = FileUploadHook();
   const receiptPhoto = FileUploadHook();
-  const formPhoto = FileUploadHook();
   
   // Form states
   const [paymentError, setPaymentError] = useState("");
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
+  const [show9thBranchDropdown, setShow9thBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
-  const [showPreviousYearDropdown, setShowPreviousYearDropdown] = useState(false);
+  const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] = useState(false);
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
   const [handleDue, setHandleDue] = useState(false);
@@ -57,7 +57,6 @@ const RegistrationForm = () => {
     receiptNo: "",
     studentPhoto: "",
     receiptPhoto: "",
-    formPhoto: "",
     paymentStandard: "",
     totalamount: 0,
     amountPaid: "",
@@ -111,7 +110,6 @@ const RegistrationForm = () => {
       const draftData = { ...data };
       delete draftData.studentPhoto;
       delete draftData.receiptPhoto;
-      delete draftData.formPhoto;
       
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
         data: draftData,
@@ -166,14 +164,26 @@ const RegistrationForm = () => {
       }));
       
       // Update dropdown states based on loaded data
-      if (draftData.standard === "10th") {
-        setShow10thBranchDropdown(true);
+      if (draftData.standard === "9th") {
+        setShow9thBranchDropdown(true);
+        setShow10thBranchDropdown(false);
+        setShow11thPlusBranchDropdown(false);
         setShowBranchDropdown(false);
-        setShowPreviousYearDropdown(true);
+      } else if (draftData.standard === "10th") {
+        setShow10thBranchDropdown(true);
+        setShow9thBranchDropdown(false);
+        setShow11thPlusBranchDropdown(false);
+        setShowBranchDropdown(false);
+      } else if (draftData.standard === "11th+12th") {
+        setShow11thPlusBranchDropdown(true);
+        setShow9thBranchDropdown(false);
+        setShow10thBranchDropdown(false);
+        setShowBranchDropdown(false);
       } else if (draftData.standard === "12th") {
         setShowBranchDropdown(true);
+        setShow9thBranchDropdown(false);
         setShow10thBranchDropdown(false);
-        setShowPreviousYearDropdown(true);
+        setShow11thPlusBranchDropdown(false);
       }
       
       // Update exam centre search if draft contains exam centre
@@ -197,7 +207,7 @@ const RegistrationForm = () => {
   // Auto-save to localStorage whenever formData changes
   useEffect(() => {
     const hasData = Object.entries(formData).some(([key, value]) => {
-      if (['studentPhoto', 'receiptPhoto', 'formPhoto', 'amountRemaining'].includes(key)) {
+      if (['studentPhoto', 'receiptPhoto', 'amountRemaining'].includes(key)) {
         return false;
       }
       return value !== "" && value !== 0;
@@ -255,47 +265,86 @@ const RegistrationForm = () => {
     const { name, value } = e.target;
     
     if (name === "standard") {
-      if (value === "10th") {
+      const currentYear = new Date().getFullYear();
+      const nextYear = currentYear + 1;
+      
+      if (value === "9th") {
         setFormData({
           ...formData,
           [name]: value,
           branch: "",
-          previousYear: "",
+          previousYear: "8th",
+          examYear: nextYear.toString(), // Next Year for 9th
+          paymentStandard: "9th",
+          totalamount: 5850
+        });
+        setShow9thBranchDropdown(true);
+        setShow10thBranchDropdown(false);
+        setShow11thPlusBranchDropdown(false);
+        setShowBranchDropdown(false);
+      } else if (value === "10th") {
+        setFormData({
+          ...formData,
+          [name]: value,
+          branch: "",
+          previousYear: "9th",
+          examYear: currentYear.toString(), // Current Year for 10th
           paymentStandard: "10th",
           totalamount: 5850
         });
         setShow10thBranchDropdown(true);
+        setShow9thBranchDropdown(false);
+        setShow11thPlusBranchDropdown(false);
         setShowBranchDropdown(false);
-        setShowPreviousYearDropdown(true);
+      } else if (value === "11th+12th") {
+        setFormData({
+          ...formData,
+          [name]: value,
+          branch: "",
+          previousYear: "10th",
+          examYear: nextYear.toString(), // Next Year for 11th+12th
+          paymentStandard: "11th+12th",
+          totalamount: 9850
+        });
+        setShow11thPlusBranchDropdown(true);
+        setShow9thBranchDropdown(false);
+        setShow10thBranchDropdown(false);
+        setShowBranchDropdown(false);
       } else if (value === "12th") {
         setFormData({
           ...formData,
           [name]: value,
           branch: "",
-          previousYear: "",
-          paymentStandard: "",
-          totalamount: 0
+          previousYear: "11th",
+          examYear: currentYear.toString(), // Current Year for 12th
+          paymentStandard: "12th",
+          totalamount: 7900
         });
         setShowBranchDropdown(true);
+        setShow9thBranchDropdown(false);
         setShow10thBranchDropdown(false);
-        setShowPreviousYearDropdown(true);
+        setShow11thPlusBranchDropdown(false);
       } else {
         setFormData({
           ...formData,
           [name]: value,
           branch: "",
           previousYear: "",
+          examYear: "",
           paymentStandard: "",
           totalamount: 0
         });
         setShowBranchDropdown(false);
+        setShow9thBranchDropdown(false);
         setShow10thBranchDropdown(false);
-        setShowPreviousYearDropdown(false);
+        setShow11thPlusBranchDropdown(false);
       }
     } else if (name === "paymentStandard") {
       let newTotalAmount = 0;
       
-      if (value === "10th") {
+      if (value === "9th") {
+        newTotalAmount = 5850;
+      } else if (value === "10th") {
         newTotalAmount = 5850;
       } else if (value === "12th") {
         newTotalAmount = 7900;
@@ -328,12 +377,6 @@ const RegistrationForm = () => {
     }
   };
 
-  const handleFormPhotoUpload = async () => {
-    const imageUrl = await formPhoto.uploadImage();
-    if (imageUrl) {
-      setFormData({ ...formData, formPhoto: imageUrl });
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -346,7 +389,9 @@ const RegistrationForm = () => {
     
     // Add packageType based on paymentStandard
     let packageType = "";
-    if (formData.paymentStandard === "10th") {
+    if (formData.paymentStandard === "9th") {
+      packageType = "9th";
+    } else if (formData.paymentStandard === "10th") {
       packageType = "10th";
     } else if (formData.paymentStandard === "12th") {
       packageType = "12th";
@@ -386,51 +431,7 @@ const RegistrationForm = () => {
     }
   };
 
-  const handleReset = () => {
-    setFormData({
-      studentName: "",
-      gender: "",
-      dob: "",
-      motherName: "",
-      address: "",
-      pincode: "",
-      email: "",
-      studentNo: "",
-      parentsNo: "",
-      appNo: "",
-      notificationNo: "",
-      standard: "",
-      previousYear: "",
-      schoolCollege: "",
-      preYearPercent: "",
-      branch: "",
-      examCentre: "",
-      examYear: "",
-      formNo: "",
-      receiptNo: "",
-      studentPhoto: "",
-      receiptPhoto: "",
-      formPhoto: "",
-      paymentStandard: "",
-      totalamount: 7900,
-      amountPaid: "",
-      modeOfPayment: "",
-      amountRemaining: "",
-      dueDate: "",
-    });
-    
-    studentPhoto.resetUpload();
-    receiptPhoto.resetUpload();
-    formPhoto.resetUpload();
-    
-    clearDraftFromLocalStorage();
-    setExamCentreSearch("");
-    
-    setPaymentError("");
-    setShowBranchDropdown(false);
-    setShow10thBranchDropdown(false);
-    setShowPreviousYearDropdown(false);
-  };
+
 
   return (
     <div className="w-full bg-white">
@@ -473,21 +474,6 @@ const RegistrationForm = () => {
           )}
 
           <form onSubmit={handleSubmit} className="p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full">
-            {/* Photo Upload Section */}
-            <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Photo</h3>
-              <FileUpload
-                title="Student Photo"
-                imageUrl={studentPhoto.imageUrl}
-                error={studentPhoto.error}
-                loader={studentPhoto.loader}
-                isSaved={studentPhoto.isSaved}
-                imageType="passport"
-                onFileUpload={studentPhoto.handleFileUpload}
-                onUploadImage={handleStudentPhotoUpload}
-                onRemovePhoto={studentPhoto.removePhoto}
-              />
-            </div>
 
             {/* Personal Details Section */}
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
@@ -514,7 +500,7 @@ const RegistrationForm = () => {
                   <option value="Female">Female</option>
                 </select>
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className=" min-w-fit md:text-[17px] text-md mr-2 text-black">Date of Birth:</label>
+                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Date of Birth:</label>
                   <input 
                     type="date" 
                     name="dob" 
@@ -568,10 +554,26 @@ const RegistrationForm = () => {
                   required
                 >
                   <option value="">Select Standard</option>
+                  <option value="9th">9th</option>
                   <option value="10th">10th</option>
+                  <option value="11th+12th">11th+12th</option>
                   <option value="12th">12th</option>
                 </select>
-                {show10thBranchDropdown ? (
+                
+                {/* Auto-filled Previous Year Field */}
+                <div className="w-full flex flex-row items-center gap-1 order-2">
+                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Previous Year:</label>
+                  <input 
+                    type="text" 
+                    name="previousYear" 
+                    value={formData.previousYear}
+                    className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed text-sm sm:text-base"
+                    disabled
+                    readOnly
+                  />
+                </div>
+                
+                {show9thBranchDropdown && (
                   <select 
                     name="branch" 
                     value={formData.branch} 
@@ -584,7 +586,24 @@ const RegistrationForm = () => {
                     <option value="Semi-English">Semi-English</option>
                     <option value="English">English</option>
                   </select>
-                ) : showBranchDropdown ? (
+                )}
+                
+                {show10thBranchDropdown && (
+                  <select 
+                    name="branch" 
+                    value={formData.branch} 
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
+                    required
+                  >
+                    <option value="">Select Medium</option>
+                    <option value="Marathi">Marathi</option>
+                    <option value="Semi-English">Semi-English</option>
+                    <option value="English">English</option>
+                  </select>
+                )}
+                
+                {show11thPlusBranchDropdown && (
                   <select 
                     name="branch" 
                     value={formData.branch} 
@@ -597,50 +616,23 @@ const RegistrationForm = () => {
                     <option value="PCB">PCB</option>
                     <option value="PCMB">PCMB</option>
                   </select>
-                ) : (
-                  !showPreviousYearDropdown && (
-                    <input 
-                      type="text" 
-                      name="branch" 
-                      onChange={handleChange} 
-                      placeholder="Medium/Group" 
-                      disabled={!showPreviousYearDropdown}
-                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
-                      required
-                    />
-                  )
                 )}
-                <input 
-                  type="text" 
-                  name="schoolCollege" 
-                  value={formData.schoolCollege}
-                  onChange={handleChange} 
-                  placeholder="Enter School/College Name" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base order-5"
-                  required
-                />
-                <select 
-                  name="previousYear" 
-                  value={formData.previousYear}
-                  disabled={!showPreviousYearDropdown}
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-2"
-                  required
-                >
-                  <option value="">Select Previous Year</option>
-                  {formData.standard === "10th" && (
-                    <>
-                      <option value="8th">8th</option>
-                      <option value="9th">9th</option>
-                    </>
-                  )}
-                  {formData.standard === "12th" && (
-                    <>
-                      <option value="10th">10th</option>
-                      <option value="11th">11th</option>
-                    </>
-                  )}
-                </select>
+                
+                {showBranchDropdown && (
+                  <select 
+                    name="branch" 
+                    value={formData.branch} 
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
+                    required
+                  >
+                    <option value="">Select Group</option>
+                    <option value="PCM">PCM</option>
+                    <option value="PCB">PCB</option>
+                    <option value="PCMB">PCMB</option>
+                  </select>
+                )}
+                
                 <input 
                   type="number" 
                   name="preYearPercent" 
@@ -651,6 +643,16 @@ const RegistrationForm = () => {
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-4" 
                   required 
                   min="0" max="100" step="0.01"
+                />
+                
+                <input 
+                  type="text" 
+                  name="schoolCollege" 
+                  value={formData.schoolCollege}
+                  onChange={handleChange} 
+                  placeholder="Enter School/College Name" 
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base order-5"
+                  required
                 />
               </div>
             </div>
@@ -790,25 +792,20 @@ const RegistrationForm = () => {
                   )}
                 </div>
                 
-                <select 
-                  name="examYear" 
-                  value={formData.examYear}
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
-                  required
-                >
-                  <option value="">Select Dnyanganga Exam Year</option>
-                  {Array.from({ length: 5 }, (_, i) => {
-                    const year = new Date().getFullYear() + i;
-                    return (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    );
-                  })}
-                </select>
+                {/* Auto-filled Exam Year Field */}
+                <div className="w-full flex flex-row items-center gap-1">
+                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Exam Year:</label>
+                  <input 
+                    type="text" 
+                    name="examYear" 
+                    value={formData.examYear}
+                    className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed text-sm sm:text-base"
+                    disabled
+                    readOnly
+                  />
+                </div>
                 
-                <input 
+                {/* <input 
                   type="text" 
                   name="formNo" 
                   value={formData.formNo}
@@ -816,7 +813,7 @@ const RegistrationForm = () => {
                   placeholder="Enter Admission Form Number" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base"
                   required
-                />
+                /> */}
               </div>
             </div>
 
@@ -824,34 +821,9 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Payment Details</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                {formData.standard === "10th" ? (
-                  <div className="w-full px-3 py-2 border rounded bg-gray-100 text-sm sm:text-base flex items-center">
-                    <span className="text-gray-600">Standard: 10th (Auto-selected)</span>
-                  </div>
-                ) : formData.standard === "12th" ? (
-                  <select 
-                    name="paymentStandard" 
-                    value={formData.paymentStandard}
-                    onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
-                    required
-                  >
-                    <option value="">Select Standard</option>
-                    <option value="12th">12th</option>
-                    <option value="11th+12th">11th+12th</option>
-                  </select>
-                ) : (
-                  <select 
-                    name="paymentStandard" 
-                    value={formData.paymentStandard}
-                    onChange={handleChange} 
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
-                    required
-                    disabled
-                  >
-                    <option value="">Select Educational Standard First</option>
-                  </select>
-                )}
+                
+                {/* Payment Standard field is hidden but logic remains */}
+                
                 <div className="w-full flex flex-row items-center gap-1">
                   <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Total Amount: </label>
                 <input 
@@ -922,8 +894,8 @@ const RegistrationForm = () => {
                   <option value="cheque">Cheque</option>
                 </select>
                 
-                <div className="w-full lg:col-span-2">
-                  <label className="block text-sm sm:text-base mb-1 text-black">Due Date:</label>
+                <div className="w-full flex flex-row items-center gap-1">
+                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Due Date:</label>
                   <input 
                     disabled={handleDue}
                     type="date" 
@@ -941,21 +913,18 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Documents</h3>
               <div className="space-y-4">
-                {/* Form Photo Upload */}
-                <FileUpload
-                  title="Admission Form Photo"
-                  imageUrl={formPhoto.imageUrl}
-                  error={formPhoto.error}
-                  loader={formPhoto.loader}
-                  isSaved={formPhoto.isSaved}
-                  imageType="receipt"
-                  onFileUpload={formPhoto.handleFileUpload}
-                  onUploadImage={handleFormPhotoUpload}
-                  onRemovePhoto={formPhoto.removePhoto}
-                />
-                
-                {/* Receipt Photo Upload */}
-                <FileUpload
+              <FileUpload
+                title="Student Photo"
+                imageUrl={studentPhoto.imageUrl}
+                error={studentPhoto.error}
+                loader={studentPhoto.loader}
+                isSaved={studentPhoto.isSaved}
+                imageType="passport"
+                onFileUpload={studentPhoto.handleFileUpload}
+                onUploadImage={handleStudentPhotoUpload}
+                onRemovePhoto={studentPhoto.removePhoto}
+              />
+              <FileUpload
                   title="Fees Receipt Photo"
                   imageUrl={receiptPhoto.imageUrl}
                   error={receiptPhoto.error}
@@ -970,20 +939,52 @@ const RegistrationForm = () => {
             </div>
 
             <div className="grid place-items-center w-full">
-              {studentPhoto.isSaved && !paymentError && (
+              {studentPhoto.isSaved && receiptPhoto.isSaved && formData.examCentre && !paymentError && (
                 <button 
                   type="submit" 
-                  disabled={submitLoader || !formData.examCentre}
+                  disabled={submitLoader}
                   className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
                 >
                   {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
                 </button>
               )}
-              {!studentPhoto.isSaved && (
-                <div className="mb-4">
-                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3 mb-2">
-                        📸 Please upload and save Student photo first
+              {(!studentPhoto.isSaved || !receiptPhoto.isSaved || !formData.examCentre) && (
+                <div className="mb-4 space-y-2">
+                  {!studentPhoto.isSaved && !receiptPhoto.isSaved && !formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      📋 Please complete: Upload Student photo, Upload Receipt photo, and Select Exam Centre
                     </p>
+                  )}
+                  {!studentPhoto.isSaved && !receiptPhoto.isSaved && formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      📸 Please upload and save both Student photo and Receipt photo
+                    </p>
+                  )}
+                  {!studentPhoto.isSaved && receiptPhoto.isSaved && !formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      📋 Please upload Student photo and select Exam Centre
+                    </p>
+                  )}
+                  {studentPhoto.isSaved && !receiptPhoto.isSaved && !formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      📋 Please upload Receipt photo and select Exam Centre
+                    </p>
+                  )}
+                  {!studentPhoto.isSaved && receiptPhoto.isSaved && formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      📸 Please upload and save Student photo
+                    </p>
+                  )}
+                  {studentPhoto.isSaved && !receiptPhoto.isSaved && formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      📸 Please upload and save Receipt photo
+                    </p>
+                  )}
+                  {studentPhoto.isSaved && receiptPhoto.isSaved && !formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      🏫 Please select an Exam Centre
+                    </p>
+                  )}
                 </div>
               )}
             </div>

@@ -4,7 +4,6 @@ import api from "../Api";
 import PaymentForm from "./PaymentForm";
 
 const RegistrationTable = () => {
-  const imgUrl = import.meta.env.VITE_IMG_URL;
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -19,8 +18,6 @@ const RegistrationTable = () => {
   const [selectedExamCentre, setSelectedExamCentre] = useState("");
   const [selectedStandard, setSelectedStandard] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [showPhotoModal, setShowPhotoModal] = useState(false);
 
   // New state for searchable dropdowns
   const [counsellorSearch, setCounsellorSearch] = useState("");
@@ -200,16 +197,6 @@ const RegistrationTable = () => {
     }
   };
   
-  const handleViewPhoto = (photoPath) => {
-      if (photoPath) {
-        const fullUrl = `${imgUrl}${photoPath}`;
-        console.log(fullUrl)
-        setSelectedPhoto(fullUrl);
-        setShowPhotoModal(true);
-      } else {
-        alert("Photo not available.");
-      }
-    };
 
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
@@ -345,6 +332,7 @@ const RegistrationTable = () => {
             >
               <option value="">All Standards</option>
               <option value="10th">10th</option>
+              <option value="11th+12th">11th+12th</option>
               <option value="12th">12th</option>
             </select>
           </div>
@@ -366,7 +354,7 @@ const RegistrationTable = () => {
                     </th>
                     <th className="p-3 border whitespace-nowrap">Register Time</th>
                     <th className="p-3 border whitespace-nowrap">Student ID.</th>
-                    <th className="p-3 border whitespace-nowrap">Form No.</th>
+                    {/* <th className="p-3 border whitespace-nowrap">Form No.</th> */}
                     <th className="p-3 border whitespace-nowrap">Student Name</th>
                     <th className="p-3 border whitespace-nowrap">Standard</th>
                     <th className="p-3 border whitespace-nowrap">Med/Grp</th>
@@ -400,7 +388,7 @@ const RegistrationTable = () => {
                       </td>
                       <td className="p-3 border whitespace-nowrap">{formatTimeTo12Hour(student.createdAt)}</td>
                       <td className="p-3 border whitespace-nowrap">{student.studentId}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.formNo}</td>
+                      {/* <td className="p-3 border whitespace-nowrap">{student.formNo}</td> */}
                       <td className="p-3 border whitespace-nowrap">{student.studentName}</td>
                       <td className="p-3 border whitespace-nowrap">{student.standard}</td>
                       <td className="p-3 border whitespace-nowrap">{student.branch}</td>
@@ -441,12 +429,7 @@ const RegistrationTable = () => {
                               "PDF"
                             )}
                           </button>
-                          <button
-                            onClick={() => handleViewPhoto(student.formPhoto)}
-                            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                          >
-                            View
-                          </button>
+                          
                           {user.role === "counsellor" && student.amountRemaining > 0 && (
                             <button
                               onClick={() => handlePayment(student)}
@@ -473,30 +456,7 @@ const RegistrationTable = () => {
       ) : (
         <PaymentForm paymentData={paymentData} setShowPayment={setShowPayment} />
       )}
-      {showPhotoModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-        <div className="relative bg-white rounded-lg shadow-lg w-[90%] max-w-3xl max-h-[90vh] overflow-auto p-4">
-          
-          <h2 className="text-lg font-semibold mb-4">Form Photo</h2>
-          <div className="border rounded">
-            <img
-              src={selectedPhoto}
-              alt="Form"
-              className="w-full h-auto object-contain"
-            />
-          </div>
-          <div className="mt-4 flex justify-end">
-            <button
-            type="button"
-            onClick={() => setShowPhotoModal(false)}
-            className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
-          >
-            Close
-          </button>
-          </div>
-        </div>
-      </div>
-    )}
+     
 
     </div>
   );
