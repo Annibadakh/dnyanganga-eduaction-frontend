@@ -26,6 +26,7 @@ const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) 
       window.location.href = pdfUrl;
     }
   };
+  
 
   // For mobile devices, show options instead of iframe
   if (isMobile && viewMode === 'options') {
@@ -149,6 +150,12 @@ const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) 
             File: {fileName}
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              onClick={handleOpenInNewTab}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mr-2"
+            >
+              Open in New Tab
+            </button>
             <button
               onClick={handleDirectDownload}
               className="flex-1 sm:flex-none bg-primary text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
