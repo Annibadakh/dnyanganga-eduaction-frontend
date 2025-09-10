@@ -3,6 +3,198 @@ import { useAuth } from "../Context/AuthContext";
 import api from "../Api";
 import PaymentForm from "./PaymentForm";
 
+// Mobile-friendly PDF viewer component
+const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) => {
+  const [viewMode, setViewMode] = useState('options'); // 'options' | 'iframe'
+  
+  // Detect if device is mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+  const handleDirectDownload = () => {
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    onClose();
+  };
+
+  const handleOpenInNewTab = () => {
+    const newWindow = window.open(pdfUrl, '_blank');
+    if (!newWindow) {
+      // If popup blocked, fallback to direct navigation
+      window.location.href = pdfUrl;
+    }
+    onClose();
+  };
+
+  const handleNativeView = () => {
+    // This will use the device's native PDF viewer
+    window.location.href = pdfUrl;
+  };
+
+  const handleBrowserPreview = () => {
+    setViewMode('iframe');
+  };
+
+  // For mobile devices, show options instead of iframe
+  if (isMobile && viewMode === 'options') {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-sm w-full p-6">
+          <div className="text-center mb-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">View PDF Document</h2>
+            <p className="text-gray-600 mb-1 text-sm">{studentName}</p>
+            <p className="text-xs text-gray-500">ID: {studentId}</p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleDirectDownload}
+              className="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download PDF
+            </button>
+
+            <button
+              onClick={handleOpenInNewTab}
+              className="w-full p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Open in Browser
+            </button>
+
+            <button
+              onClick={handleNativeView}
+              className="w-full p-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              Open in App
+            </button>
+
+            <button
+              onClick={handleBrowserPreview}
+              className="w-full p-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            >
+              Try Browser Preview
+            </button>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full mt-4 p-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback iframe for desktop or when user chooses browser preview
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
+      <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[95vh] flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-800 truncate">
+              PDF Preview - {studentName}
+            </h2>
+            <p className="text-sm text-gray-600 truncate">Student ID: {studentId}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {isMobile && (
+              <button
+                onClick={() => setViewMode('options')}
+                className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
+              >
+                Options
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="ml-2 text-gray-400 hover:text-gray-600 text-2xl font-bold flex-shrink-0"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* PDF Viewer */}
+        <div className="flex-1 p-2 md:p-4 overflow-hidden">
+          {isMobile ? (
+            // Mobile-optimized view
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 rounded border-2 border-dashed border-gray-300">
+              <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-gray-600 text-center mb-4 px-4">
+                PDF preview may not work well on mobile devices.
+                <br />
+                Please use the download or "Open in Browser" options below.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDirectDownload}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Download
+                </button>
+                <button
+                  onClick={handleOpenInNewTab}
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                  Open in Browser
+                </button>
+              </div>
+            </div>
+          ) : (
+            // Desktop iframe
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full border border-gray-300 rounded"
+              title="PDF Preview"
+              style={{ minHeight: '400px' }}
+            />
+          )}
+        </div>
+
+        {/* Footer with actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 md:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+          <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
+            File: {fileName}
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              onClick={handleDirectDownload}
+              className="flex-1 sm:flex-none bg-primary text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+            >
+              Download PDF
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 sm:flex-none bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RegistrationTable = () => {
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState([]);
@@ -19,7 +211,7 @@ const RegistrationTable = () => {
   const [selectedStandard, setSelectedStandard] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
 
-  // New state for PDF preview dialog
+  // Mobile-optimized PDF preview state
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfFileName, setPdfFileName] = useState("");
@@ -79,7 +271,6 @@ const RegistrationTable = () => {
             (user) => user.role === "counsellor"
           );
           setUsers(counsellors);
-          console.log(counsellors);
         })
         .catch((error) => {
           console.error("Error fetching users", error);
@@ -88,7 +279,6 @@ const RegistrationTable = () => {
     api
       .get("/admin/getExamCenters")
       .then((response) => {
-        console.log(response.data.data);
         setExamCentres(response.data.data);
       })
       .catch((error) => {
@@ -100,7 +290,6 @@ const RegistrationTable = () => {
     api
       .get(`/counsellor/getRegister?uuid=${user.uuid}&role=${user.role}`)
       .then((response) => {
-        console.log(response.data.data);
         setRegistrations(response.data.data);
         setFiltered(response.data.data);
         setLoading(false);
@@ -210,15 +399,6 @@ const RegistrationTable = () => {
       console.error(err);
     } finally {
       setLoadingPdfId(null);
-    }
-  };
-
-  const handleDownloadPDF = () => {
-    if (pdfUrl && pdfFileName) {
-      const link = document.createElement("a");
-      link.href = pdfUrl;
-      link.download = pdfFileName;
-      link.click();
     }
   };
 
@@ -490,61 +670,15 @@ const RegistrationTable = () => {
         <PaymentForm paymentData={paymentData} setShowPayment={setShowPayment} />
       )}
 
-      {/* PDF Preview Dialog */}
+      {/* Mobile-Optimized PDF Preview */}
       {showPdfPreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
-          <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[95vh] flex flex-col">
-            {/* Header */}
-            <div className="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-              <div className="flex-1 min-w-0">
-                <h2 className="text-lg md:text-xl font-semibold text-gray-800 truncate">
-                  PDF Preview - {currentPdfStudent?.studentName}
-                </h2>
-                <p className="text-sm text-gray-600 truncate">
-                  Student ID: {currentPdfStudent?.studentId}
-                </p>
-              </div>
-              <button
-                onClick={handleClosePdfPreview}
-                className="ml-4 text-gray-400 hover:text-gray-600 text-2xl font-bold flex-shrink-0"
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* PDF Viewer */}
-            <div className="flex-1 p-2 md:p-4 overflow-hidden">
-              <iframe
-                src={pdfUrl}
-                className="w-full h-full border border-gray-300 rounded"
-                title="PDF Preview"
-                style={{ minHeight: '400px' }}
-              />
-            </div>
-
-            {/* Footer with actions */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 md:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-              <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
-                File: {pdfFileName}
-              </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <button
-                  onClick={handleDownloadPDF}
-                  className="flex-1 sm:flex-none bg-primary text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                >
-                  Download PDF
-                </button>
-                <button
-                  onClick={handleClosePdfPreview}
-                  className="flex-1 sm:flex-none bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MobilePDFViewer
+          pdfUrl={pdfUrl}
+          onClose={handleClosePdfPreview}
+          fileName={pdfFileName}
+          studentName={currentPdfStudent?.studentName}
+          studentId={currentPdfStudent?.studentId}
+        />
       )}
     </div>
   );
