@@ -363,9 +363,21 @@ const RegistrationForm = () => {
 
   // Handle file uploads with form data update
   const handleStudentPhotoUpload = async () => {
+    console.log("Starting student photo upload...");
+    console.log("Current formData.studentPhoto:", formData.studentPhoto);
+    
     const imageUrl = await studentPhoto.uploadImage();
-    if (imageUrl) {
-      setFormData({ ...formData, studentPhoto: imageUrl });
+    console.log("Student photo upload returned:", imageUrl);
+    
+    if (imageUrl && imageUrl.trim() !== '') {
+      console.log("Setting student photo URL in formData:", imageUrl);
+      setFormData(prevData => {
+        const newData = { ...prevData, studentPhoto: imageUrl };
+        console.log("Updated formData with studentPhoto:", newData.studentPhoto);
+        return newData;
+      });
+    } else {
+      console.error("Student photo upload failed - no valid URL returned");
     }
   };
 
