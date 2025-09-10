@@ -53,7 +53,6 @@ const RegistrationForm = () => {
     branch: "",
     examCentre: "",
     examYear: "",
-    formNo: "",
     receiptNo: "",
     studentPhoto: "",
     receiptPhoto: "",
@@ -788,16 +787,6 @@ const RegistrationForm = () => {
                     readOnly
                   />
                 </div>
-                
-                {/* <input 
-                  type="text" 
-                  name="formNo" 
-                  value={formData.formNo}
-                  onChange={handleChange} 
-                  placeholder="Enter Admission Form Number" 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base"
-                  required
-                /> */}
               </div>
             </div>
 
