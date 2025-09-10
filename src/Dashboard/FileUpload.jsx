@@ -7,7 +7,7 @@ const FileUpload = ({
   error, 
   loader, 
   isSaved, 
-  imageType = "passport", // new prop (default: passport)
+  imageType = "passport",
   onFileUpload, 
   onUploadImage, 
   onRemovePhoto 

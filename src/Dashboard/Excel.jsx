@@ -18,7 +18,7 @@ const Excel = () => {
   const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
 
   const allColumns = [
-    "studentId", "studentName", "formNo", "standard", "branch", "studentNo",
+    "studentId", "studentName", "standard", "branch", "studentNo",
     "parentsNo", "examCentre", "counsellor", "counsellorBranch", "totalAmount",
     "amountPaid", "amountRemaining", "dueDate", "createdAt"
   ];
@@ -26,7 +26,6 @@ const Excel = () => {
   const columnDisplayNames = {
     "studentId": "Student ID",
     "studentName": "Student Name",
-    "formNo": "Form Number",
     "standard": "Standard",
     "branch": "Grp/Med",
     "studentNo": "Student Phone",

@@ -389,7 +389,6 @@ const RegistrationTable = () => {
                     </th>
                     <th className="p-3 border whitespace-nowrap">Register Time</th>
                     <th className="p-3 border whitespace-nowrap">Student ID.</th>
-                    {/* <th className="p-3 border whitespace-nowrap">Form No.</th> */}
                     <th className="p-3 border whitespace-nowrap">Student Name</th>
                     <th className="p-3 border whitespace-nowrap">Standard</th>
                     <th className="p-3 border whitespace-nowrap">Med/Grp</th>
@@ -423,7 +422,6 @@ const RegistrationTable = () => {
                       </td>
                       <td className="p-3 border whitespace-nowrap">{formatTimeTo12Hour(student.createdAt)}</td>
                       <td className="p-3 border whitespace-nowrap">{student.studentId}</td>
-                      {/* <td className="p-3 border whitespace-nowrap">{student.formNo}</td> */}
                       <td className="p-3 border whitespace-nowrap">{student.studentName}</td>
                       <td className="p-3 border whitespace-nowrap">{student.standard}</td>
                       <td className="p-3 border whitespace-nowrap">{student.branch}</td>
