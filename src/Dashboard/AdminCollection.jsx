@@ -229,7 +229,7 @@ const AdminCollection = () => {
       {loading && <p className="text-center">Loading data...</p>}
 
       {/* Collection Summary */}
-      {collection && (
+      {/* {collection && (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
             Collection Summary
@@ -263,10 +263,10 @@ const AdminCollection = () => {
             </table>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Admin Settlement Form */}
-      {selectedCounsellor && (
+      {/* {selectedCounsellor && (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
             Admin Settlement
@@ -350,10 +350,10 @@ const AdminCollection = () => {
             </div>
           )}
         </div>
-      )}
+      )} */}
 
       {/* Transaction History */}
-      {transactions.length > 0 && (
+      {transactions.length > 0 ? (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
             Transaction History
@@ -392,7 +392,7 @@ const AdminCollection = () => {
             </table>
           </div>
         </div>
-      )}
+      ) : (<p>No transaction Found !!</p>)}
 
       {/* Proof Modal */}
       <Transition appear show={showProofModal} as={Fragment}>

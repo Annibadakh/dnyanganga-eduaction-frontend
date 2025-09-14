@@ -617,7 +617,7 @@ const RegistrationTable = () => {
                             disabled={loadingPdfId === student.studentId}
                           >
                             {loadingPdfId === student.studentId ? (
-                              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                              <span className="animate-spin h-4 w-4 border-2 p-2 border-white border-t-transparent rounded-full"></span>
                             ) : (
                               "PDF"
                             )}

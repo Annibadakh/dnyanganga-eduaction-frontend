@@ -66,13 +66,13 @@ const CounsellorCollection = () => {
   const handleSettleAmountChange = (e) => {
     const value = parseFloat(e.target.value) || 0;
     setSettleAmount(e.target.value);
-    if (collection && value > collection.balance) {
-      setError("Amount cannot exceed available balance.");
-    } else if (value <= 0) {
-      setError("Amount must be greater than 0.");
-    } else {
-      setError("");
-    }
+    // if (collection && value > collection.balance) {
+    //   setError("Amount cannot exceed available balance.");
+    // } else if (value <= 0) {
+    //   setError("Amount must be greater than 0.");
+    // } else {
+    //   setError("");
+    // }
   };
 
   const handleSettle = async (e) => {
@@ -80,7 +80,8 @@ const CounsellorCollection = () => {
     if (!collection) return;
 
     const value = parseFloat(settleAmount);
-    if (!value || value <= 0 || value > collection.balance) {
+    // if (!value || value <= 0 || value > collection.balance) {
+    if (!value || value <= 0) {
       setError("Enter a valid settlement amount.");
       return;
     }
@@ -139,7 +140,7 @@ const CounsellorCollection = () => {
       {loading && <p className="text-center">Loading data...</p>}
 
       {/* Collection Summary */}
-      {collection && (
+      {/* {collection && (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
             Collection Summary
@@ -174,7 +175,7 @@ const CounsellorCollection = () => {
             </table>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Settlement Form */}
       {collection && (
@@ -283,7 +284,7 @@ const CounsellorCollection = () => {
       )}
 
       {/* Transaction History */}
-      {transactions.length > 0 && (
+      {transactions.length > 0 ? (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
             Settlement History
@@ -326,7 +327,7 @@ const CounsellorCollection = () => {
             </table>
           </div>
         </div>
-      )}
+      ) : (<p>No transaction Found !!</p>)}
 
       {/* Proof Modal */}
       <Transition appear show={showReceiptModal} as={Fragment}>

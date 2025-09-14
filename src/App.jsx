@@ -35,6 +35,7 @@ import AddBookEntry from "./Dashboard/AddBookEntry";
 import CounsellorBooks from "./Dashboard/CounsellorBooks";
 import AdminCollection from "./Dashboard/AdminCollection";
 import CounsellorCollection from "./Dashboard/CounsellorCollection";
+import StudentEditPage from "./Dashboard/StudentEditPage";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -57,11 +58,8 @@ function App() {
     <div className="font-custom">
       <BrowserRouter>
         <Routes>
-          {/* ❌ No Navbar & Footer here */}
           <Route path="login" element={<Login />} /> 
-          {/* <Route path="hallticket" element={hallTicket ? <HallTicket /> : <h2>Hall Ticket not yet declared !!</h2>} />
-          <Route path="result" element={resultDeclared ? <Result /> : <h2>Result not yet declared</h2>} /> */}
-          <Route
+         <Route
             path="hallticket"
             element={hallTicket ? <HallTicket /> : <InfoPage type="hallticket" />}
           />
@@ -91,6 +89,7 @@ function App() {
                 <Route path='visitingtable' element={<VisitingTable />} />
                 <Route path='registertable' element={<RegistrationTable />} />
                 <Route path='paymenttable' element={<PaymentTable />} />
+                <Route path='studentedit' element={<StudentEditPage />} />
 
               </Route>
               

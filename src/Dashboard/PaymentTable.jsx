@@ -3,6 +3,175 @@ import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import { Dialog, Transition } from "@headlessui/react";
 
+// Mobile-friendly PDF viewer component (same as RegistrationTable)
+const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) => {
+  const [viewMode, setViewMode] = useState('options'); // 'options' | 'iframe'
+  
+  // Detect if device is mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+  const handleDirectDownload = () => {
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    onClose();
+  };
+
+  const handleOpenInNewTab = () => {
+    const newWindow = window.open(pdfUrl, '_blank');
+    if (!newWindow) {
+      window.location.href = pdfUrl;
+    }
+  };
+  
+  // For mobile devices, show options instead of iframe
+  if (isMobile && viewMode === 'options') {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-sm w-full p-6">
+          <div className="text-center mb-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">View Receipt PDF</h2>
+            <p className="text-gray-600 mb-1 text-sm">{studentName}</p>
+            <p className="text-xs text-gray-500">ID: {studentId}</p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleDirectDownload}
+              className="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download PDF
+            </button>
+
+            <button
+              onClick={handleOpenInNewTab}
+              className="w-full p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Open in Browser
+            </button>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full mt-4 p-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback iframe for desktop or when user chooses browser preview
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
+      <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[95vh] flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-800 truncate">
+              Receipt PDF Preview - {studentName}
+            </h2>
+            <p className="text-sm text-gray-600 truncate">Student ID: {studentId}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {isMobile && (
+              <button
+                onClick={() => setViewMode('options')}
+                className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
+              >
+                Options
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="ml-2 text-gray-400 hover:text-gray-600 text-2xl font-bold flex-shrink-0"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* PDF Viewer */}
+        <div className="flex-1 p-2 md:p-4 overflow-hidden">
+          {isMobile ? (
+            // Mobile-optimized view
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 rounded border-2 border-dashed border-gray-300">
+              <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-gray-600 text-center mb-4 px-4">
+                PDF preview may not work well on mobile devices.
+                <br />
+                Please use the download or "Open in Browser" options below.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDirectDownload}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Download
+                </button>
+                <button
+                  onClick={handleOpenInNewTab}
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                  Open in Browser
+                </button>
+              </div>
+            </div>
+          ) : (
+            // Desktop iframe
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full border border-gray-300 rounded"
+              title="Receipt PDF Preview"
+              style={{ minHeight: '400px' }}
+            />
+          )}
+        </div>
+
+        {/* Footer with actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 md:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+          <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
+            File: {fileName}
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              onClick={handleOpenInNewTab}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mr-2"
+            >
+              Open in New Tab
+            </button>
+            <button
+              onClick={handleDirectDownload}
+              className="flex-1 sm:flex-none bg-primary text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+            >
+              Download PDF
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 sm:flex-none bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const PaymentTable = () => {
   const { user } = useAuth();
   const [paymentsData, setPaymentsData] = useState([]);
@@ -29,6 +198,23 @@ const PaymentTable = () => {
     };
   }, [pdfUrl]);
 
+  // Function to get the most recent payment date for a student
+  const getMostRecentPaymentDate = (payments) => {
+    if (!payments || payments.length === 0) return new Date(0); // Very old date for students with no payments
+    
+    const dates = payments.map(payment => new Date(payment.createdAt));
+    return new Date(Math.max(...dates));
+  };
+
+  // Function to sort students by most recent payment date (newest first)
+  const sortStudentsByRecentPayment = (students) => {
+    return students.sort((a, b) => {
+      const dateA = getMostRecentPaymentDate(a.payments);
+      const dateB = getMostRecentPaymentDate(b.payments);
+      return dateB - dateA; // Descending order (newest first)
+    });
+  };
+
   useEffect(() => {
     api
       .get("/counsellor/getPayments", {
@@ -38,8 +224,9 @@ const PaymentTable = () => {
         },
       })
       .then((response) => {
-        setPaymentsData(response.data.studentData);
-        setFilteredData(response.data.studentData);
+        const sortedData = sortStudentsByRecentPayment(response.data.studentData);
+        setPaymentsData(sortedData);
+        setFilteredData(sortedData);
       })
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
@@ -62,7 +249,9 @@ const PaymentTable = () => {
       return studentMatch || paymentMatch;
     });
 
-    setFilteredData(filtered);
+    // Sort filtered results as well
+    const sortedFiltered = sortStudentsByRecentPayment(filtered);
+    setFilteredData(sortedFiltered);
   }, [searchTerm, paymentsData]);
 
   const handleViewReceipt = (receiptPhoto) => {
@@ -99,15 +288,6 @@ const PaymentTable = () => {
       console.error(err);
     } finally {
       setLoadingPdfId(null);
-    }
-  };
-
-  const handleDownloadReceiptPDF = () => {
-    if (pdfUrl && pdfFileName) {
-      const link = document.createElement("a");
-      link.href = pdfUrl;
-      link.download = pdfFileName;
-      link.click();
     }
   };
 
@@ -273,61 +453,15 @@ const PaymentTable = () => {
         </Dialog>
       </Transition>
 
-      {/* PDF Preview Dialog (new) */}
+      {/* Mobile-Optimized PDF Preview */}
       {showPdfPreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
-          <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[95vh] flex flex-col">
-            {/* Header */}
-            <div className="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-              <div className="flex-1 min-w-0">
-                <h2 className="text-lg md:text-xl font-semibold text-gray-800 truncate">
-                  Receipt PDF Preview - {currentPdfStudent?.studentName}
-                </h2>
-                <p className="text-sm text-gray-600 truncate">
-                  Student ID: {currentPdfStudent?.studentId}
-                </p>
-              </div>
-              <button
-                onClick={handleClosePdfPreview}
-                className="ml-4 text-gray-400 hover:text-gray-600 text-2xl font-bold flex-shrink-0"
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* PDF Viewer */}
-            <div className="flex-1 p-2 md:p-4 overflow-hidden">
-              <iframe
-                src={pdfUrl}
-                className="w-full h-full border border-gray-300 rounded"
-                title="Receipt PDF Preview"
-                style={{ minHeight: '400px' }}
-              />
-            </div>
-
-            {/* Footer with actions */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 md:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-              <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
-                File: {pdfFileName}
-              </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <button
-                  onClick={handleDownloadReceiptPDF}
-                  className="flex-1 sm:flex-none bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
-                >
-                  Download Receipt
-                </button>
-                <button
-                  onClick={handleClosePdfPreview}
-                  className="flex-1 sm:flex-none bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MobilePDFViewer
+          pdfUrl={pdfUrl}
+          onClose={handleClosePdfPreview}
+          fileName={pdfFileName}
+          studentName={currentPdfStudent?.studentName}
+          studentId={currentPdfStudent?.studentId}
+        />
       )}
     </div>
   );

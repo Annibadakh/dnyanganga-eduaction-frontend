@@ -201,9 +201,10 @@ const VisitingForm = () => {
                   required
                 />
                 <input 
-                  type="text" 
+                  type="number" 
                   name="pincode" 
                   value={formData.pincode}
+                  onWheel={(e) => e.target.blur()}
                   onChange={handleChange} 
                   placeholder="Enter Pincode" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
