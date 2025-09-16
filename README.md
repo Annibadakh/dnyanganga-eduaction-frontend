@@ -1,4 +1,4 @@
-# Institute Management System
+# PrepPortal: Exam Admin Software
 
 A complete **PrepPortal: Exam Admin Software for Dnyangnaga Education Pvt Ltd** built for a client to streamline **subject management, student registration, payments, halltickets, results, notifications, and book distribution**.  
 This project is designed to handle **Admin, Counsellor, and Teacher roles** with dashboards and automated communication (Email, WhatsApp Business API, DLT-compliant SMS).
