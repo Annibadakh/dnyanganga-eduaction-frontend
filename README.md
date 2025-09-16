@@ -100,6 +100,7 @@ This project is designed to handle **Admin, Counsellor, and Teacher roles** with
 ## 🔗 Repository
 
 👉 [Backend Repository Link](https://github.com/Annibadakh/dnyanganga-education-backend)
+👉 [Deployed Link](https://dnyangangaeducation.com/)
 
 ---
 
