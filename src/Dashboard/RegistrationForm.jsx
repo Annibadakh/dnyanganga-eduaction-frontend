@@ -859,9 +859,10 @@ const RegistrationForm = () => {
                 )}
                 
                 <input 
-                  type="text" 
+                  type="number" 
                   name="receiptNo" 
                   value={formData.receiptNo}
+                  onWheel={(e) => e.target.blur()}
                   onChange={handleChange} 
                   placeholder="Enter Fees Receipt Number" 
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"

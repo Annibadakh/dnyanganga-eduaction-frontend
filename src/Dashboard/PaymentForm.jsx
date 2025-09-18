@@ -120,7 +120,7 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
                 
                 <div className="mb-3">
                     <label className="block">Receipt No.:</label>
-                    <input type="text" value={receiptNo} onChange={handleOnChange} className="border p-2 w-full" />
+                    <input type="number"  value={receiptNo} onWheel={(e) => e.target.blur()} onChange={handleOnChange} className="border p-2 w-full" />
                 </div>
                 
                 <div className="mb-3">

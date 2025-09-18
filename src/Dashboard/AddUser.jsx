@@ -28,6 +28,7 @@ const AddUser = () => {
     contactNum: "",
     branch: "",
     commission: "",
+    dob: "",
     password: "",
     reenterPassword: ""
   });
@@ -123,6 +124,7 @@ const AddUser = () => {
           contactNum: "",
           branch: "",
           commission: "",
+          dob: "",
           password: "",
           reenterPassword: ""
         });
@@ -218,9 +220,12 @@ const AddUser = () => {
               {formData.role === "counsellor" && (
                 <>
                   <input type="text" name="branch" placeholder="Branch" value={formData.branch} onChange={handleChange} required className="p-2 border rounded-md" />
-                  <input type="number" name="commission" onWheel={(e) => e.target.blur()} placeholder="Commission %" value={formData.commission} onChange={handleChange} required className="p-2 border rounded-md" />
+                  {/* <input type="number" name="commission" onWheel={(e) => e.target.blur()} placeholder="Commission %" value={formData.commission} onChange={handleChange} required className="p-2 border rounded-md" /> */}
                 </>
               )}
+        
+              <input type="date" name="dob" placeholder="Date of Birth" value={formData.dob} onChange={handleChange} required className="p-2 border rounded-md" />
+                
             </div>
             <div className="flex gap-2">
               <button type="submit" disabled={submitLoader} className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:opacity-50">
@@ -265,13 +270,14 @@ const AddUser = () => {
           <table className="table-auto w-full text-center text-sm border border-gray-300 overflow-hidden">
           <thead className="bg-primary text-white">
             <tr>
-              <th className="p-3 whitespace-nowrap border">Name</th>
               <th className="p-3 whitespace-nowrap border">Sr. No.</th>
+              <th className="p-3 whitespace-nowrap border">Name</th>
               <th className="p-3 whitespace-nowrap border">Email</th>
               <th className="p-3 whitespace-nowrap border">Role</th>
               <th className="p-3 whitespace-nowrap border">Contact No.</th>
+              <th className="p-3 whitespace-nowrap border">Date Of Birth</th>
               <th className="p-3 whitespace-nowrap border">Branch</th>
-              <th className="p-3 whitespace-nowrap border">Commission</th>
+              {/* <th className="p-3 whitespace-nowrap border">Commission</th> */}
               <th className="p-3 whitespace-nowrap border">Actions</th>
             </tr>
           </thead>
@@ -283,8 +289,9 @@ const AddUser = () => {
                 <td className="p-3 whitespace-nowrap border">{user.email}</td>
                 <td className="p-3 whitespace-nowrap border">{user.role.toUpperCase()}</td>
                 <td className="p-3 whitespace-nowrap border">{user.contactNum}</td>
+                <td className="p-3 whitespace-nowrap border">{user.dob ? new Date(user.dob).toLocaleDateString("en-GB") : ""}</td>
                 <td className="p-3 whitespace-nowrap border">{user.branch}</td>
-                <td className="p-3 whitespace-nowrap border">{user.commission}</td>
+                {/* <td className="p-3 whitespace-nowrap border">{user.commission}</td> */}
                 <td className="p-3 whitespace-nowrap border">
                   <div className="flex justify-center gap-2">
                     <button onClick={() => handleDelete(user.uuid)} disabled={updateLoader === user.uuid} className={`${user.isActive ? "bg-red-500" : "bg-green-500"} text-white px-3 py-1 rounded-md hover:${user.isActive ? "bg-red-600" : "bg-green-600"} disabled:opacity-50`}>

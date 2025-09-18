@@ -105,7 +105,7 @@ const CounsellorCollection = () => {
         paymentDate,
       };
       await api.post("/counsellor/myCollection/settle", payload);
-      alert("Settlement submitted successfully!");
+      alert("Collection submitted successfully!");
       setSettleAmount("");
       setRemark("");
       setPaymentDate("");
@@ -188,7 +188,7 @@ const CounsellorCollection = () => {
 
           <form onSubmit={handleSettle} className="space-y-4">
             <div>
-              <label className="block mb-2 font-medium">Amount to Give</label>
+              <label className="block mb-2 font-medium">Amount</label>
               <input
                 type="number"
                 min="1"
@@ -197,7 +197,7 @@ const CounsellorCollection = () => {
                 onWheel={(e) => e.target.blur()}
                 onChange={handleSettleAmountChange}
                 className="w-full p-2 border rounded-md"
-                placeholder="Enter amount ≤ balance"
+                placeholder="Enter amount"
                 required
               />
             </div>
@@ -270,7 +270,7 @@ const CounsellorCollection = () => {
                 {submitLoader ? (
                   <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span>
                 ) : (
-                  "Submit Settlement"
+                  "Submit Collection"
                 )}
               </button>
             ) : (
@@ -287,7 +287,7 @@ const CounsellorCollection = () => {
       {transactions.length > 0 ? (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
-            Settlement History
+            Collection History
           </h2>
           <div className="overflow-x-auto">
             <table className="table-auto min-w-full text-center border border-gray-300">

@@ -3,13 +3,23 @@ import api from "../Api";
 
 const AddBookEntry = () => {
   const [counsellors, setCounsellors] = useState([]);
-  const [bookEntries, setBookEntries] = useState([{ bookName: "", count: "" }]);
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
   const [selectedCounsellorName, setSelectedCounsellorName] = useState("");
-  const [selectedClass, setSelectedClass] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [submitLoader, setSubmitLoader] = useState(false);
   const [counsellorBooks, setCounsellorBooks] = useState([]);
+  
+  // Book entries for multiple standards
+  const [bookEntries, setBookEntries] = useState([]);
+  
+  // Pamphlet entry
+  const [pamphletEntry, setPamphletEntry] = useState({ count: 0 });
+  
+  // Receipt book entries
+  const [receiptBookEntries, setReceiptBookEntries] = useState([{ bookNo: "", range: 0 }]);
+  
+  // Challan details
+  const [chalanDate, setChalanDate] = useState(new Date().toISOString().split('T')[0]);
   
   // Dropdown states for form
   const [isFormDropdownOpen, setIsFormDropdownOpen] = useState(false);
@@ -78,21 +88,19 @@ const AddBookEntry = () => {
     await loadBooksById(id);
   };
 
-  // Handle class selection and auto-populate book entries
-  const handleClassChange = (classValue) => {
-    setSelectedClass(classValue);
-    
-    if (classValue && classOptions[classValue]) {
-      // Auto-populate book entries with the books for selected class
-      const classBooks = classOptions[classValue].map(book => ({
-        bookName: book,
-        count: ""
-      }));
-      setBookEntries(classBooks);
-    } else {
-      // Reset to empty entry if no class selected
-      setBookEntries([{ bookName: "", count: "" }]);
-    }
+  // Initialize book entries based on all standards
+  const initializeBookEntries = () => {
+    const entries = [];
+    Object.keys(classOptions).forEach(standard => {
+      classOptions[standard].forEach(book => {
+        entries.push({
+          standard,
+          bookName: book,
+          count: 0
+        });
+      });
+    });
+    setBookEntries(entries);
   };
 
   // Form dropdown handlers
@@ -129,49 +137,107 @@ const AddBookEntry = () => {
     setBookEntries(updated);
   };
 
-  const addBookRow = () => setBookEntries([...bookEntries, { bookName: "", count: "" }]);
-  const removeBookRow = (index) => {
-    const updated = [...bookEntries];
+  const handleReceiptBookChange = (index, field, value) => {
+    const updated = [...receiptBookEntries];
+    updated[index][field] = value;
+    setReceiptBookEntries(updated);
+  };
+
+  const addReceiptBookRow = () => {
+    setReceiptBookEntries([...receiptBookEntries, { bookNo: "", range: 0 }]);
+  };
+
+  const removeReceiptBookRow = (index) => {
+    const updated = [...receiptBookEntries];
     updated.splice(index, 1);
-    setBookEntries(updated);
+    setReceiptBookEntries(updated);
+  };
+
+  const getCurrentDate = () => {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const validateAndPreparePayload = () => {
+    if (!selectedCounsellor) {
+      alert("Please select a counsellor");
+      return null;
+    }
+
+    const payload = {
+      chalanDate,
+      counsellorId: selectedCounsellor,
+      items: []
+    };
+
+    // Add book entries (only those with count > 0)
+    const validBookEntries = bookEntries.filter(entry => entry.count > 0);
+    validBookEntries.forEach(entry => {
+      payload.items.push({
+        standard: entry.standard,
+        bookName: entry.bookName,
+        totalCount: parseInt(entry.count)
+      });
+    });
+
+    // Add pamphlet entry if count > 0
+    if (pamphletEntry.count > 0) {
+      payload.items.push({
+        standard: "pamphlet",
+        bookName: getCurrentDate(),
+        totalCount: parseInt(pamphletEntry.count)
+      });
+    }
+
+    // Add receipt book entries (only valid ones)
+    const validReceiptEntries = receiptBookEntries.filter(entry => 
+      entry.bookNo && entry.range > 0
+    );
+    validReceiptEntries.forEach(entry => {
+      payload.items.push({
+        standard: "receiptBook",
+        bookName: entry.bookNo,
+        totalCount: parseInt(entry.range)
+      });
+    });
+
+    // Check if at least one item is being sent
+    if (payload.items.length === 0) {
+      alert("Please add at least one entry (book, pamphlet, or receipt book) with valid data");
+      return null;
+    }
+
+    return payload;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedCounsellor) {
-      alert("Please select a counsellor");
-      return;
-    }
-    if (!selectedClass) {
-      alert("Please select a class");
-      return;
-    }
-
-    for (let entry of bookEntries) {
-      if (!entry.bookName || !entry.count || entry.count <= 0) {
-        alert("Please fill all book names and valid counts");
-        return;
-      }
-    }
-
-    const payload = bookEntries.map(entry => ({
-      counsellorId: selectedCounsellor,
-      standard: selectedClass, // Now sending standard instead of embedding in bookName
-      bookName: entry.bookName,
-      newStock: entry.count
-    }));
+    
+    const payload = validateAndPreparePayload();
+    if (!payload) return;
 
     try {
       setSubmitLoader(true);
       console.log("Payload to be sent:", payload);
-      await api.post("/admin/addBooks", { books: payload });
       
-      alert("Book entries added successfully!");
-      setBookEntries([{ bookName: "", count: "" }]);
-      setSelectedClass("");
+      // Call the new API endpoint that handles challan creation
+      await api.post("/admin/addBooksWithChalan", payload);
+      
+      alert("Entry added successfully with challan!");
+      
+      // Reset form
+      setChalanDate(new Date().toISOString().split('T')[0]);
+      
+      initializeBookEntries();
+      setPamphletEntry({ count: 0 });
+      setReceiptBookEntries([{ bookNo: "", range: 0 }]);
+      
       await loadBooksById(selectedCounsellor); // Refresh the books list
     } catch (err) {
-      console.error("Error adding books", err);
+      console.error("Error adding books with challan", err);
       alert("Something went wrong");
     } finally {
       setSubmitLoader(false);
@@ -186,14 +252,6 @@ const AddBookEntry = () => {
   const viewFilteredCounsellors = counsellors.filter((c) =>
     c.name.toLowerCase().includes(viewInternalSearch.toLowerCase())
   );
-
-  // Get available books based on selected class
-  const getAvailableBooks = () => {
-    if (selectedClass && classOptions[selectedClass]) {
-      return classOptions[selectedClass];
-    }
-    return ["Physics", "Chemistry", "Math", "Biology", "English", "Science"]; // fallback to all books
-  };
 
   // Group books by standard for display
   const groupBooksByStandard = () => {
@@ -220,7 +278,7 @@ const AddBookEntry = () => {
     <div className="relative" ref={dropdownRef}>
       <div 
         onClick={toggleDropdown}
-        className="w-full p-2 border border-gray-300 rounded-lg cursor-pointer bg-white flex justify-between items-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full p-2 border border-gray-300 rounded-lg cursor-pointer bg-white flex justify-between items-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
       >
         <span className={selectedName ? "text-black" : "text-gray-500"}>
           {selectedName || "-- Select Counsellor --"}
@@ -243,7 +301,7 @@ const AddBookEntry = () => {
               placeholder="Search counsellor..."
               value={internalSearch}
               onChange={(e) => setInternalSearch(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               autoFocus
             />
           </div>
@@ -262,7 +320,7 @@ const AddBookEntry = () => {
                     key={counsellor.uuid}
                     onClick={() => onSelect(counsellor.uuid, counsellor.name)}
                     className={`p-2 hover:bg-gray-100 cursor-pointer transition ${
-                      selectedCounsellor === counsellor.uuid ? 'bg-blue-50 text-blue-600' : ''
+                      selectedCounsellor === counsellor.uuid ? 'text-primary' : ''
                     }`}
                   >
                     {counsellor.name}
@@ -280,6 +338,144 @@ const AddBookEntry = () => {
     </div>
   );
 
+  const renderBookEntriesTable = () => {
+    const groupedEntries = {};
+    bookEntries.forEach(entry => {
+      if (!groupedEntries[entry.standard]) {
+        groupedEntries[entry.standard] = [];
+      }
+      groupedEntries[entry.standard].push(entry);
+    });
+
+    return (
+      <div className="overflow-auto">
+        <table className="w-full border border-gray-300 rounded-lg text-sm">
+          <thead className="bg-primary text-white uppercase">
+            <tr>
+              <th className="p-3 border">Standard</th>
+              <th className="p-3 border">Book Name</th>
+              <th className="p-3 border">Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookEntries.map((entry, index) => (
+              <tr key={index} className="text-center border-b hover:bg-gray-100 transition">
+                <td className="p-2 border font-semibold">{entry.standard}</td>
+                <td className="p-2 border">{entry.bookName}</td>
+                <td className="p-2 border">
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={entry.count}
+                    onChange={(e) => handleBookChange(index, "count", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const renderPamphletEntry = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">Standard</label>
+          <input 
+            type="text" 
+            value="Pamphlet" 
+            disabled 
+            className="w-full p-2 border border-gray-300 rounded-lg bg-gray-100"
+          />
+        </div>
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">Date</label>
+          <input 
+            type="text" 
+            value={getCurrentDate()} 
+            disabled 
+            className="w-full p-2 border border-gray-300 rounded-lg bg-gray-100"
+          />
+        </div>
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">Count</label>
+          <input
+            type="number"
+            min="0"
+            placeholder="0"
+            value={pamphletEntry.count}
+            onChange={(e) => setPamphletEntry({ count: e.target.value })}
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderReceiptBookEntries = () => (
+    <div className="space-y-4">
+      <div className="overflow-auto">
+        <table className="w-full border border-gray-300 rounded-lg text-sm">
+          <thead className="bg-primary text-white uppercase">
+            <tr>
+              <th className="p-3 border">Standard</th>
+              <th className="p-3 border">Book No</th>
+              <th className="p-3 border">Range</th>
+              <th className="p-3 border">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {receiptBookEntries.map((entry, index) => (
+              <tr key={index} className="text-center border-b hover:bg-gray-100 transition">
+                <td className="p-2 border">Receipt Book</td>
+                <td className="p-2 border">
+                  <input
+                    type="text"
+                    placeholder="Book Number"
+                    value={entry.bookNo}
+                    onChange={(e) => handleReceiptBookChange(index, "bookNo", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </td>
+                <td className="p-2 border">
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={entry.range}
+                    onChange={(e) => handleReceiptBookChange(index, "range", e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </td>
+                <td className="p-2 border">
+                  <button
+                    type="button"
+                    onClick={() => removeReceiptBookRow(index)}
+                    className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-2 rounded-lg text-xs transition mr-2"
+                    disabled={receiptBookEntries.length === 1}
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <button
+        type="button"
+        onClick={addReceiptBookRow}
+        className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition"
+      >
+        Add Receipt Book
+      </button>
+    </div>
+  );
+
   const groupedBooks = groupBooksByStandard();
 
   return (
@@ -291,8 +487,11 @@ const AddBookEntry = () => {
       {/* Add Entry Button */}
       {!showForm && (
         <button
-          onClick={() => setShowForm(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg mb-6 transition"
+          onClick={() => {
+            setShowForm(true);
+            initializeBookEntries(); // Initialize with all books
+          }}
+          className="bg-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg mb-6 transition"
         >
           Add Entry
         </button>
@@ -301,7 +500,10 @@ const AddBookEntry = () => {
       {/* Add Entry Form */}
       {showForm && (
         <div className="bg-white shadow-custom md:p-6 p-2 mb-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Add New Book Entry</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Add New Challan Entry</h2>
+          <p className="text-sm text-gray-600 mb-6">
+            Create a single challan that can include books, pamphlets, and receipt books for the selected counsellor.
+          </p>
 
           <div className="space-y-4">
             {/* Counsellor Selection */}
@@ -319,80 +521,45 @@ const AddBookEntry = () => {
               />
             </div>
 
-            {/* Standard Selection */}
+            {/* Challan Details */}
             <div>
-              <label className="block mb-2 font-medium text-gray-700">Select Standard</label>
-              <select
-                value={selectedClass}
-                onChange={(e) => handleClassChange(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">-- Select Standard --</option>
-                <option value="10th">10th</option>
-                <option value="11th">11th</option>
-                <option value="12th">12th</option>
-              </select>
+              <label className="block mb-2 font-medium text-gray-700">Challan Date</label>
+              <input
+                type="date"
+                value={chalanDate}
+                onChange={(e) => setChalanDate(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Challan number will be auto-generated (4-digit unique number)
+              </p>
             </div>
 
-            {/* Book Entries */}
-            {selectedClass && (
-              <div>
-                <label className="block mb-2 font-medium text-gray-700">Book Entries</label>
-                <div className="overflow-auto">
-                  <table className="w-full border border-gray-300 rounded-lg text-sm">
-                    <thead className="bg-blue-500 text-white uppercase">
-                      <tr>
-                        <th className="p-3 border">Book Name</th>
-                        <th className="p-3 border">Count</th>
-                        {bookEntries.length > 1 && !selectedClass && (
-                          <th className="p-3 border">Action</th>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bookEntries.map((entry, index) => (
-                        <tr key={index} className="text-center border-b hover:bg-gray-100 transition">
-                          <td className="p-2 border">
-                            <select
-                              value={entry.bookName}
-                              onChange={(e) => handleBookChange(index, "bookName", e.target.value)}
-                              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              disabled={selectedClass}
-                            >
-                              <option value="">-- Select Book --</option>
-                              {getAvailableBooks().map(book => (
-                                <option key={book} value={book}>{book}</option>
-                              ))}
-                            </select>
-                          </td>
-                          <td className="p-2 border">
-                            <input
-                              type="number"
-                              min="1"
-                              placeholder="Count"
-                              value={entry.count}
-                              onChange={(e) => handleBookChange(index, "count", e.target.value)}
-                              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </td>
-                          {bookEntries.length > 1 && !selectedClass && (
-                            <td className="p-2 border">
-                              <button
-                                type="button"
-                                onClick={() => removeBookRow(index)}
-                                className="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-2 rounded-lg text-xs transition"
-                              >
-                                Remove
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+            {/* Entry Type Selection */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">Add Entries</label>
+              <p className="text-sm text-gray-600 mb-4">
+                Fill in any combination of books, pamphlet, or receipt books. All will be included in a single challan.
+              </p>
+            </div>
+
+            {/* Books Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Books</h3>
+              {renderBookEntriesTable()}
+            </div>
+
+            {/* Pamphlet Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Pamphlet</h3>
+              {renderPamphletEntry()}
+            </div>
+
+            {/* Receipt Books Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Receipt Books</h3>
+              {renderReceiptBookEntries()}
+            </div>
 
             {/* Form Buttons */}
             <div className="flex gap-4 pt-4">
@@ -400,7 +567,7 @@ const AddBookEntry = () => {
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitLoader}
-                className={`bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition grid place-items-center ${
+                className={`bg-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition grid place-items-center ${
                   submitLoader ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               >
@@ -415,8 +582,10 @@ const AddBookEntry = () => {
                 disabled={submitLoader}
                 onClick={() => {
                   setShowForm(false);
-                  setSelectedClass("");
-                  setBookEntries([{ bookName: "", count: "" }]);
+                  setChalanDate(new Date().toISOString().split('T')[0]);
+                  initializeBookEntries();
+                  setPamphletEntry({ count: 0 });
+                  setReceiptBookEntries([{ bookNo: "", range: 0 }]);
                 }}
                 className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition disabled:opacity-50"
               >
@@ -450,7 +619,7 @@ const AddBookEntry = () => {
         {selectedCounsellor && counsellorBooks.length > 0 && (
           <div className="overflow-auto">
             <table className="w-full border border-gray-300 rounded-lg text-sm whitespace-nowrap">
-              <thead className="bg-blue-500 text-white uppercase">
+              <thead className="bg-primary text-white uppercase">
                 <tr>
                   <th className="p-3 border">Sr. No.</th>
                   <th className="p-3 border">Standard</th>
@@ -461,7 +630,7 @@ const AddBookEntry = () => {
                 {Object.keys(groupedBooks).map((standard, standardIndex) => (
                   <tr key={standard} className="text-center border-b hover:bg-gray-100 transition">
                     <td className="p-2 border">{standardIndex + 1}</td>
-                    <td className="p-2 border font-semibold text-blue-600">{standard}</td>
+                    <td className="p-2 border font-semibold text-primary">{standard}</td>
                     <td className="p-2 border">
                       <table className="w-full text-xs border border-gray-300">
                         <thead>

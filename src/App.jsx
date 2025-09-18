@@ -36,6 +36,7 @@ import CounsellorBooks from "./Dashboard/CounsellorBooks";
 import AdminCollection from "./Dashboard/AdminCollection";
 import CounsellorCollection from "./Dashboard/CounsellorCollection";
 import StudentEditPage from "./Dashboard/StudentEditPage";
+import ChallanManagement from "./Dashboard/ChallanManagement";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -89,7 +90,6 @@ function App() {
                 <Route path='visitingtable' element={<VisitingTable />} />
                 <Route path='registertable' element={<RegistrationTable />} />
                 <Route path='paymenttable' element={<PaymentTable />} />
-                <Route path='studentedit' element={<StudentEditPage />} />
 
               </Route>
               
@@ -107,6 +107,9 @@ function App() {
                 <Route path='bookentries' element={<AddBookEntry />} />
                 <Route path='examcenter' element={<AddCenter />} />
                 <Route path='collection' element={<AdminCollection />} />
+                <Route path='studentedit' element={<StudentEditPage />} />
+                <Route path='chalan' element={<ChallanManagement />} />
+
               </Route>
 
             </Route>
