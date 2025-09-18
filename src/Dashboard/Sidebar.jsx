@@ -15,7 +15,7 @@ import {
   FaMoneyCheckAlt,
   FaBalanceScale,
   FaUserEdit,
-  FaFileInvoice 
+  FaFileInvoice,
 } from "react-icons/fa";
 
 const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
@@ -47,7 +47,8 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       className={`absolute z-50 top-0 bottom-0 left-0 sm:relative bg-primary text-white transition-all duration-200 
       ${isSidebarOpen ? "w-52 sm:w-52 p-4" : "w-0 overflow-hidden"}`}
     >
-      <nav className={`${isSidebarOpen ? "block" : "hidden"}`}>
+      {/* ✅ Added h-screen & overflow-y-auto */}
+      <nav className={`${isSidebarOpen ? "block h-full overflow-y-auto scrollbar-hide" : "hidden"}`}>
         <ul>
           {links.map(({ path, label, role, icon }) => {
             if (role && role !== userRole.role) return null;
