@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../Context/AuthContext";
 import api from "../Api";
 import PaymentForm from "./PaymentForm";
+import StudentEditPage from "./StudentEditPage";
 
 // Mobile-friendly PDF viewer component
 const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) => {
@@ -197,6 +198,10 @@ const RegistrationTable = () => {
   const [pdfFileName, setPdfFileName] = useState("");
   const [currentPdfStudent, setCurrentPdfStudent] = useState(null);
 
+  // Edit student state
+  const [showEditStudent, setShowEditStudent] = useState(false);
+  const [editStudentId, setEditStudentId] = useState(null);
+
   // New state for searchable dropdowns
   const [counsellorSearch, setCounsellorSearch] = useState("");
   const [examCentreSearch, setExamCentreSearch] = useState("");
@@ -279,7 +284,7 @@ const RegistrationTable = () => {
         setError("Failed to load data");
         setLoading(false);
       });
-  }, [user?.uuid, showPayment]);
+  }, [user?.uuid, showPayment, showEditStudent]);
 
   useEffect(() => {
     const q = searchQuery.toLowerCase();
@@ -345,6 +350,11 @@ const RegistrationTable = () => {
     setShowPayment(true);
   };
 
+  const handleEditStudent = (student) => {
+    setEditStudentId(student.studentId);
+    setShowEditStudent(true);
+  };
+
   const handleViewPDF = async (student) => {
     try {
       setLoadingPdfId(student.studentId);
@@ -392,6 +402,11 @@ const RegistrationTable = () => {
     setCurrentPdfStudent(null);
   };
 
+  const handleCloseEditStudent = () => {
+    setShowEditStudent(false);
+    setEditStudentId(null);
+  };
+
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
     return date.toLocaleTimeString('en-GB', {
@@ -400,6 +415,16 @@ const RegistrationTable = () => {
       hour12: true
     });
   };
+
+  // If showing edit student form, render that instead
+  if (showEditStudent) {
+    return (
+      <StudentEditPage 
+        studentId={editStudentId}
+        onClose={handleCloseEditStudent}
+      />
+    );
+  }
 
   return (
     <div className="p-2 container mx-auto">
@@ -623,6 +648,15 @@ const RegistrationTable = () => {
                             )}
                           </button>
                           
+                          {user.role === "admin" && (
+                            <button
+                              onClick={() => handleEditStudent(student)}
+                              className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600"
+                            >
+                              Edit
+                            </button>
+                          )}
+
                           {user.role === "counsellor" && student.amountRemaining > 0 && (
                             <button
                               onClick={() => handlePayment(student)}
