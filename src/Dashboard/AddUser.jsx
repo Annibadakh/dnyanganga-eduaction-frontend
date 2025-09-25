@@ -38,7 +38,7 @@ const AddUser = () => {
   }, []);
 
   const fetchUsers = () => {
-    api.get("/admin/getUser").then((res) => {
+    api.get("/admin/getUserWithDetails").then((res) => {
       setUsers(res.data.data);
     }).catch((err) => {
       console.error("Error fetching users", err);
