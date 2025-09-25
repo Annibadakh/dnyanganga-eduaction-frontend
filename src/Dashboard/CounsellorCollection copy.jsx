@@ -13,7 +13,6 @@ const CounsellorCollection = () => {
 
   const [settleAmount, setSettleAmount] = useState("");
   const [remark, setRemark] = useState("");
-  const [customRemark, setCustomRemark] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
   const [error, setError] = useState("");
   const [submitLoader, setSubmitLoader] = useState(false);
@@ -67,7 +66,13 @@ const CounsellorCollection = () => {
   const handleSettleAmountChange = (e) => {
     const value = parseFloat(e.target.value) || 0;
     setSettleAmount(e.target.value);
-    
+    // if (collection && value > collection.balance) {
+    //   setError("Amount cannot exceed available balance.");
+    // } else if (value <= 0) {
+    //   setError("Amount must be greater than 0.");
+    // } else {
+    //   setError("");
+    // }
   };
 
   const handleSettle = async (e) => {
@@ -75,6 +80,7 @@ const CounsellorCollection = () => {
     if (!collection) return;
 
     const value = parseFloat(settleAmount);
+    // if (!value || value <= 0 || value > collection.balance) {
     if (!value || value <= 0) {
       setError("Enter a valid settlement amount.");
       return;
@@ -94,7 +100,7 @@ const CounsellorCollection = () => {
         counsellorId: user.uuid,
         counsellorName: user.userName,
         amountPaid: value,
-        remark: customRemark ? `Other: ${customRemark}` : remark,
+        remark: remark,
         proofUrl: formData.proofUrl,
         paymentDate,
       };
@@ -133,7 +139,43 @@ const CounsellorCollection = () => {
 
       {loading && <p className="text-center">Loading data...</p>}
 
-      
+      {/* Collection Summary */}
+      {/* {collection && (
+        <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
+          <h2 className="text-xl font-semibold text-secondary mb-4">
+            Collection Summary
+          </h2>
+
+          <div className="overflow-x-auto">
+            <table className="table-auto min-w-full text-center border border-gray-300">
+              <thead className="bg-primary text-white">
+                <tr>
+                  <th className="p-2 border whitespace-nowrap">Commission %</th>
+                  <th className="p-2 border whitespace-nowrap">Total Amount</th>
+                  <th className="p-2 border whitespace-nowrap">Actual Amount</th>
+                  <th className="p-2 border whitespace-nowrap">Given Amount</th>
+                  <th className="p-2 border whitespace-nowrap">Balance Amount</th>
+                  <th className="p-2 border whitespace-nowrap">
+                    Last Settle Date
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="hover:bg-gray-100">
+                  <td className="p-2 border">{collection.commissionRate} %</td>
+                  <td className="p-2 border">₹ {collection.totalAmount}</td>
+                  <td className="p-2 border">₹ {collection.actualAmount}</td>
+                  <td className="p-2 border">₹ {collection.collectedAmount}</td>
+                  <td className="p-2 border">₹ {collection.balance}</td>
+                  <td className="p-2 border">
+                    { new Date(collection.lastCollectedDate).toLocaleDateString("en-GB") || "-"}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )} */}
 
       {/* Settlement Form */}
       {collection && (
@@ -196,8 +238,8 @@ const CounsellorCollection = () => {
                   type="text"
                   placeholder="Enter custom remark"
                   className="mt-3 w-full p-2 border rounded-md"
-                  value={customRemark}
-                  onChange={(e) => setCustomRemark(`${e.target.value}`)}
+                  value={remark.startsWith("Other:") ? remark.replace("Other:", "") : ""}
+                  onChange={(e) => setRemark(`Other:${e.target.value}`)}
                   required
                 />
               )}
@@ -254,7 +296,6 @@ const CounsellorCollection = () => {
                   <th className="p-2 border">Date</th>
                   <th className="p-2 border">Amount Paid</th>
                   <th className="p-2 border">Remark</th>
-                  <th className="p-2 border">Status</th>
                   <th className="p-2 border">Proof</th>
                 </tr>
               </thead>
@@ -264,7 +305,6 @@ const CounsellorCollection = () => {
                     <td className="p-2 border">{new Date(txn.paymentDate).toLocaleDateString("en-GB") }</td>
                     <td className="p-2 border">₹ {txn.amountPaid}</td>
                     <td className="p-2 border">{txn.remark}</td>
-                    <td className="p-2 border">{txn.verifyStatus == "pending" ? (<span className="text-primary font-semibold">Pending</span>) : (txn.verifyStatus == "verified" ? (<span className="text-green-600 font-semibold">Approved</span>) : (<span className="text-red-600 font-semibold">Rejected</span>))}</td>
                     <td className="p-2 border">
                       {txn.proofUrl ? (
                         <button

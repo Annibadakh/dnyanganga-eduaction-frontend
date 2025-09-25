@@ -336,8 +336,8 @@ const PaymentTable = () => {
                 <td className="p-2 border">{index + 1}</td>
                 <td className="p-2 border">{student.studentId}</td>
                 <td className="p-2 border">{student.studentName}</td>
-                <td className="p-2 border">{student.amountPaid}</td>
-                <td className="p-2 border">{student.amountRemaining}</td>
+                <td className="p-2 border">{student.amountPaid.toLocaleString('en-IN')}</td>
+                <td className="p-2 border">{student.amountRemaining.toLocaleString('en-IN')}</td>
                 <td className="p-2 border">
                   {student.dueDate
                     ? new Date(student.dueDate).toLocaleDateString("en-GB")
@@ -360,7 +360,7 @@ const PaymentTable = () => {
                         <tr key={payment.paymentId}>
                           <td className="p-1 border">{payment.paymentId}</td>
                           <td className="p-1 border">{payment.receiptNo}</td>
-                          <td className="p-1 border">{payment.amountPaid}</td>
+                          <td className="p-1 border">{payment.amountPaid.toLocaleString('en-IN')}</td>
                           <td className="p-1 border">
                             {new Date(payment.createdAt).toLocaleDateString("en-GB")}
                           </td>

@@ -176,21 +176,130 @@ const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) 
   );
 };
 
+// Pagination Component
+const Pagination = ({ 
+  currentPage, 
+  totalPages, 
+  onPageChange, 
+  totalItems, 
+  itemsPerPage,
+  onItemsPerPageChange 
+}) => {
+  const getPageNumbers = () => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages);
+    } else {
+      rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots;
+  };
+
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Show:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+            className="border border-gray-300 rounded px-3 py-1 text-sm"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <span className="text-sm text-gray-600">per page</span>
+        </div>
+        <div className="text-sm text-gray-600">
+          Showing {startItem} to {endItem} of {totalItems} entries
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+
+        {getPageNumbers().map((page, index) => (
+          <button
+            key={index}
+            onClick={() => typeof page === 'number' && onPageChange(page)}
+            disabled={page === '...'}
+            className={`px-3 py-2 text-sm border rounded ${
+              page === currentPage
+                ? 'bg-primary text-white border-primary'
+                : page === '...'
+                ? 'cursor-default'
+                : 'border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const RegistrationTable = () => {
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState([]);
-  const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showPayment, setShowPayment] = useState(false);
   const [paymentData, setPaymentData] = useState("");
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [users, setUsers] = useState([]);
+  const [branch, setBranch] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
   const [selectedExamCentre, setSelectedExamCentre] = useState("");
   const [selectedStandard, setSelectedStandard] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   // Mobile-optimized PDF preview state
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -204,17 +313,24 @@ const RegistrationTable = () => {
 
   // New state for searchable dropdowns
   const [counsellorSearch, setCounsellorSearch] = useState("");
+  const [branchSearch, setBranchSearch] = useState("");
   const [examCentreSearch, setExamCentreSearch] = useState("");
   const [showCounsellorDropdown, setShowCounsellorDropdown] = useState(false);
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [showExamCentreDropdown, setShowExamCentreDropdown] = useState(false);
   
   // Refs for dropdown containers
   const counsellorDropdownRef = useRef(null);
   const examCentreDropdownRef = useRef(null);
+  const branchDropdownRef = useRef(null);
 
   // Filter functions for searchable dropdowns
   const filteredCounsellors = users.filter(user =>
     user.name.toLowerCase().includes(counsellorSearch.toLowerCase())
+  );
+
+  const filteredBranch = branch.filter(user =>
+    user.branch.toLowerCase().includes(branchSearch.toLowerCase())
   );
 
   const filteredExamCentres = examCentres.filter(centre =>
@@ -229,6 +345,9 @@ const RegistrationTable = () => {
       }
       if (examCentreDropdownRef.current && !examCentreDropdownRef.current.contains(event.target)) {
         setShowExamCentreDropdown(false);
+      }
+      if (branchDropdownRef.current && !branchDropdownRef.current.contains(event.target)) {
+        setShowBranchDropdown(false);
       }
     };
 
@@ -247,6 +366,7 @@ const RegistrationTable = () => {
     };
   }, [pdfUrl]);
 
+  // Fetch users and exam centres
   useEffect(() => {
     if (user.role === "admin") {
       api
@@ -255,7 +375,9 @@ const RegistrationTable = () => {
           const counsellors = response.data.data.filter(
             (user) => user.role === "counsellor"
           );
+          console.log(counsellors);
           setUsers(counsellors);
+          setBranch(counsellors);
         })
         .catch((error) => {
           console.error("Error fetching users", error);
@@ -271,12 +393,28 @@ const RegistrationTable = () => {
       });
   }, [user.role]);
 
-  useEffect(() => {
+  // Fetch registrations with pagination
+  const fetchRegistrations = () => {
+    setLoading(true);
+    const params = {
+      uuid: user.uuid,
+      role: user.role,
+      page: currentPage,
+      limit: itemsPerPage,
+      search: searchQuery,
+      counsellor: selectedCounsellor,
+      branch: selectedBranch,
+      examCentre: selectedExamCentre,
+      standard: selectedStandard
+    };
+
     api
-      .get(`/counsellor/getRegister?uuid=${user.uuid}&role=${user.role}`)
+      .get("/counsellor/getRegister", { params })
       .then((response) => {
+        console.log(response.data);
         setRegistrations(response.data.data);
-        setFiltered(response.data.data);
+        setTotalCount(response.data.totalCount);
+        setTotalPages(response.data.totalPages);
         setLoading(false);
       })
       .catch((error) => {
@@ -284,43 +422,40 @@ const RegistrationTable = () => {
         setError("Failed to load data");
         setLoading(false);
       });
-  }, [user?.uuid, showPayment, showEditStudent]);
+  };
 
+  // Fetch registrations when dependencies change
   useEffect(() => {
-    const q = searchQuery.toLowerCase();
-    let filteredResults = registrations.filter(
-      (student) =>
-        student.studentName.toLowerCase().includes(q) ||
-        student.studentId.toLowerCase().includes(q) ||
-        student.studentNo.includes(q)
-    );
+    fetchRegistrations();
+  }, [
+    user?.uuid, 
+    currentPage, 
+    itemsPerPage, 
+    searchQuery, 
+    selectedCounsellor, 
+    selectedBranch, 
+    selectedExamCentre, 
+    selectedStandard,
+    showPayment, 
+    showEditStudent
+  ]);
 
-    if (selectedCounsellor) {
-      filteredResults = filteredResults.filter(
-        (student) => student.createdBy === selectedCounsellor
-      );
-    }
-
-    if (selectedExamCentre) {
-      filteredResults = filteredResults.filter(
-        (student) => student.examCentre === selectedExamCentre
-      );
-    }
-
-    if (selectedStandard) {
-      filteredResults = filteredResults.filter(
-        (student) => student.standard === selectedStandard
-      );
-    }
-
-    setFiltered(filteredResults);
-  }, [searchQuery, registrations, selectedCounsellor, selectedExamCentre, selectedStandard]);
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCounsellor, selectedBranch, selectedExamCentre, selectedStandard]);
 
   const handleCounsellorSelect = (counsellor) => {
     setSelectedCounsellor(counsellor.uuid);
     setCounsellorSearch(counsellor.name);
     setShowCounsellorDropdown(false);
   };
+
+  const handleBranchSelect = (counsellor) => {
+    setSelectedBranch(counsellor.branch);
+    setBranchSearch(counsellor.branch);
+    setShowBranchDropdown(false);
+  }
 
   const handleExamCentreSelect = (centre) => {
     setSelectedExamCentre(centre.centerName);
@@ -333,9 +468,23 @@ const RegistrationTable = () => {
     setCounsellorSearch("");
   };
 
+  const clearBranchFilter = () => {
+    setSelectedBranch("");
+    setBranchSearch("");
+  }
+  
   const clearExamCentreFilter = () => {
     setSelectedExamCentre("");
     setExamCentreSearch("");
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
   };
 
   const handlePayment = (student) => {
@@ -442,8 +591,8 @@ const RegistrationTable = () => {
               className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"
             />
 
-            {user.role === "admin" && (
-              <div className="relative w-full md:w-1/4" ref={counsellorDropdownRef}>
+            {user.role === "admin" && (<>
+            <div className="relative w-full md:w-1/4" ref={counsellorDropdownRef}>
                 <div className="relative">
                   <input
                     type="text"
@@ -492,6 +641,58 @@ const RegistrationTable = () => {
                   </div>
                 )}
               </div>
+              <div className="relative w-full md:w-1/4" ref={branchDropdownRef}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search branch..."
+                    value={branchSearch}
+                    onChange={(e) => {
+                      setBranchSearch(e.target.value);
+                      setShowBranchDropdown(true);
+                    }}
+                    onFocus={() => setShowBranchDropdown(true)}
+                    className="p-2 w-full border border-gray-300 rounded-lg pr-8"
+                  />
+                  {selectedBranch && (
+                    <button
+                      onClick={clearBranchFilter}
+                      className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+                
+                {showBranchDropdown && (
+                  <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+                    <div
+                      className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+                      onClick={() => {
+                        clearBranchFilter();
+                        setShowBranchDropdown(false);
+                      }}
+                    >
+                      All Branch
+                    </div>
+                    {filteredBranch.map((counsellor) => (
+                      <div
+                        key={counsellor.uuid}
+                        className="p-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleBranchSelect(counsellor)}
+                      >
+                        {counsellor.branch}
+                      </div>
+                    ))}
+                    {filteredBranch.length === 0 && branchSearch && (
+                      <div className="p-2 text-gray-500">No Branch found</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+              
+              
             )}
 
             <div className="relative w-full md:w-1/4" ref={examCentreDropdownRef}>
@@ -559,125 +760,138 @@ const RegistrationTable = () => {
 
           <div className="bg-white p-2 md:p-6 shadow-custom">
             {loading && (
-            <p className="text-customgray text-lg">Loading...</p>
-          )}
-          {error && <p className="text-red-500 text-lg">{error}</p>}
+              <p className="text-customgray text-lg">Loading...</p>
+            )}
+            {error && <p className="text-red-500 text-lg">{error}</p>}
 
-          {!loading && !error && filtered.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="table-auto w-full border text-center border-customgray overflow-hidden shadow-lg text-sm">
-                <thead className="bg-primary text-customwhite uppercase tracking-wider">
-                  <tr>
-                    <th className="p-3 text-left border whitespace-nowrap">Sr. No.</th>
-                    <th className="p-3 border text-left whitespace-nowrap">
-                      Register Date
-                    </th>
-                    <th className="p-3 border whitespace-nowrap">Register Time</th>
-                    <th className="p-3 border whitespace-nowrap">Student ID.</th>
-                    <th className="p-3 border whitespace-nowrap">Student Name</th>
-                    <th className="p-3 border whitespace-nowrap">Standard</th>
-                    <th className="p-3 border whitespace-nowrap">Med/Grp</th>
-                    <th className="p-3 border whitespace-nowrap">Student No.</th>
-                    <th className="p-3 border whitespace-nowrap">Parent No.</th>
-                    <th className="p-3 border whitespace-nowrap">Exam Centre</th>
-                    {user.role === "admin" && (
-                      <>
-                        <th className="p-3 border whitespace-nowrap">Counsellor</th>
-                        <th className="p-3 border whitespace-nowrap">
-                          Branch
+            {!loading && !error && registrations.length > 0 ? (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="table-auto w-full border text-center border-customgray overflow-hidden shadow-lg text-sm">
+                    <thead className="bg-primary text-customwhite uppercase tracking-wider">
+                      <tr>
+                        <th className="p-3 text-left border whitespace-nowrap">Sr. No.</th>
+                        <th className="p-3 border text-left whitespace-nowrap">
+                          Register Date
                         </th>
-                      </>
-                    )}
-                    <th className="p-3 border whitespace-nowrap">Total Amount</th>
-                    <th className="p-3 border whitespace-nowrap">Paid</th>
-                    <th className="p-3 border whitespace-nowrap">Remaining</th>
-                    <th className="p-3 border whitespace-nowrap">Due Date</th>
-                    <th className="p-3 border whitespace-nowrap">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="text-customblack">
-                  {filtered.map((student, index) => (
-                    <tr
-                      key={index}
-                      className="border-b border-gray-200 hover:bg-gray-100 transition"
-                    >
-                      <td className="p-3 border whitespace-nowrap">{index+1}</td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {new Date(student.createdAt).toLocaleDateString('en-GB')}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">{formatTimeTo12Hour(student.createdAt)}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.studentId}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.studentName}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.standard}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.branch}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.studentNo}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.parentsNo}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.examCentre.split("-")[1]}</td>
-                      {user.role === "admin" && (
-                        <>
-                          <td className="p-3 border whitespace-nowrap">{student.counsellor}</td>
+                        <th className="p-3 border whitespace-nowrap">Register Time</th>
+                        <th className="p-3 border whitespace-nowrap">Student ID.</th>
+                        <th className="p-3 border whitespace-nowrap">Student Name</th>
+                        <th className="p-3 border whitespace-nowrap">Standard</th>
+                        <th className="p-3 border whitespace-nowrap">Med/Grp</th>
+                        <th className="p-3 border whitespace-nowrap">Student No.</th>
+                        <th className="p-3 border whitespace-nowrap">Parent No.</th>
+                        <th className="p-3 border whitespace-nowrap">Exam Centre</th>
+                        {user.role === "admin" && (
+                          <>
+                            <th className="p-3 border whitespace-nowrap">Counsellor</th>
+                            <th className="p-3 border whitespace-nowrap">
+                              Branch
+                            </th>
+                          </>
+                        )}
+                        <th className="p-3 border whitespace-nowrap">Total Amount</th>
+                        <th className="p-3 border whitespace-nowrap">Paid</th>
+                        <th className="p-3 border whitespace-nowrap">Remaining</th>
+                        <th className="p-3 border whitespace-nowrap">Due Date</th>
+                        <th className="p-3 border whitespace-nowrap">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-customblack">
+                      {registrations.map((student, index) => (
+                        <tr
+                          key={student.studentId}
+                          className="border-b border-gray-200 hover:bg-gray-100 transition"
+                        >
                           <td className="p-3 border whitespace-nowrap">
-                            {student.counsellorBranch}
+                            {(currentPage - 1) * itemsPerPage + index + 1}
                           </td>
-                        </>
-                      )}
-                      <td className="p-3 border whitespace-nowrap">{student.totalAmount}</td>
-                      <td className="p-3 border whitespace-nowrap text-green-500 font-bold">
-                        {student.amountPaid}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap text-red-500 font-bold">
-                        {student.amountRemaining}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {student.dueDate
-                    ? new Date(student.dueDate).toLocaleDateString("en-GB")
-                    : "-"
-                        }
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleViewPDF(student)}
-                            className="bg-primary text-white px-3 py-1 min-w-12 rounded hover:bg-blue-700 grid place-items-center"
-                            disabled={loadingPdfId === student.studentId}
-                          >
-                            {loadingPdfId === student.studentId ? (
-                              <span className="animate-spin h-4 w-4 border-2 p-2 border-white border-t-transparent rounded-full"></span>
-                            ) : (
-                              "PDF"
-                            )}
-                          </button>
-                          
+                          <td className="p-3 border whitespace-nowrap">
+                            {new Date(student.createdAt).toLocaleDateString('en-GB')}
+                          </td>
+                          <td className="p-3 border whitespace-nowrap">{formatTimeTo12Hour(student.createdAt)}</td>
+                          <td className="p-3 border whitespace-nowrap">{student.studentId}</td>
+                          <td className="p-3 border whitespace-nowrap">{student.studentName}</td>
+                          <td className="p-3 border whitespace-nowrap">{student.standard}</td>
+                          <td className="p-3 border whitespace-nowrap">{student.branch}</td>
+                          <td className="p-3 border whitespace-nowrap">{student.studentNo}</td>
+                          <td className="p-3 border whitespace-nowrap">{student.parentsNo}</td>
+                          <td className="p-3 border whitespace-nowrap">{student.examCentre.split("-")[1]}</td>
                           {user.role === "admin" && (
-                            <button
-                              onClick={() => handleEditStudent(student)}
-                              className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600"
-                            >
-                              Edit
-                            </button>
+                            <>
+                              <td className="p-3 border whitespace-nowrap">{student.counsellor}</td>
+                              <td className="p-3 border whitespace-nowrap">
+                                {student.counsellorBranch}
+                              </td>
+                            </>
                           )}
+                          <td className="p-3 border whitespace-nowrap">{student.totalAmount.toLocaleString('en-IN')}</td>
+                          <td className="p-3 border whitespace-nowrap text-green-500 font-bold">
+                            {student.amountPaid.toLocaleString('en-IN')}
+                          </td>
+                          <td className="p-3 border whitespace-nowrap text-red-500 font-bold">
+                            {student.amountRemaining.toLocaleString('en-IN')}
+                          </td>
+                          <td className="p-3 border whitespace-nowrap">
+                            {student.dueDate
+                              ? new Date(student.dueDate).toLocaleDateString("en-GB")
+                              : "-"
+                            }
+                          </td>
+                          <td className="p-3 border whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => handleViewPDF(student)}
+                                className="bg-primary text-white px-3 py-1 min-w-12 rounded hover:bg-blue-700 grid place-items-center"
+                                disabled={loadingPdfId === student.studentId}
+                              >
+                                {loadingPdfId === student.studentId ? (
+                                  <span className="animate-spin h-4 w-4 border-2 p-2 border-white border-t-transparent rounded-full"></span>
+                                ) : (
+                                  "PDF"
+                                )}
+                              </button>
+                              
+                              {user.role === "admin" && (
+                                <button
+                                  onClick={() => handleEditStudent(student)}
+                                  className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600"
+                                >
+                                  Edit
+                                </button>
+                              )}
 
-                          {user.role === "counsellor" && student.amountRemaining > 0 && (
-                            <button
-                              onClick={() => handlePayment(student)}
-                              className="bg-secondary text-white px-3 py-1 rounded hover:bg-tertiary"
-                            >
-                              Make Payment
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                              {user.role === "counsellor" && student.amountRemaining > 0 && (
+                                <button
+                                  onClick={() => handlePayment(student)}
+                                  className="bg-secondary text-white px-3 py-1 rounded hover:bg-tertiary"
+                                >
+                                  Make Payment
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            !loading && (
-              <p className="text-lg text-customgray">No registrations found.</p>
-            )
-          )}
+                {/* Pagination Component */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={totalCount}
+                  itemsPerPage={itemsPerPage}
+                  onItemsPerPageChange={handleItemsPerPageChange}
+                />
+              </>
+            ) : (
+              !loading && (
+                <p className="text-lg text-customgray">No registrations found.</p>
+              )
+            )}
           </div>
         </>
       ) : (

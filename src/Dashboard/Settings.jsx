@@ -6,7 +6,7 @@ function Settings() {
   const [formData, setFormData] = useState({
     subjectCode: '',
     subjectName: '',
-    language: '',
+    language: 'English',
     standard: '',
   });
 

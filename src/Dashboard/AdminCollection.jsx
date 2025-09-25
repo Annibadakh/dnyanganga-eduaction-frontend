@@ -5,20 +5,20 @@ import { Dialog, Transition } from "@headlessui/react";
 const AdminCollection = () => {
   const imgUrl = import.meta.env.VITE_IMG_URL;
   const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState("");
-  const [selectedCounsellor, setSelectedCounsellor] = useState("");
-  const [collection, setCollection] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [internalSearch, setInternalSearch] = useState("");
-  const dropdownRef = useRef(null);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
 
-  // Settlement form
-  const [commissionRate, setCommissionRate] = useState("");
-  const [settlementDate, setSettlementDate] = useState("");
-  const [settleResult, setSettleResult] = useState(null);
-  const [btnLoading, setBtnLoading] = useState(false);
+  // Filter states
+  const [selectedUser, setSelectedUser] = useState("");
+  const [selectedUserName, setSelectedUserName] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  // User dropdown states
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+  const dropdownRef = useRef(null);
 
   // Proof modal state
   const [showProofModal, setShowProofModal] = useState(false);
@@ -26,67 +26,89 @@ const AdminCollection = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await api.get("/admin/getUser?role=counsellor");
+      const res = await api.get("/admin/getUser");
       setUsers(res.data.data || []);
     } catch (err) {
       console.error("Error fetching users", err);
     }
   };
 
-  const fetchCollection = async (id) => {
-    setLoading(true);
+  const fetchTransactions = async () => {
     try {
-      const res = await api.get(`/counsellor/collection/${id}`);
-      setCollection(res.data);
-    } catch (err) {
-      console.error("Error fetching collection", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchTransactions = async (id) => {
-    try {
-      const res = await api.get(`/counsellor/collection/payments/${id}`);
+      const res = await api.get(`/counsellor/collection/AllTransactions`);
+      console.log(res.data);
       setTransactions(res.data || []);
+      setFilteredTransactions(res.data || []);
     } catch (err) {
       console.error("Error fetching transactions", err);
     }
   };
 
-  const handleSelectCounsellor = async (id, name) => {
-    setSelectedCounsellor(id);
-    setSearch(name);
+  const handleSelectUser = (uuid, name) => {
+    setSelectedUser(uuid);
+    setSelectedUserName(name);
     setIsDropdownOpen(false);
-    setInternalSearch("");
-    setCollection(null);
-    setTransactions([]);
-    setSettleResult(null);
-    setCommissionRate("");
-    setSettlementDate("");
-    
-    if (id) {
-      await fetchCollection(id);
-      await fetchTransactions(id);
-    }
+    setUserSearch("");
   };
 
-  const handleSearchChange = (e) => {
-    setInternalSearch(e.target.value);
+  const handleUserSearchChange = (e) => {
+    setUserSearch(e.target.value);
   };
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
     if (!isDropdownOpen) {
-      setInternalSearch("");
+      setUserSearch("");
     }
   };
 
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setIsDropdownOpen(false);
-      setInternalSearch("");
+      setUserSearch("");
     }
+  };
+
+  const clearFilters = () => {
+    setSelectedUser("");
+    setSelectedUserName("");
+    setStartDate("");
+    setEndDate("");
+    setStatusFilter("");
+    setFilteredTransactions(transactions);
+  };
+
+  const applyFilters = () => {
+    let filtered = [...transactions];
+
+    // Filter by user
+    if (selectedUser) {
+      filtered = filtered.filter(txn => txn.counsellorId === selectedUser);
+    }
+
+    // Filter by date range
+    if (startDate) {
+      filtered = filtered.filter(txn => {
+        const txnDate = new Date(txn.paymentDate);
+        const start = new Date(startDate);
+        return txnDate >= start;
+      });
+    }
+
+    if (endDate) {
+      filtered = filtered.filter(txn => {
+        const txnDate = new Date(txn.paymentDate);
+        const end = new Date(endDate);
+        return txnDate <= end;
+      });
+    }
+
+    // Filter by status
+    if (statusFilter) {
+      filtered = filtered.filter(txn => txn.verifyStatus === statusFilter);
+    }
+
+    setFilteredTransactions(filtered);
   };
 
   useEffect(() => {
@@ -96,42 +118,14 @@ const AdminCollection = () => {
     };
   }, []);
 
-  const isPastDate = (yyyyMmDd) => {
-    if (!yyyyMmDd) return false;
-    return new Date(yyyyMmDd) < new Date(new Date().toDateString());
-  };
-
-  const handleSettle = async (e) => {
-    e.preventDefault();
-    if (!selectedCounsellor) return alert("Please select a counsellor.");
-    if (!settlementDate) return alert("Please select a settlement date.");
-    if (!isPastDate(settlementDate)) {
-      return alert("Settlement date must be earlier than today.");
-    }
-
-    const payload = {
-      counsellorId: selectedCounsellor,
-      settlementDate,
-      commissionRate: commissionRate === "" ? undefined : Number(commissionRate),
-    };
-
-    try {
-      setBtnLoading(true);
-      const res = await api.post("/counsellor/collection/settle", payload);
-      setSettleResult(res.data?.settlement || null);
-      fetchCollection(selectedCounsellor);
-      fetchTransactions(selectedCounsellor);
-    } catch (err) {
-      console.error("Error settling collection:", err);
-      alert(err?.response?.data?.message || "Failed to settle.");
-    } finally {
-      setBtnLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchUsers();
+    fetchTransactions();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [selectedUser, startDate, endDate, statusFilter, transactions]);
 
   const handleViewProof = (url) => {
     if (url) {
@@ -142,9 +136,48 @@ const AdminCollection = () => {
     }
   };
 
-  // filter counsellors by internal search within dropdown
+  const changeStatus = async (id, status) => {
+    console.log(id, status);
+    try {
+      const res = await api.put(`/counsellor/collection/verifyPayment/${id}`, { status });
+      alert(res.data.message);
+      fetchTransactions();
+    } catch (err) {
+      console.error("Error changing status", err);
+      alert("Error changing status");
+    }
+  };
+
+  // Calculate statistics based on filtered transactions
+  const calculateStats = () => {
+    const stats = filteredTransactions.reduce((acc, txn) => {
+      const amount = parseFloat(txn.amountPaid) || 0;
+      acc.totalAmount += amount;
+      
+      if (txn.verifyStatus === 'verified') {
+        acc.approvedAmount += amount;
+      } else if (txn.verifyStatus === 'rejected') {
+        acc.rejectedAmount += amount;
+      } else {
+        acc.pendingAmount += amount;
+      }
+      
+      return acc;
+    }, {
+      totalAmount: 0,
+      pendingAmount: 0,
+      approvedAmount: 0,
+      rejectedAmount: 0
+    });
+
+    return stats;
+  };
+
+  const stats = calculateStats();
+
+  // Filter users by search within dropdown
   const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(internalSearch.toLowerCase())
+    u.name.toLowerCase().includes(userSearch.toLowerCase())
   );
 
   return (
@@ -153,226 +186,256 @@ const AdminCollection = () => {
         Collection Management
       </h1>
 
-      {/* Select Counsellor */}
+      {/* Filters Section */}
       <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
         <h2 className="text-xl font-semibold text-secondary mb-4">
-          Select Counsellor
+          Filters
         </h2>
         
-        {/* Custom Dropdown */}
-        <div className="relative" ref={dropdownRef}>
-          <div 
-            onClick={toggleDropdown}
-            className="w-full p-2 border rounded-md cursor-pointer bg-white flex justify-between items-center hover:border-gray-400"
-          >
-            <span className={selectedCounsellor ? "text-black" : "text-gray-500"}>
-              {search || "-- Select Counsellor --"}
-            </span>
-            <svg 
-              className={`w-5 h-5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {/* User Selection Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Counsellor
+            </label>
+            <div 
+              onClick={toggleDropdown}
+              className="w-full p-2 border rounded-md cursor-pointer bg-white flex justify-between items-center hover:border-gray-400"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
+              <span className={selectedUser ? "text-black" : "text-gray-500"}>
+                {selectedUserName || "-- Select Counsellor --"}
+              </span>
+              <svg 
+                className={`w-5 h-5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
 
-          {/* Dropdown List */}
-          {isDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-hidden">
-              {/* Search Input inside dropdown */}
-              <div className="p-2 border-b">
-                <input
-                  type="text"
-                  placeholder="Search counsellor..."
-                  value={internalSearch}
-                  onChange={handleSearchChange}
-                  className="w-full p-2 border rounded-md text-sm"
-                  autoFocus
-                />
-              </div>
-              
-              {/* Counsellor List */}
-              <div className="max-h-40 overflow-y-auto">
-                {filteredUsers.length > 0 ? (
-                  <>
-                    <div 
-                      onClick={() => handleSelectCounsellor("", "")}
-                      className="p-2 hover:bg-gray-100 cursor-pointer text-gray-500"
-                    >
-                      -- Select Counsellor --
-                    </div>
-                    {filteredUsers.map((user) => (
+            {isDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-hidden">
+                <div className="p-2 border-b">
+                  <input
+                    type="text"
+                    placeholder="Search counsellor..."
+                    value={userSearch}
+                    onChange={handleUserSearchChange}
+                    className="w-full p-2 border rounded-md text-sm"
+                    autoFocus
+                  />
+                </div>
+                
+                <div className="max-h-40 overflow-y-auto">
+                  <div 
+                    onClick={() => handleSelectUser("", "")}
+                    className="p-2 hover:bg-gray-100 cursor-pointer text-gray-500"
+                  >
+                    -- All Counsellors --
+                  </div>
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
                       <div
                         key={user.uuid}
-                        onClick={() => handleSelectCounsellor(user.uuid, user.name)}
+                        onClick={() => handleSelectUser(user.uuid, user.name)}
                         className={`p-2 hover:bg-gray-100 cursor-pointer ${
-                          selectedCounsellor === user.uuid ? 'bg-blue-50 text-blue-600' : ''
+                          selectedUser === user.uuid ? 'bg-blue-50 text-blue-600' : ''
                         }`}
                       >
                         {user.name}
                       </div>
-                    ))}
-                  </>
-                ) : (
-                  <div className="p-2 text-gray-500 text-center">
-                    No counsellors found matching "{internalSearch}"
-                  </div>
-                )}
+                    ))
+                  ) : (
+                    <div className="p-2 text-gray-500 text-center">
+                      No counsellors found matching "{userSearch}"
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Start Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Start Date
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+
+          {/* End Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              End Date
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            >
+              <option value="">-- All Status --</option>
+              <option value="pending">Pending</option>
+              <option value="verified">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Clear Filters Button */}
+        <div className="flex justify-end">
+          <button
+            onClick={clearFilters}
+            className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+          >
+            Clear Filters
+          </button>
         </div>
       </div>
 
-      {loading && <p className="text-center">Loading data...</p>}
+      {/* Statistics Section */}
+      <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
+        <h2 className="text-xl font-semibold text-secondary mb-4">
+          Statistics
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Amount */}
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100 text-sm font-medium">Total Amount</p>
+                <p className="text-2xl font-bold">₹{stats.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+              </div>
+              <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
 
-      {/* Collection Summary */}
-      {/* {collection && (
-        <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
-          <h2 className="text-xl font-semibold text-secondary mb-4">
-            Collection Summary
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full table-auto text-center border border-gray-300">
-              <thead className="bg-primary text-white">
-                <tr>
-                  <th className="p-2 border whitespace-nowrap">Counsellor</th>
-                  <th className="p-2 border whitespace-nowrap">Commission %</th>
-                  <th className="p-2 border whitespace-nowrap">Total Amount</th>
-                  <th className="p-2 border whitespace-nowrap">Actual Amount</th>
-                  <th className="p-2 border whitespace-nowrap">Collected</th>
-                  <th className="p-2 border whitespace-nowrap">Balance</th>
-                  <th className="p-2 border whitespace-nowrap">Last Collected Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="hover:bg-gray-100">
-                  <td className="p-2 border whitespace-nowrap">{collection.counsellorName}</td>
-                  <td className="p-2 border whitespace-nowrap">{collection.commissionRate}%</td>
-                  <td className="p-2 border whitespace-nowrap">₹{collection.totalAmount}</td>
-                  <td className="p-2 border whitespace-nowrap">₹{collection.actualAmount}</td>
-                  <td className="p-2 border whitespace-nowrap">₹{collection.collectedAmount}</td>
-                  <td className="p-2 border whitespace-nowrap">₹{collection.balance}</td>
-                  <td className="p-2 border whitespace-nowrap">
-                    {collection.lastCollectedDate || "-"}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          {/* Pending Amount */}
+          <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-4 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-yellow-100 text-sm font-medium">Pending Amount</p>
+                <p className="text-2xl font-bold">₹{stats.pendingAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+              </div>
+              <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Approved Amount */}
+          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-sm font-medium">Approved Amount</p>
+                <p className="text-2xl font-bold">₹{stats.approvedAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+              </div>
+              <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Rejected Amount */}
+          <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-red-100 text-sm font-medium">Rejected Amount</p>
+                <p className="text-2xl font-bold">₹{stats.rejectedAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+              </div>
+              <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
-      )} */}
 
-      {/* Admin Settlement Form */}
-      {/* {selectedCounsellor && (
-        <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
-          <h2 className="text-xl font-semibold text-secondary mb-4">
-            Admin Settlement
-          </h2>
-          <form onSubmit={handleSettle} className="space-y-4">
-            <div>
-              <label className="block mb-2 font-medium">Settlement Date</label>
-              <input
-                type="date"
-                value={settlementDate}
-                onChange={(e) => setSettlementDate(e.target.value)}
-                className="w-full p-2 border rounded-md"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Must be earlier than today. System calculates from last
-                collected date to this date.
+        {/* Additional Stats Row */}
+        {/* <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-gray-50 p-4 rounded-lg border">
+            <div className="text-center">
+              <p className="text-gray-600 text-sm font-medium">Total Transactions</p>
+              <p className="text-xl font-bold text-gray-800">{filteredTransactions.length}</p>
+            </div>
+          </div>
+          
+          <div className="bg-gray-50 p-4 rounded-lg border">
+            <div className="text-center">
+              <p className="text-gray-600 text-sm font-medium">Approval Rate</p>
+              <p className="text-xl font-bold text-gray-800">
+                {filteredTransactions.length > 0 
+                  ? `${Math.round((filteredTransactions.filter(t => t.verifyStatus === 'verified').length / filteredTransactions.length) * 100)}%`
+                  : '0%'}
               </p>
             </div>
+          </div>
 
-            <div>
-              <label className="block mb-2 font-medium">
-                Commission % (optional)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={commissionRate}
-                onWheel={(e) => e.target.blur()}
-                onChange={(e) => setCommissionRate(e.target.value)}
-                className="w-full p-2 border rounded-md"
-                placeholder="Leave empty to use existing rate"
-              />
+          <div className="bg-gray-50 p-4 rounded-lg border">
+            <div className="text-center">
+              <p className="text-gray-600 text-sm font-medium">Average Amount</p>
+              <p className="text-xl font-bold text-gray-800">
+                ₹{filteredTransactions.length > 0 
+                  ? (stats.totalAmount / filteredTransactions.length).toLocaleString('en-IN', { maximumFractionDigits: 2 })
+                  : '0'}
+              </p>
             </div>
-
-            <button
-              type="submit"
-              disabled={btnLoading}
-              className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center justify-center"
-            >
-              {btnLoading ? (
-                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              ) : (
-                "Calculate & Settle"
-              )}
-            </button>
-          </form>
-
-          {settleResult && (
-            <div className="mt-6 overflow-x-auto">
-              <h3 className="text-lg font-semibold mb-3">Last Settlement</h3>
-              <table className="min-w-full table-auto text-center border border-gray-300">
-                <thead className="bg-secondary text-white">
-                  <tr>
-                    <th className="p-2 border whitespace-nowrap">Range</th>
-                    <th className="p-2 border whitespace-nowrap">Applied %</th>
-                    <th className="p-2 border whitespace-nowrap">Temp Amount</th>
-                    <th className="p-2 border whitespace-nowrap">Commission</th>
-                    <th className="p-2 border whitespace-nowrap">Temp Actual</th>
-                    <th className="p-2 border whitespace-nowrap">New Balance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="hover:bg-gray-100">
-                    <td className="p-2 border whitespace-nowrap">{settleResult.range}</td>
-                    <td className="p-2 border whitespace-nowrap">
-                      {settleResult.appliedCommissionRate}
-                    </td>
-                    <td className="p-2 border whitespace-nowrap">
-                      ₹{settleResult.temporaryAmount}
-                    </td>
-                    <td className="p-2 border whitespace-nowrap">
-                      ₹{settleResult.commissionAmount}
-                    </td>
-                    <td className="p-2 border whitespace-nowrap">₹{settleResult.tempActual}</td>
-                    <td className="p-2 border whitespace-nowrap">₹{settleResult.newBalance}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )} */}
+          </div>
+        </div> */}
+      </div>
 
       {/* Transaction History */}
-      {transactions.length > 0 ? (
+      {filteredTransactions.length > 0 ? (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
-            Transaction History
+            Transaction History ({filteredTransactions.length} records)
           </h2>
           <div className="overflow-x-auto">
             <table className="min-w-full table-auto text-center border border-gray-300">
               <thead className="bg-primary text-white">
                 <tr>
                   <th className="p-2 border whitespace-nowrap">Date</th>
+                  <th className="p-2 border whitespace-nowrap">Counsellor Name</th>
                   <th className="p-2 border whitespace-nowrap">Amount Paid</th>
                   <th className="p-2 border whitespace-nowrap">Remark</th>
                   <th className="p-2 border whitespace-nowrap">Proof</th>
+                  <th className="p-2 border whitespace-nowrap">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((txn, idx) => (
+                {filteredTransactions.map((txn, idx) => (
                   <tr key={idx} className="hover:bg-gray-100">
-                    <td className="p-2 border whitespace-nowrap">{txn.paymentDate}</td>
-                    <td className="p-2 border whitespace-nowrap">₹{txn.amountPaid}</td>
+                    <td className="p-2 border whitespace-nowrap">{new Date(txn.paymentDate).toLocaleDateString('en-GB')}</td>
+                    <td className="p-2 border whitespace-nowrap">{txn.counsellorName}</td>
+                    <td className="p-2 border whitespace-nowrap">₹{txn.amountPaid.toLocaleString('en-IN')}</td>
                     <td className="p-2 border whitespace-nowrap">{txn.remark}</td>
                     <td className="p-2 border whitespace-nowrap">
                       {txn.proofUrl ? (
@@ -386,13 +449,39 @@ const AdminCollection = () => {
                         "No Proof"
                       )}
                     </td>
+                    <td className="p-2 border whitespace-nowrap">
+                      {txn.verifyStatus == 'verified' ? (
+                        <span className="text-green-600 font-semibold">Approved</span>
+                      ) : (txn.verifyStatus == "rejected" ? (
+                        <span className="text-red-600 font-semibold">Rejected</span>
+                      ) : (
+                        <div className="space-x-2">
+                          <button 
+                            onClick={() => changeStatus(txn.id, "verified")}
+                            className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                          >
+                            Approve
+                          </button>
+                          <button 
+                            onClick={() => changeStatus(txn.id, "rejected")}
+                            className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      ))}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
-      ) : (<p>No transaction Found !!</p>)}
+      ) : (
+        <div className="bg-white p-4 md:p-6 shadow-custom mb-6 text-center">
+          <p className="text-gray-600">No transactions found matching the selected filters!</p>
+        </div>
+      )}
 
       {/* Proof Modal */}
       <Transition appear show={showProofModal} as={Fragment}>

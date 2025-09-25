@@ -107,7 +107,7 @@ function App() {
                 <Route path='bookentries' element={<AddBookEntry />} />
                 <Route path='examcenter' element={<AddCenter />} />
                 <Route path='collection' element={<AdminCollection />} />
-                <Route path='studentedit' element={<StudentEditPage />} />
+                {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
                 <Route path='chalan' element={<ChallanManagement />} />
 
               </Route>
