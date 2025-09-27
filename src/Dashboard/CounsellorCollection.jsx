@@ -478,6 +478,7 @@ const CounsellorCollection = () => {
             <table className="table-auto min-w-full text-center border border-gray-300">
               <thead className="bg-primary text-white">
                 <tr>
+                  <th className="p-2 border">Sr. No.</th>
                   <th className="p-2 border">Date</th>
                   <th className="p-2 border">Amount Paid</th>
                   <th className="p-2 border">Remark</th>
@@ -488,6 +489,7 @@ const CounsellorCollection = () => {
               <tbody>
                 {filteredTransactions.map((txn, idx) => (
                   <tr key={idx} className="hover:bg-gray-100">
+                    <td className="p-2 border">₹ {idx+1}</td>
                     <td className="p-2 border">{new Date(txn.paymentDate).toLocaleDateString("en-GB") }</td>
                     <td className="p-2 border">₹ {txn.amountPaid}</td>
                     <td className="p-2 border">{txn.remark}</td>

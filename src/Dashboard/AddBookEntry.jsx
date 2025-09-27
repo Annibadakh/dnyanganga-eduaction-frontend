@@ -34,7 +34,7 @@ const AddBookEntry = () => {
 
   // Class options with their corresponding books
   const classOptions = {
-    "10th": ["English", "Math", "Science"],
+    "10th": ["Math", "Science", "English"],
     "11th": ["Physics", "Chemistry", "Math", "Biology"],
     "12th": ["Physics", "Chemistry", "Math", "Biology"]
   };
