@@ -197,7 +197,6 @@ const CounsellorCollection = () => {
       
 
       {/* Send Collection Button or Form */}
-      {!collection && (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           {!showForm ? (
             // Show button initially
@@ -331,7 +330,6 @@ const CounsellorCollection = () => {
             </>
           )}
         </div>
-      )}
 
       {/* Transaction History */}
       {transactions.length > 0 ? (
