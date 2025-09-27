@@ -39,7 +39,7 @@ function Settings() {
     try {
       const response = await api.get('/admin/getsubjects');
       const sortedSubjects = response.data.data.sort((a, b) => a.subjectCode - b.subjectCode);
-      console.log(sortedSubjects);
+      // console.log(sortedSubjects);
       setSubjects(sortedSubjects);
       setError(null);
     } catch (err) {
@@ -166,7 +166,7 @@ function Settings() {
       toHour, toMinute, toPeriod
     } = examData;
 
-    console.log(examDate, fromHour, fromMinute, fromPeriod, toHour, toMinute, toPeriod);
+    // console.log(examDate, fromHour, fromMinute, fromPeriod, toHour, toMinute, toPeriod);
 
     if (!examDate || !fromHour || !fromMinute || !fromPeriod || !toHour || !toMinute || !toPeriod) {
       setModalError('All fields are required');
@@ -175,7 +175,7 @@ function Settings() {
 
     const examTimeFrom = `${fromHour}:${fromMinute} ${fromPeriod}`;
     const examTimeTo = `${toHour}:${toMinute} ${toPeriod}`;
-    console.log(examTimeFrom, examTimeTo)
+    // console.log(examTimeFrom, examTimeTo)
     const updatedExamData = {
       examDate,
       examTime: `${examTimeFrom}-${examTimeTo}`,

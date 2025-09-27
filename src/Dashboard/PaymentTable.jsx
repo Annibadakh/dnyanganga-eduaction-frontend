@@ -1,13 +1,12 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import { Dialog, Transition } from "@headlessui/react";
 
-// Mobile-friendly PDF viewer component (same as RegistrationTable)
+// Mobile-friendly PDF viewer component (same as before)
 const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) => {
-  const [viewMode, setViewMode] = useState('options'); // 'options' | 'iframe'
+  const [viewMode, setViewMode] = useState('options');
   
-  // Detect if device is mobile
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 
   const handleDirectDownload = () => {
@@ -27,7 +26,6 @@ const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) 
     }
   };
   
-  // For mobile devices, show options instead of iframe
   if (isMobile && viewMode === 'options') {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -71,11 +69,9 @@ const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) 
     );
   }
 
-  // Fallback iframe for desktop or when user chooses browser preview
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
       <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[95vh] flex flex-col">
-        {/* Header */}
         <div className="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
           <div className="flex-1 min-w-0">
             <h2 className="text-lg md:text-xl font-semibold text-gray-800 truncate">
@@ -102,10 +98,8 @@ const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) 
           </div>
         </div>
 
-        {/* PDF Viewer */}
         <div className="flex-1 p-2 md:p-4 overflow-hidden">
           {isMobile ? (
-            // Mobile-optimized view
             <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 rounded border-2 border-dashed border-gray-300">
               <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -131,7 +125,6 @@ const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) 
               </div>
             </div>
           ) : (
-            // Desktop iframe
             <iframe
               src={pdfUrl}
               className="w-full h-full border border-gray-300 rounded"
@@ -141,7 +134,6 @@ const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) 
           )}
         </div>
 
-        {/* Footer with actions */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 md:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
           <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
             File: {fileName}
@@ -172,22 +164,161 @@ const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) 
   );
 };
 
+// Pagination Component
+const Pagination = ({ 
+  currentPage, 
+  totalPages, 
+  onPageChange, 
+  totalItems, 
+  itemsPerPage,
+  onItemsPerPageChange 
+}) => {
+  const getPageNumbers = () => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages);
+    } else {
+      rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots;
+  };
+
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Show:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+            className="border border-gray-300 rounded px-3 py-1 text-sm"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <span className="text-sm text-gray-600">per page</span>
+        </div>
+        <div className="text-sm text-gray-600">
+          Showing {startItem} to {endItem} of {totalItems} entries
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+
+        {getPageNumbers().map((page, index) => (
+          <button
+            key={index}
+            onClick={() => typeof page === 'number' && onPageChange(page)}
+            disabled={page === '...'}
+            className={`px-3 py-2 text-sm border rounded ${
+              page === currentPage
+                ? 'bg-primary text-white border-primary'
+                : page === '...'
+                ? 'cursor-default'
+                : 'border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const PaymentTable = () => {
   const { user } = useAuth();
   const [paymentsData, setPaymentsData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Filter states
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCounsellor, setSelectedCounsellor] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // PDF and Receipt states
   const [loadingPdfId, setLoadingPdfId] = useState(null);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState("");
-  
-  // New state for PDF preview dialog
   const [showPdfPreview, setShowPdfPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfFileName, setPdfFileName] = useState("");
   const [currentPdfStudent, setCurrentPdfStudent] = useState(null);
-  
+
+  // Searchable dropdown states
+  const [counsellorSearch, setCounsellorSearch] = useState("");
+  const [showCounsellorDropdown, setShowCounsellorDropdown] = useState(false);
+  const counsellorDropdownRef = useRef(null);
+
   const imgUrl = import.meta.env.VITE_IMG_URL;
+
+  // Filter functions for searchable dropdowns
+  const filteredCounsellors = users.filter(user =>
+    user.name.toLowerCase().includes(counsellorSearch.toLowerCase())
+  );
+
+  // Click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (counsellorDropdownRef.current && !counsellorDropdownRef.current.contains(event.target)) {
+        setShowCounsellorDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Cleanup PDF URL when dialog closes
   useEffect(() => {
@@ -198,61 +329,91 @@ const PaymentTable = () => {
     };
   }, [pdfUrl]);
 
-  // Function to get the most recent payment date for a student
-  const getMostRecentPaymentDate = (payments) => {
-    if (!payments || payments.length === 0) return new Date(0); // Very old date for students with no payments
-    
-    const dates = payments.map(payment => new Date(payment.createdAt));
-    return new Date(Math.max(...dates));
-  };
-
-  // Function to sort students by most recent payment date (newest first)
-  const sortStudentsByRecentPayment = (students) => {
-    return students.sort((a, b) => {
-      const dateA = getMostRecentPaymentDate(a.payments);
-      const dateB = getMostRecentPaymentDate(b.payments);
-      return dateB - dateA; // Descending order (newest first)
-    });
-  };
-
+  // Fetch users data
   useEffect(() => {
-    api
-      .get("/counsellor/getPayments", {
-        params: {
-          uuid: user.uuid,
-          role: user.role,
-        },
-      })
-      .then((response) => {
-        const sortedData = sortStudentsByRecentPayment(response.data.studentData);
-        setPaymentsData(sortedData);
-        setFilteredData(sortedData);
-      })
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
-
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredData(paymentsData);
-      return;
+    if (user.role === "admin") {
+      api
+        .get("/admin/getUser")
+        .then((response) => {
+          const counsellors = response.data.data.filter(
+            (user) => user.role === "counsellor"
+          );
+          setUsers(counsellors);
+        })
+        .catch((error) => {
+          console.error("Error fetching users", error);
+        });
     }
+  }, [user.role]);
 
-    const filtered = paymentsData.filter((student) => {
-      const searchLower = searchTerm.toLowerCase();
-      const studentMatch =
-        student.studentName?.toLowerCase().includes(searchLower) ||
-        student.studentId?.toString().toLowerCase().includes(searchLower);
-      const paymentMatch = student.payments.some((payment) =>
-        payment.paymentId?.toString().toLowerCase().includes(searchLower) ||
-        payment.receiptNo?.toString().toLowerCase().includes(searchLower)
-      );
-      return studentMatch || paymentMatch;
-    });
+  // Fetch payments data with pagination
+  const fetchPaymentsData = () => {
+    setLoading(true);
+    const params = {
+      page: currentPage,
+      limit: itemsPerPage,
+      search: searchTerm,
+      counsellor: selectedCounsellor,
+      startDate: startDate,
+      endDate: endDate
+    };
 
-    // Sort filtered results as well
-    const sortedFiltered = sortStudentsByRecentPayment(filtered);
-    setFilteredData(sortedFiltered);
-  }, [searchTerm, paymentsData]);
+    api
+      .get("/counsellor/getPayments", { params })
+      .then((response) => {
+        setPaymentsData(response.data.students);
+        setTotalCount(response.data.totalCount);
+        setTotalPages(response.data.totalPages);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setError("Failed to load data");
+        setLoading(false);
+      });
+  };
+
+  // Fetch payments data when dependencies change
+  useEffect(() => {
+    fetchPaymentsData();
+  }, [
+    currentPage,
+    itemsPerPage,
+    searchTerm,
+    selectedCounsellor,
+    startDate,
+    endDate
+  ]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCounsellor, startDate, endDate]);
+
+  const handleCounsellorSelect = (counsellor) => {
+    setSelectedCounsellor(counsellor.uuid);
+    setCounsellorSearch(counsellor.name);
+    setShowCounsellorDropdown(false);
+  };
+
+  const clearCounsellorFilter = () => {
+    setSelectedCounsellor("");
+    setCounsellorSearch("");
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
+  const clearDateFilters = () => {
+    setStartDate("");
+    setEndDate("");
+  };
 
   const handleViewReceipt = (receiptPhoto) => {
     if (receiptPhoto) {
@@ -277,7 +438,6 @@ const PaymentTable = () => {
         ? `${student.studentName.replace(/\s+/g, "_")}_RECEIPT.pdf`
         : `${student.studentId}_RECEIPT.pdf`;
 
-      // Set PDF preview data
       setPdfUrl(url);
       setPdfFileName(fileName);
       setCurrentPdfStudent(student);
@@ -305,99 +465,214 @@ const PaymentTable = () => {
     <div className="p-2 container mx-auto">
       <h1 className="text-3xl text-center font-bold text-primary mb-6">Payment Records</h1>
 
-      <div className="mb-6">
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row justify-between gap-2  mb-4">
         <input
           type="text"
           placeholder="Search by name, student ID, payment ID, or receipt no..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="p-2 w-full md:w-1/3 border border-gray-300 rounded-lg"
         />
+
+        {user.role === "admin" && (
+          <div className="relative w-full md:w-1/4" ref={counsellorDropdownRef}>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search counsellors..."
+                value={counsellorSearch}
+                onChange={(e) => {
+                  setCounsellorSearch(e.target.value);
+                  setShowCounsellorDropdown(true);
+                }}
+                onFocus={() => setShowCounsellorDropdown(true)}
+                className="p-3 w-full border border-gray-300 rounded-lg pr-8"
+              />
+              {selectedCounsellor && (
+                <button
+                  onClick={clearCounsellorFilter}
+                  className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            
+            {showCounsellorDropdown && (
+              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+                <div
+                  className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+                  onClick={() => {
+                    clearCounsellorFilter();
+                    setShowCounsellorDropdown(false);
+                  }}
+                >
+                  All Counsellors
+                </div>
+                {filteredCounsellors.map((counsellor) => (
+                  <div
+                    key={counsellor.uuid}
+                    className="p-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleCounsellorSelect(counsellor)}
+                  >
+                    {counsellor.name}
+                  </div>
+                ))}
+                {filteredCounsellors.length === 0 && counsellorSearch && (
+                  <div className="p-2 text-gray-500">No counsellors found</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-wrap md:flex-row gap-1 w-full md:w-1/3">
+          <div className="relative flex-1 min-w-[120px]">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="p-3 w-full border border-gray-300 rounded-lg text-sm"
+              placeholder="Start Date"
+            />
+          </div>
+          <div className="relative flex-1 min-w-[120px]">
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="p-3 w-full border border-gray-300 rounded-lg text-sm"
+              placeholder="End Date"
+            />
+          </div>
+          {(startDate || endDate) && (
+            <button
+              onClick={clearDateFilters}
+              className="px-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm whitespace-nowrap"
+            >
+              Clear Dates
+            </button>
+          )}
+        </div>
+
       </div>
 
+      {/* Table */}
       <div className="bg-white shadow-custom md:p-6 p-2">
-        <div className="overflow-auto">
-        <table className="w-full border border-customgray rounded-xl text-sm whitespace-nowrap">
-          <thead className="bg-primary text-white uppercase">
-            <tr>
-              <th className="p-3 border">Sr. No.</th>
-              <th className="p-3 border">Student ID.</th>
-              <th className="p-3 border">Student Name</th>
-              <th className="p-3 border">Amount Paid</th>
-              <th className="p-3 border">Amount Remaining</th>
-              <th className="p-3 border">Due Date</th>
-              <th className="p-3 border">Payments</th>
-              <th className="p-3 border">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((student, index) => (
-              <tr key={index} className="text-center border-b hover:bg-gray-100 transition">
-                <td className="p-2 border">{index + 1}</td>
-                <td className="p-2 border">{student.studentId}</td>
-                <td className="p-2 border">{student.studentName}</td>
-                <td className="p-2 border">{student.amountPaid.toLocaleString('en-IN')}</td>
-                <td className="p-2 border">{student.amountRemaining.toLocaleString('en-IN')}</td>
-                <td className="p-2 border">
-                  {student.dueDate
-                    ? new Date(student.dueDate).toLocaleDateString("en-GB")
-                    : "-"}
-                </td>
-                <td className="p-2 border">
-                  <table className="w-full text-xs border border-gray-300">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="p-1 border">Payment ID.</th>
-                        <th className="p-1 border">Receipt No.</th>
-                        <th className="p-1 border">Amount</th>
-                        <th className="p-1 border">Date</th>
-                        <th className="p-1 border">Mode</th>
-                        <th className="p-1 border">Receipt</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {student.payments.map((payment) => (
-                        <tr key={payment.paymentId}>
-                          <td className="p-1 border">{payment.paymentId}</td>
-                          <td className="p-1 border">{payment.receiptNo}</td>
-                          <td className="p-1 border">{payment.amountPaid.toLocaleString('en-IN')}</td>
-                          <td className="p-1 border">
-                            {new Date(payment.createdAt).toLocaleDateString("en-GB")}
-                          </td>
-                          <td className="p-1 border">{payment.paymentMode}</td>
-                          <td className="p-1 border">
-                            <button
-                              onClick={() => handleViewReceipt(payment.receiptPhoto)}
-                              className="text-blue-600 hover:underline"
-                            >
-                              View
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </td>
-                <td className="p-2 border">
-                  <button
-                    onClick={() => handleViewReceiptPDF(student)}
-                    disabled={loadingPdfId === student.studentId}
-                    className={`bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded grid place-items-center ${
-                      loadingPdfId === student.studentId ? "opacity-60 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {loadingPdfId === student.studentId ? (
-                      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                    ) : (
-                      "Receipt"
-                    )}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        {loading && <p className="text-customgray text-lg">Loading...</p>}
+        {error && <p className="text-red-500 text-lg">{error}</p>}
+
+        {!loading && !error && paymentsData.length > 0 ? (
+          <>
+            <div className="overflow-auto">
+              <table className="table-auto w-full border text-center border-customgray overflow-hidden shadow-lg text-sm">
+                <thead className="bg-primary text-customwhite uppercase tracking-wider">
+                  <tr>
+                    <th className="p-3 text-left border whitespace-nowrap">Sr. No.</th>
+                    <th className="p-3 border text-left whitespace-nowrap">Register Date</th>
+                    {user.role === 'admin' && <th className="p-3 border whitespace-nowrap">Counsellor</th>}
+                    <th className="p-3 border whitespace-nowrap">Student ID.</th>
+                    <th className="p-3 border whitespace-nowrap">Student Name</th>
+                    <th className="p-3 border whitespace-nowrap">Amount Paid</th>
+                    <th className="p-3 border whitespace-nowrap">Amount Remaining</th>
+                    <th className="p-3 border whitespace-nowrap">Due Date</th>
+                    <th className="p-3 border whitespace-nowrap">Payments</th>
+                    <th className="p-3 border whitespace-nowrap">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="text-customblack">
+                  {paymentsData.map((student, index) => (
+                    <tr key={student.studentId} className="border-b border-gray-200 hover:bg-gray-100 transition">
+                      <td className="p-3 border whitespace-nowrap">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {new Date(student.createdAt).toLocaleDateString('en-GB')}
+                      </td>
+                      {user.role === 'admin' && (
+                        <td className="p-3 border whitespace-nowrap">{student.User.name}</td>
+                      )}
+                      <td className="p-3 border whitespace-nowrap">{student.studentId}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.studentName}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.amountPaid.toLocaleString('en-IN')}</td>
+                      <td className="p-3 border whitespace-nowrap">{student.amountRemaining.toLocaleString('en-IN')}</td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {student.dueDate
+                          ? new Date(student.dueDate).toLocaleDateString("en-GB")
+                          : "-"}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        <table className="w-full text-xs border border-gray-300">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="p-1 border">Payment ID.</th>
+                              <th className="p-1 border">Receipt No.</th>
+                              <th className="p-1 border">Amount</th>
+                              <th className="p-1 border">Date</th>
+                              <th className="p-1 border">Mode</th>
+                              <th className="p-1 border">Receipt</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {student.Payments.map((payment) => (
+                              <tr key={payment.paymentId}>
+                                <td className="p-1 border">{payment.paymentId}</td>
+                                <td className="p-1 border">{payment.receiptNo}</td>
+                                <td className="p-1 border">{payment.amountPaid.toLocaleString('en-IN')}</td>
+                                <td className="p-1 border">
+                                  {new Date(payment.createdAt).toLocaleDateString("en-GB")}
+                                </td>
+                                <td className="p-1 border">{payment.paymentMode}</td>
+                                <td className="p-1 border">
+                                  <button
+                                    onClick={() => handleViewReceipt(payment.receiptPhoto)}
+                                    className="text-blue-600 hover:underline"
+                                  >
+                                    View
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        <button
+                          onClick={() => handleViewReceiptPDF(student)}
+                          disabled={loadingPdfId === student.studentId}
+                          className={`bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded grid place-items-center ${
+                            loadingPdfId === student.studentId ? "opacity-60 cursor-not-allowed" : ""
+                          }`}
+                        >
+                          {loadingPdfId === student.studentId ? (
+                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                          ) : (
+                            "Receipt"
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Component */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              totalItems={totalCount}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
+          </>
+        ) : (
+          !loading && (
+            <p className="text-lg text-customgray">No payment records found.</p>
+          )
+        )}
       </div>
 
       {/* Receipt Image Modal (existing) */}

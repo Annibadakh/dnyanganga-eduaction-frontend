@@ -330,7 +330,7 @@ const RegistrationTable = () => {
   );
 
   const filteredBranch = branch.filter(user =>
-    user.branch.toLowerCase().includes(branchSearch.toLowerCase())
+    user.counsellorBranch.toLowerCase().includes(branchSearch.toLowerCase())
   );
 
   const filteredExamCentres = examCentres.filter(centre =>
@@ -372,12 +372,12 @@ const RegistrationTable = () => {
       api
         .get("/admin/getUser")
         .then((response) => {
-          const counsellors = response.data.data.filter(
-            (user) => user.role === "counsellor"
-          );
-          console.log(counsellors);
-          setUsers(counsellors);
-          setBranch(counsellors);
+          // const counsellors = response.data.data.filter(
+          //   (user) => user.role === "counsellor"
+          // );
+          // console.log(counsellors);
+          setUsers(response.data.data);
+          setBranch(response.data.data);
         })
         .catch((error) => {
           console.error("Error fetching users", error);
@@ -397,8 +397,6 @@ const RegistrationTable = () => {
   const fetchRegistrations = () => {
     setLoading(true);
     const params = {
-      uuid: user.uuid,
-      role: user.role,
       page: currentPage,
       limit: itemsPerPage,
       search: searchQuery,
@@ -411,7 +409,8 @@ const RegistrationTable = () => {
     api
       .get("/counsellor/getRegister", { params })
       .then((response) => {
-        console.log(response.data);
+        // console.log(params);
+        // console.log(response.data);
         setRegistrations(response.data.data);
         setTotalCount(response.data.totalCount);
         setTotalPages(response.data.totalPages);
@@ -452,13 +451,13 @@ const RegistrationTable = () => {
   };
 
   const handleBranchSelect = (counsellor) => {
-    setSelectedBranch(counsellor.branch);
-    setBranchSearch(counsellor.branch);
+    setSelectedBranch(counsellor.counsellorBranch);
+    setBranchSearch(counsellor.counsellorBranch);
     setShowBranchDropdown(false);
   }
 
   const handleExamCentreSelect = (centre) => {
-    setSelectedExamCentre(centre.centerName);
+    setSelectedExamCentre(centre.centerId);
     setExamCentreSearch(centre.centerName);
     setShowExamCentreDropdown(false);
   };
@@ -681,7 +680,7 @@ const RegistrationTable = () => {
                         className="p-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => handleBranchSelect(counsellor)}
                       >
-                        {counsellor.branch}
+                        {counsellor.counsellorBranch}
                       </div>
                     ))}
                     {filteredBranch.length === 0 && branchSearch && (
@@ -816,12 +815,12 @@ const RegistrationTable = () => {
                           <td className="p-3 border whitespace-nowrap">{student.branch}</td>
                           <td className="p-3 border whitespace-nowrap">{student.studentNo}</td>
                           <td className="p-3 border whitespace-nowrap">{student.parentsNo}</td>
-                          <td className="p-3 border whitespace-nowrap">{student.examCentre.split("-")[1]}</td>
+                          <td className="p-3 border whitespace-nowrap">{student.ExamCenter.centerName}</td>
                           {user.role === "admin" && (
                             <>
-                              <td className="p-3 border whitespace-nowrap">{student.counsellor}</td>
+                              <td className="p-3 border whitespace-nowrap">{student.User.name}</td>
                               <td className="p-3 border whitespace-nowrap">
-                                {student.counsellorBranch}
+                                {student.User.counsellorBranch}
                               </td>
                             </>
                           )}

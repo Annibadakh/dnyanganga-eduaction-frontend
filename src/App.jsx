@@ -90,6 +90,7 @@ function App() {
                 <Route path='visitingtable' element={<VisitingTable />} />
                 <Route path='registertable' element={<RegistrationTable />} />
                 <Route path='paymenttable' element={<PaymentTable />} />
+                <Route path='chalan' element={<ChallanManagement />} />
 
               </Route>
               
@@ -108,7 +109,6 @@ function App() {
                 <Route path='examcenter' element={<AddCenter />} />
                 <Route path='collection' element={<AdminCollection />} />
                 {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
-                <Route path='chalan' element={<ChallanManagement />} />
 
               </Route>
 

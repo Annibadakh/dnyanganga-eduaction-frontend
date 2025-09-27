@@ -5,7 +5,7 @@ import FileUpload from "./FileUpload";
 
 const PaymentForm = ({paymentData, setShowPayment}) => {
     const student = paymentData;
-    console.log(paymentData, student);
+    // console.log(paymentData, student);
     
     // File upload hook for receipt
     const receiptPhoto = FileUploadHook();
@@ -35,7 +35,7 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
     
     const handleDate = (e) => {
         setNewDueDate(e.target.value) || "";
-        console.log(newDueDate);
+        // console.log(newDueDate);
     };
 
     const handleOnChange = (e) => {
@@ -88,16 +88,14 @@ const PaymentForm = ({paymentData, setShowPayment}) => {
             paymentMode,
             newRemainingAmount,
             newDueDate: newDueDate,
-            counsellor: student.counsellor,
-            createdBy: student.createdBy,
             receiptPhoto: formData.receiptPhoto, // Use from formData like RegistrationForm
         };
         
-        console.log("before submit", dataToSend);
+        // console.log("before submit", dataToSend);
         try {
             const response = await api.post("/counsellor/makePayment", dataToSend);
             setResponse(response);
-            console.log("after submit", response);
+            // console.log("after submit", response);
             alert("Payment Successful !!");
             setShowPayment(false);
         } catch (err) {

@@ -33,7 +33,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     { path: "visitingtable", label: "Visiting Table", icon: <FaTable className="text-lg" /> },
     { path: "paymenttable", label: "Payment Table", icon: <FaMoneyBill className="text-lg" /> },
     { path: "bookentries", label: "Book Entries", role: "admin", icon: <FaBook className="text-lg" /> },
-    { path: "chalan", label: "Chalan", role: "admin", icon: <FaFileInvoice className="text-lg" /> },
+    { path: "chalan", label: "Chalan", icon: <FaFileInvoice className="text-lg" /> },
     { path: "bookdistribution", label: "Book Details", role: "counsellor", icon: <FaShippingFast className="text-lg" /> },
     { path: "collection", label: "Collection Entries", role: "admin", icon: <FaMoneyCheckAlt className="text-lg" /> },
     { path: "settlement", label: "Collection Details", role: "counsellor", icon: <FaBalanceScale className="text-lg" /> },

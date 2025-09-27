@@ -63,7 +63,7 @@ const AddBookEntry = () => {
 
   const fetchCounsellors = async () => {
     try {
-      const res = await api.get("/admin/getUser?role=counsellor");
+      const res = await api.get("/admin/getUser");
       setCounsellors(res.data.data);
     } catch (err) {
       console.error("Error fetching counsellors", err);
@@ -74,6 +74,7 @@ const AddBookEntry = () => {
     if (id) {
       try {
         const res = await api.get(`/admin/getBooksByCounsellor/${id}`);
+        // console.log(res);
         setCounsellorBooks(res.data.data);
       } catch (err) {
         console.error("Error fetching books for counsellor", err);
@@ -230,7 +231,7 @@ const AddBookEntry = () => {
 
     try {
       setSubmitLoader(true);
-      console.log("Payload to be sent:", payload);
+      // console.log("Payload to be sent:", payload);
       
       await api.post("/admin/addBooksWithChalan", payload);
       
@@ -537,7 +538,7 @@ const AddBookEntry = () => {
             </div>
 
             {/* Challan Details */}
-            {/* <div>
+            <div>
               <label className="block mb-2 font-medium text-gray-700">Challan Date</label>
               <input
                 type="date"
@@ -545,10 +546,10 @@ const AddBookEntry = () => {
                 onChange={(e) => setChalanDate(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="text-sm text-gray-500 mt-1">
+              {/* <p className="text-sm text-gray-500 mt-1">
                 Challan number will be auto-generated (4-digit unique number)
-              </p>
-            </div> */}
+              </p> */}
+            </div>
 
             {/* Entry Type Selection */}
             <div>

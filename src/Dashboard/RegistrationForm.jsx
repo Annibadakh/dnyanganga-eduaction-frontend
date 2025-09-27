@@ -51,7 +51,7 @@ const RegistrationForm = () => {
     schoolCollege: "",
     preYearPercent: "",
     branch: "",
-    examCentre: "",
+    examCentre: "", // This will store centerId
     examYear: "",
     receiptNo: "",
     studentPhoto: "",
@@ -66,8 +66,15 @@ const RegistrationForm = () => {
 
   // Filter function for searchable exam centre dropdown
   const filteredExamCentres = examCentres.filter(centre =>
-    centre.centerName.toLowerCase().includes(examCentreSearch.toLowerCase())
+    centre.centerName.toLowerCase().includes(examCentreSearch.toLowerCase()) ||
+    centre.centerId.toString().toLowerCase().includes(examCentreSearch.toLowerCase())
   );
+
+  // Helper function to find center name by centerId
+  const getCenterNameById = (centerId) => {
+    const center = examCentres.find(centre => centre.centerId === centerId);
+    return center ? center.centerName : "";
+  };
 
   // Click outside handler for exam centre dropdown
   useEffect(() => {
@@ -85,12 +92,11 @@ const RegistrationForm = () => {
 
   // Handle exam centre selection
   const handleExamCentreSelect = (centre) => {
-    const examCentreValue = `${centre.centerId}-${centre.centerName}`;
     setFormData(prevData => ({
       ...prevData,
-      examCentre: examCentreValue
+      examCentre: centre.centerId // Store only centerId
     }));
-    setExamCentreSearch(centre.centerName);
+    setExamCentreSearch(centre.centerName); // Display centerName in search field
     setShowExamCentreDropdown(false);
   };
 
@@ -185,12 +191,11 @@ const RegistrationForm = () => {
         setShow11thPlusBranchDropdown(false);
       }
       
-      // Update exam centre search if draft contains exam centre
+      // Update exam centre search if draft contains exam centre centerId
       if (draftData.examCentre) {
-        const centreName = draftData.examCentre.split('-')[1];
-        if (centreName) {
-          setExamCentreSearch(centreName);
-        }
+        // examCentre now contains centerId, so we need to find the centerName
+        const centerName = getCenterNameById(draftData.examCentre);
+        setExamCentreSearch(centerName);
       }
       
       setShowDraftButton(false);
@@ -231,6 +236,16 @@ const RegistrationForm = () => {
         console.error("Error fetching exam centers", error);
       });
   }, []);
+
+  // Update exam centre search display when examCentres are loaded and formData has examCentre
+  useEffect(() => {
+    if (examCentres.length > 0 && formData.examCentre) {
+      const centerName = getCenterNameById(formData.examCentre);
+      if (centerName && !examCentreSearch) {
+        setExamCentreSearch(centerName);
+      }
+    }
+  }, [examCentres, formData.examCentre]);
 
   // Calculate amount remaining whenever totalamount or amountPaid changes
   useEffect(() => {
@@ -363,17 +378,17 @@ const RegistrationForm = () => {
 
   // Handle file uploads with form data update
   const handleStudentPhotoUpload = async () => {
-    console.log("Starting student photo upload...");
-    console.log("Current formData.studentPhoto:", formData.studentPhoto);
+    // console.log("Starting student photo upload...");
+    // console.log("Current formData.studentPhoto:", formData.studentPhoto);
     
     const imageUrl = await studentPhoto.uploadImage();
-    console.log("Student photo upload returned:", imageUrl);
+    // console.log("Student photo upload returned:", imageUrl);
     
     if (imageUrl && imageUrl.trim() !== '') {
-      console.log("Setting student photo URL in formData:", imageUrl);
+      // console.log("Setting student photo URL in formData:", imageUrl);
       setFormData(prevData => {
         const newData = { ...prevData, studentPhoto: imageUrl };
-        console.log("Updated formData with studentPhoto:", newData.studentPhoto);
+        // console.log("Updated formData with studentPhoto:", newData.studentPhoto);
         return newData;
       });
     } else {
@@ -388,7 +403,6 @@ const RegistrationForm = () => {
     }
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitLoader(true);
@@ -397,12 +411,6 @@ const RegistrationForm = () => {
     Object.keys(formData).forEach(key => {
       formDataToSend.append(key, formData[key]);
     });
-    
-    if(user?.uuid){
-      formDataToSend.append("uuid", user.uuid);
-      formDataToSend.append("counsellor", user.userName);
-      formDataToSend.append("counsellorBranch", user.branch);
-    }
 
     try {
       const response = await api.post("/counsellor/register", formDataToSend, {
@@ -425,8 +433,6 @@ const RegistrationForm = () => {
       setSubmitLoader(false);
     }
   };
-
-
 
   return (
     <div className="w-full bg-white">

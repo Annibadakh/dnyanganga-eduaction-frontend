@@ -1,20 +1,129 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
-import VisitingFormView from "./VisitingFormView"; // Import the new component
+import VisitingFormView from "./VisitingFormView";
+
+// Pagination Component (same as RegistrationTable)
+const Pagination = ({ 
+  currentPage, 
+  totalPages, 
+  onPageChange, 
+  totalItems, 
+  itemsPerPage,
+  onItemsPerPageChange 
+}) => {
+  const getPageNumbers = () => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages);
+    } else {
+      rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots;
+  };
+
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Show:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+            className="border border-gray-300 rounded px-3 py-1 text-sm"
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+          <span className="text-sm text-gray-600">per page</span>
+        </div>
+        <div className="text-sm text-gray-600">
+          Showing {startItem} to {endItem} of {totalItems} entries
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+
+        {getPageNumbers().map((page, index) => (
+          <button
+            key={index}
+            onClick={() => typeof page === 'number' && onPageChange(page)}
+            disabled={page === '...'}
+            className={`px-3 py-2 text-sm border rounded ${
+              page === currentPage
+                ? 'bg-primary text-white border-primary'
+                : page === '...'
+                ? 'cursor-default'
+                : 'border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const VisitingTable = () => {
   const { user } = useAuth();
   const [visitingData, setVisitingData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
   const [users, setUsers] = useState([]);
+  const [branch, setBranch] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedStandard, setSelectedStandard] = useState("");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   // New state for view modal
   const [showViewModal, setShowViewModal] = useState(false);
@@ -22,14 +131,21 @@ const VisitingTable = () => {
 
   // New state for searchable dropdowns
   const [counsellorSearch, setCounsellorSearch] = useState("");
+  const [branchSearch, setBranchSearch] = useState("");
   const [showCounsellorDropdown, setShowCounsellorDropdown] = useState(false);
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   
   // Refs for dropdown containers
   const counsellorDropdownRef = useRef(null);
+  const branchDropdownRef = useRef(null);
 
   // Filter functions for searchable dropdowns
   const filteredCounsellors = users.filter(user =>
     user.name.toLowerCase().includes(counsellorSearch.toLowerCase())
+  );
+
+  const filteredBranch = branch.filter(user =>
+    user.counsellorBranch.toLowerCase().includes(branchSearch.toLowerCase())
   );
 
   // Click outside handler
@@ -37,6 +153,9 @@ const VisitingTable = () => {
     const handleClickOutside = (event) => {
       if (counsellorDropdownRef.current && !counsellorDropdownRef.current.contains(event.target)) {
         setShowCounsellorDropdown(false);
+      }
+      if (branchDropdownRef.current && !branchDropdownRef.current.contains(event.target)) {
+        setShowBranchDropdown(false);
       }
     };
 
@@ -46,19 +165,40 @@ const VisitingTable = () => {
     };
   }, []);
 
+  // Fetch users data
   useEffect(() => {
     if (user.role === "admin") {
-      api.get("/admin/getUser").then((res) => {
-        setUsers(res.data.data.filter((u) => u.role === "counsellor"));
-      });
+      api
+        .get("/admin/getUser")
+        .then((response) => {
+          setUsers(response.data.data);
+          setBranch(response.data.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching users", error);
+        });
     }
+  }, [user.role]);
+
+  // Fetch visiting data with pagination
+  const fetchVisitingData = () => {
+    setLoading(true);
+    const params = {
+      page: currentPage,
+      limit: itemsPerPage,
+      search: searchQuery,
+      counsellor: selectedCounsellor,
+      branch: selectedBranch,
+      standard: selectedStandard
+    };
 
     api
-      .get(`/counsellor/getVisiting?uuid=${user.uuid}&role=${user.role}`)
+      .get("/counsellor/getVisiting", { params })
       .then((response) => {
-        console.log(response.data.data);
+        // console.log(response.data);
         setVisitingData(response.data.data);
-        setFilteredData(response.data.data);
+        setTotalCount(response.data.totalCount);
+        setTotalPages(response.data.totalPages);
         setLoading(false);
       })
       .catch((error) => {
@@ -66,31 +206,25 @@ const VisitingTable = () => {
         setError("Failed to load data");
         setLoading(false);
       });
-  }, [user]);
+  };
 
+  // Fetch visiting data when dependencies change
   useEffect(() => {
-    let result = [...visitingData];
+    fetchVisitingData();
+  }, [
+    user?.uuid, 
+    currentPage, 
+    itemsPerPage, 
+    searchQuery, 
+    selectedCounsellor, 
+    selectedBranch, 
+    selectedStandard
+  ]);
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (v) =>
-          v.studentName?.toLowerCase().includes(query) ||
-          v.parentsNo?.includes(query) ||
-          v.email?.toLowerCase().includes(query)
-      );
-    }
-
-    if (user.role === "admin" && selectedCounsellor) {
-      result = result.filter((v) => v.createdBy === selectedCounsellor);
-    }
-
-    if (selectedStandard) {
-      result = result.filter((v) => v.standard === selectedStandard);
-    }
-
-    setFilteredData(result);
-  }, [searchQuery, selectedCounsellor, selectedStandard, visitingData, user]);
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCounsellor, selectedBranch, selectedStandard]);
 
   const handleCounsellorSelect = (counsellor) => {
     setSelectedCounsellor(counsellor.uuid);
@@ -98,9 +232,29 @@ const VisitingTable = () => {
     setShowCounsellorDropdown(false);
   };
 
+  const handleBranchSelect = (counsellor) => {
+    setSelectedBranch(counsellor.counsellorBranch);
+    setBranchSearch(counsellor.counsellorBranch);
+    setShowBranchDropdown(false);
+  };
+
   const clearCounsellorFilter = () => {
     setSelectedCounsellor("");
     setCounsellorSearch("");
+  };
+
+  const clearBranchFilter = () => {
+    setSelectedBranch("");
+    setBranchSearch("");
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
   };
 
   const formatTimeTo12Hour = (dateTimeString) => {
@@ -129,71 +283,123 @@ const VisitingTable = () => {
       <h1 className="text-3xl text-center font-bold text-primary mb-6">Visiting Table</h1>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
         <input
           type="text"
           placeholder="Search by name, email, or number..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg w-full md:w-1/3"
+          className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"
         />
 
         {user.role === "admin" && (
-          <div className="relative w-full md:w-1/3" ref={counsellorDropdownRef}>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search counsellors..."
-                value={counsellorSearch}
-                onChange={(e) => {
-                  setCounsellorSearch(e.target.value);
-                  setShowCounsellorDropdown(true);
-                }}
-                onFocus={() => setShowCounsellorDropdown(true)}
-                className="p-2 w-full border border-gray-300 rounded-lg pr-8"
-              />
-              {selectedCounsellor && (
-                <button
-                  onClick={clearCounsellorFilter}
-                  className="absolute right-2 top-1/2 font-bold transform -translate-y-1/2 text-xl text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-            
-            {showCounsellorDropdown && (
-              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
-                <div
-                  className="p-2 hover:bg-gray-100 cursor-pointer border-b"
-                  onClick={() => {
-                    clearCounsellorFilter();
-                    setShowCounsellorDropdown(false);
+          <>
+            <div className="relative w-full md:w-1/4" ref={counsellorDropdownRef}>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search counsellors..."
+                  value={counsellorSearch}
+                  onChange={(e) => {
+                    setCounsellorSearch(e.target.value);
+                    setShowCounsellorDropdown(true);
                   }}
-                >
-                  All Counsellors
-                </div>
-                {filteredCounsellors.map((counsellor) => (
-                  <div
-                    key={counsellor.uuid}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleCounsellorSelect(counsellor)}
+                  onFocus={() => setShowCounsellorDropdown(true)}
+                  className="p-2 w-full border border-gray-300 rounded-lg pr-8"
+                />
+                {selectedCounsellor && (
+                  <button
+                    onClick={clearCounsellorFilter}
+                    className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {counsellor.name}
-                  </div>
-                ))}
-                {filteredCounsellors.length === 0 && counsellorSearch && (
-                  <div className="p-2 text-gray-500">No counsellors found</div>
+                    ×
+                  </button>
                 )}
               </div>
-            )}
-          </div>
+              
+              {showCounsellorDropdown && (
+                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+                  <div
+                    className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+                    onClick={() => {
+                      clearCounsellorFilter();
+                      setShowCounsellorDropdown(false);
+                    }}
+                  >
+                    All Counsellors
+                  </div>
+                  {filteredCounsellors.map((counsellor) => (
+                    <div
+                      key={counsellor.uuid}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleCounsellorSelect(counsellor)}
+                    >
+                      {counsellor.name}
+                    </div>
+                  ))}
+                  {filteredCounsellors.length === 0 && counsellorSearch && (
+                    <div className="p-2 text-gray-500">No counsellors found</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="relative w-full md:w-1/4" ref={branchDropdownRef}>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search branch..."
+                  value={branchSearch}
+                  onChange={(e) => {
+                    setBranchSearch(e.target.value);
+                    setShowBranchDropdown(true);
+                  }}
+                  onFocus={() => setShowBranchDropdown(true)}
+                  className="p-2 w-full border border-gray-300 rounded-lg pr-8"
+                />
+                {selectedBranch && (
+                  <button
+                    onClick={clearBranchFilter}
+                    className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              
+              {showBranchDropdown && (
+                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
+                  <div
+                    className="p-2 hover:bg-gray-100 cursor-pointer border-b"
+                    onClick={() => {
+                      clearBranchFilter();
+                      setShowBranchDropdown(false);
+                    }}
+                  >
+                    All Branch
+                  </div>
+                  {filteredBranch.map((counsellor) => (
+                    <div
+                      key={counsellor.uuid}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleBranchSelect(counsellor)}
+                    >
+                      {counsellor.counsellorBranch}
+                    </div>
+                  ))}
+                  {filteredBranch.length === 0 && branchSearch && (
+                    <div className="p-2 text-gray-500">No Branch found</div>
+                  )}
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         <select
           value={selectedStandard}
           onChange={(e) => setSelectedStandard(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg w-full md:w-1/3"
+          className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
         >
           <option value="">All Standards</option>
           <option value="9th+10th">9th+10th</option>
@@ -206,64 +412,80 @@ const VisitingTable = () => {
       {/* Table */}
       <div className="bg-white md:p-6 p-2 shadow-custom">
         {loading && <p className="text-customgray text-lg">Loading...</p>}
-      {error && <p className="text-red-500 text-lg">{error}</p>}
+        {error && <p className="text-red-500 text-lg">{error}</p>}
 
-      {!loading && !error && filteredData.length > 0 ? (
-        <div className="overflow-auto">
-          <table className="w-full border border-customgray rounded-xl text-sm whitespace-nowrap">
-            <thead className="bg-primary text-white uppercase">
-              <tr>
-                <th className="p-3 border">Sr. No.</th>
-                <th className="p-3 border">Visit Date</th>
-                <th className="p-3 border">Visit Time</th>
-                <th className="p-3 border">Student Name</th>
-                <th className="p-3 border">Standard</th>
-                <th className="p-3 border">Med/Grp</th>
-                <th className="p-3 border">Student No.</th>
-                <th className="p-3 border">Parent No.</th>
-                <th className="p-3 border">Demo</th>
-                <th className="p-3 border">Reason</th>
-                <th className="p-3 border">Counsellor Name</th>
-                <th className="p-3 border">Counsellor Branch</th>
-                <th className="p-3 border">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((visit, index) => (
-                <tr
-                  key={visit.id}
-                  className="text-center border-b hover:bg-gray-100 transition"
-                >
-                  <td className="p-2 border">{index + 1}</td>
-                  <td className="p-2 border">
-                    {new Date(visit.createdAt).toLocaleDateString('en-GB')}
-                  </td>
-                  <td className="p-2 border">{formatTimeTo12Hour(visit.createdAt)}</td>
-                  <td className="p-2 border">{visit.studentName}</td>
-                  <td className="p-2 border">{visit.standard}</td>
-                  <td className="p-2 border">{visit.branch}</td>
-                  <td className="p-2 border">{visit.studentNo}</td>
-                  <td className="p-2 border">{visit.parentsNo}</td>
-                  <td className="p-2 border">{visit.demoGiven}</td>
-                  <td className="p-2 border">{visit.reason}</td>
-                  <td className="p-2 border">{visit.counsellor}</td>
-                  <td className="p-2 border">{visit.counsellorBranch}</td>
-                  <td className="p-2 border">
-                    <button
-                      onClick={() => handleViewVisit(visit)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-xs"
+        {!loading && !error && visitingData.length > 0 ? (
+          <>
+            <div className="overflow-x-auto">
+              <table className="table-auto w-full border text-center border-customgray overflow-hidden shadow-lg text-sm">
+                <thead className="bg-primary text-customwhite uppercase tracking-wider">
+                  <tr>
+                    <th className="p-3 text-left border whitespace-nowrap">Sr. No.</th>
+                    <th className="p-3 border text-left whitespace-nowrap">Visit Date</th>
+                    <th className="p-3 border whitespace-nowrap">Visit Time</th>
+                    <th className="p-3 border whitespace-nowrap">Student Name</th>
+                    <th className="p-3 border whitespace-nowrap">Standard</th>
+                    <th className="p-3 border whitespace-nowrap">Med/Grp</th>
+                    <th className="p-3 border whitespace-nowrap">Student No.</th>
+                    <th className="p-3 border whitespace-nowrap">Parent No.</th>
+                    <th className="p-3 border whitespace-nowrap">Demo</th>
+                    <th className="p-3 border whitespace-nowrap">Reason</th>
+                    {user.role === "admin" && <><th className="p-3 border whitespace-nowrap">Counsellor Name</th>
+                    <th className="p-3 border whitespace-nowrap">Counsellor Branch</th></>}
+                    <th className="p-3 border whitespace-nowrap">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="text-customblack">
+                  {visitingData.map((visit, index) => (
+                    <tr
+                      key={visit.id}
+                      className="border-b border-gray-200 hover:bg-gray-100 transition"
                     >
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        !loading && <p className="text-lg text-customgray">No visiting records found.</p>
-      )}
+                      <td className="p-3 border whitespace-nowrap">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {new Date(visit.createdAt).toLocaleDateString('en-GB')}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">{formatTimeTo12Hour(visit.createdAt)}</td>
+                      <td className="p-3 border whitespace-nowrap">{visit.studentName}</td>
+                      <td className="p-3 border whitespace-nowrap">{visit.standard}</td>
+                      <td className="p-3 border whitespace-nowrap">{visit.branch}</td>
+                      <td className="p-3 border whitespace-nowrap">{visit.studentNo}</td>
+                      <td className="p-3 border whitespace-nowrap">{visit.parentsNo}</td>
+                      <td className="p-3 border whitespace-nowrap">{visit.demoGiven}</td>
+                      <td className="p-3 border whitespace-nowrap">{visit.reason}</td>
+                      {user.role === "admin" && <><td className="p-3 border whitespace-nowrap">{visit.User.name}</td>
+                      <td className="p-3 border whitespace-nowrap">{visit.User.counsellorBranch}</td></>}
+                      <td className="p-3 border whitespace-nowrap">
+                        <button
+                          onClick={() => handleViewVisit(visit)}
+                          className="bg-primary text-white px-3 py-1 rounded hover:bg-blue-700"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Component */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              totalItems={totalCount}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
+          </>
+        ) : (
+          !loading && (
+            <p className="text-lg text-customgray">No visiting records found.</p>
+          )
+        )}
       </div>
 
       {/* View Modal */}

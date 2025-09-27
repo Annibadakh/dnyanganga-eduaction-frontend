@@ -92,9 +92,9 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
       
       if (response.status === 200) {
         const student = response.data.student;
-        console.log("Fetched student data:", student);
+        // console.log("Fetched student data:", student);
         setStudentData(student);
-        console.log(new Date(student.dob).toISOString().split('T')[0]);
+        // console.log(new Date(student.dob).toISOString().split('T')[0]);
         // Safely set form data with fallback values
         setFormData({
           studentName: student.studentName || "",

@@ -110,7 +110,7 @@ export default function Home() {
         </div>
       ) : (
         <h1 className="text-2xl font-semibold text-center text-gray-700">
-          {user.userName}, Welcome!
+          {user.role.toUpperCase()} DASHBOARD!
         </h1>
       )}
     </div>

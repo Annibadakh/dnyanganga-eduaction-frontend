@@ -56,13 +56,9 @@ const CounsellorBooks = () => {
     setLoadingStudents(true);
     try {
       const res = await api.get(`/counsellor/getStudentsByCounsellor/${user.uuid}`);
-      const filtered = res.data.data.filter((s) => {
-        const eligibleSet1 = s.bookSet1 && s.status1 === "not_given";
-        const eligibleSet2 = s.bookSet2 && s.status2 === "not_given";
-        return eligibleSet1 || eligibleSet2;
-      });
-      setStudents(filtered);
-      setFilteredStudents(filtered);
+      // console.log(res.data.data);
+      setStudents(res.data.data);
+      setFilteredStudents(res.data.data);
     } catch (err) {
       console.error("Error fetching students", err);
     } finally {
@@ -95,6 +91,7 @@ const CounsellorBooks = () => {
       fetchBooks();
       alert(`Books for ${bookSet} marked as given`);
     } catch (err) {
+  
       console.error("Error marking student given", err.response?.data?.message);
       alert(err.response?.data?.message || "Error");
     } finally {
@@ -233,7 +230,7 @@ const CounsellorBooks = () => {
                   <tr key={student.studentId} className="text-center border-b hover:bg-gray-100 transition">
                     <td className="p-2 border">{index + 1}</td>
                     <td className="p-2 border font-medium">{student.studentId}</td>
-                    <td className="p-2 border font-medium">{student.studentName}</td>
+                    <td className="p-2 border font-medium">{student.Student.studentName}</td>
                     <td className="p-2 border text-green-600 font-medium">
                       ₹ {student.totalAmount?.toLocaleString()}
                     </td>

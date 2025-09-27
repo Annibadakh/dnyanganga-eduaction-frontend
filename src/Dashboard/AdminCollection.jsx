@@ -14,6 +14,7 @@ const AdminCollection = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [remarkFilter, setRemarkFilter] = useState(""); // New remark filter
 
   // User dropdown states
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -36,7 +37,7 @@ const AdminCollection = () => {
   const fetchTransactions = async () => {
     try {
       const res = await api.get(`/counsellor/collection/AllTransactions`);
-      console.log(res.data);
+      // console.log(res.data);
       setTransactions(res.data || []);
       setFilteredTransactions(res.data || []);
     } catch (err) {
@@ -75,6 +76,7 @@ const AdminCollection = () => {
     setStartDate("");
     setEndDate("");
     setStatusFilter("");
+    setRemarkFilter(""); // Clear remark filter
     setFilteredTransactions(transactions);
   };
 
@@ -108,6 +110,19 @@ const AdminCollection = () => {
       filtered = filtered.filter(txn => txn.verifyStatus === statusFilter);
     }
 
+    // Filter by remark
+    if (remarkFilter) {
+      filtered = filtered.filter(txn => {
+        if (remarkFilter === "Other") {
+          // For "Other", check if remark starts with "Other:"
+          return txn.remark && txn.remark.startsWith("Other:");
+        } else {
+          // For specific options, match exactly
+          return txn.remark === remarkFilter;
+        }
+      });
+    }
+
     setFilteredTransactions(filtered);
   };
 
@@ -125,7 +140,7 @@ const AdminCollection = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [selectedUser, startDate, endDate, statusFilter, transactions]);
+  }, [selectedUser, startDate, endDate, statusFilter, remarkFilter, transactions]); // Added remarkFilter dependency
 
   const handleViewProof = (url) => {
     if (url) {
@@ -137,7 +152,7 @@ const AdminCollection = () => {
   };
 
   const changeStatus = async (id, status) => {
-    console.log(id, status);
+    // console.log(id, status);
     try {
       const res = await api.put(`/counsellor/collection/verifyPayment/${id}`, { status });
       alert(res.data.message);
@@ -180,6 +195,8 @@ const AdminCollection = () => {
     u.name.toLowerCase().includes(userSearch.toLowerCase())
   );
 
+  
+
   return (
     <div className="p-4 container mx-auto">
       <h1 className="text-3xl font-bold text-center text-primary mb-6">
@@ -192,7 +209,7 @@ const AdminCollection = () => {
           Filters
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4"> {/* Changed to 5 columns */}
           {/* User Selection Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -299,6 +316,25 @@ const AdminCollection = () => {
               <option value="rejected">Rejected</option>
             </select>
           </div>
+
+          {/* Remark Filter - NEW */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Remark
+            </label>
+            <select
+              value={remarkFilter}
+              onChange={(e) => setRemarkFilter(e.target.value)}
+              className="w-full p-2 border rounded-md"
+            >
+              <option value="">-- All Remarks --</option>
+              <option value="Dnyanganga Axis Bank">Dnyanganga Axis Bank</option>
+              <option value="Dnyanganga Yes Bank">Dnyanganga Yes Bank</option>
+              <option value="Amol Sir Personal">Amol Sir Personal</option>
+              <option value="Sagar Sir Personal">Sagar Sir Personal</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
         </div>
 
         {/* Clear Filters Button */}
@@ -378,38 +414,6 @@ const AdminCollection = () => {
             </div>
           </div>
         </div>
-
-        {/* Additional Stats Row */}
-        {/* <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-gray-50 p-4 rounded-lg border">
-            <div className="text-center">
-              <p className="text-gray-600 text-sm font-medium">Total Transactions</p>
-              <p className="text-xl font-bold text-gray-800">{filteredTransactions.length}</p>
-            </div>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg border">
-            <div className="text-center">
-              <p className="text-gray-600 text-sm font-medium">Approval Rate</p>
-              <p className="text-xl font-bold text-gray-800">
-                {filteredTransactions.length > 0 
-                  ? `${Math.round((filteredTransactions.filter(t => t.verifyStatus === 'verified').length / filteredTransactions.length) * 100)}%`
-                  : '0%'}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg border">
-            <div className="text-center">
-              <p className="text-gray-600 text-sm font-medium">Average Amount</p>
-              <p className="text-xl font-bold text-gray-800">
-                ₹{filteredTransactions.length > 0 
-                  ? (stats.totalAmount / filteredTransactions.length).toLocaleString('en-IN', { maximumFractionDigits: 2 })
-                  : '0'}
-              </p>
-            </div>
-          </div>
-        </div> */}
       </div>
 
       {/* Transaction History */}
@@ -422,6 +426,7 @@ const AdminCollection = () => {
             <table className="min-w-full table-auto text-center border border-gray-300">
               <thead className="bg-primary text-white">
                 <tr>
+                  <th className="p-2 border whitespace-nowrap">Sr. No.</th>
                   <th className="p-2 border whitespace-nowrap">Date</th>
                   <th className="p-2 border whitespace-nowrap">Counsellor Name</th>
                   <th className="p-2 border whitespace-nowrap">Amount Paid</th>
@@ -433,8 +438,9 @@ const AdminCollection = () => {
               <tbody>
                 {filteredTransactions.map((txn, idx) => (
                   <tr key={idx} className="hover:bg-gray-100">
+                    <td className="p-2 border whitespace-nowrap">{idx+1}</td>
                     <td className="p-2 border whitespace-nowrap">{new Date(txn.paymentDate).toLocaleDateString('en-GB')}</td>
-                    <td className="p-2 border whitespace-nowrap">{txn.counsellorName}</td>
+                    <td className="p-2 border whitespace-nowrap">{txn.User.name}</td>
                     <td className="p-2 border whitespace-nowrap">₹{txn.amountPaid.toLocaleString('en-IN')}</td>
                     <td className="p-2 border whitespace-nowrap">{txn.remark}</td>
                     <td className="p-2 border whitespace-nowrap">

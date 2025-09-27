@@ -125,11 +125,7 @@ const VisitingForm = () => {
       }
     });
 
-    if (user?.uuid) {
-      formDataToSend.uuid = user.uuid;
-      formDataToSend.counsellor = user.userName;
-      formDataToSend.counsellorBranch = user.branch;
-    }
+    
 
     try {
       const response = await api.post("/counsellor/visiting", formDataToSend);

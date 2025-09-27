@@ -16,7 +16,7 @@ const AddCenter = () => {
   }, []);
 
   const fetchCenters = () => {
-    api.get("/admin/getExamCenters")
+    api.get("/admin/getExamCentersDetails")
       .then((response) => setCenters(response.data.data))
       .catch((error) => console.error("Error fetching centre", error));
   };
@@ -176,13 +176,13 @@ const AddCenter = () => {
                           Edit
                         </button>
                       )}
-                      <button
+                      {/* <button
                         onClick={() => handleDelete(center.centerId)}
                         disabled={deleteLoader === center.centerId}
                         className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 disabled:opacity-50"
                       >
                         {deleteLoader === center.centerId ? <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span> : "Delete"}
-                      </button>
+                      </button> */}
                     </div>
                   </td>
                 </tr>

@@ -24,7 +24,7 @@ const EnquiryForm = () => {
     e.preventDefault();
 
     // Here you can integrate API submission
-    console.log('Form submitted:', formData);
+    // console.log('Form submitted:', formData);
 
     // ✅ Show success alert
     setAlert({
