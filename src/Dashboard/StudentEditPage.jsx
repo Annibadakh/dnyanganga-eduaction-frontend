@@ -1,22 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { FileUploadHook } from "./FileUploadHook";
 import FileUpload from "./FileUpload";
 
 const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   const imgUrl = import.meta.env.VITE_IMG_URL;
-
   const { user } = useAuth();
-  const navigate = useNavigate();
   
-  // Search and student data states
-  const [studentId, setStudentId] = useState("");
+  // Student data states
   const [studentData, setStudentData] = useState(null);
   const [searchLoader, setSearchLoader] = useState(false);
   const [searchError, setSearchError] = useState("");
-  const [editMode, setEditMode] = useState(false);
   
   // File upload hook for photo editing
   const studentPhoto = FileUploadHook();
@@ -31,10 +26,8 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   const examCentreDropdownRef = useRef(null);
   
   // Branch dropdown visibility states
-  const [show9thBranchDropdown, setShow9thBranchDropdown] = useState(false);
-  const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
-  const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] = useState(false);
-  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
+  const [show9thBranchDropdown, setShow9thBranchDropdown] = useState(false); // For mediums (9th/10th)
+  const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] = useState(false); // For groups (11th/12th)
   
   const [formData, setFormData] = useState({
     studentName: "",
@@ -60,15 +53,19 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
   // Handle branch dropdown visibility based on standard
   useEffect(() => {
-    const standard = formData.standard;
-    setShow9thBranchDropdown(standard === "9th");
-    setShow10thBranchDropdown(standard === "10th");
-    setShow11thPlusBranchDropdown(standard === "11th" || standard === "12th");
-    setShowBranchDropdown(standard && !["9th", "10th", "11th", "12th"].includes(standard));
+    const standard = formData.standard || "";
+    
+    // Show medium dropdowns for 9th+10th and 10th standards
+    const showMediumDropdown = standard === "9th+10th" || standard === "10th";
+    
+    // Show group dropdowns for 11th+12th and 12th standards
+    const showGroupDropdown = standard === "11th+12th" || standard === "12th";
+    
+    setShow9thBranchDropdown(showMediumDropdown);
+    setShow11thPlusBranchDropdown(showGroupDropdown);
   }, [formData.standard]);
 
-  // Search for student
-
+  // Search for student when component loads
   useEffect(() => {
     if (propStudentId) {
       handleStudentSearch();
@@ -77,24 +74,18 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
   // Search for student
   const handleStudentSearch = async () => {
-    const searchId = propStudentId || studentId;
-    
-    if (!searchId.trim()) {
-      setSearchError("Please enter a student ID");
-      return;
-    }
+    if (!propStudentId) return;
 
     setSearchLoader(true);
     setSearchError("");
     
     try {
-      const response = await api.get(`/counsellor/student/${searchId}`);
+      const response = await api.get(`/counsellor/student/${propStudentId}`);
       
       if (response.status === 200) {
         const student = response.data.student;
-        // console.log("Fetched student data:", student);
         setStudentData(student);
-        // console.log(new Date(student.dob).toISOString().split('T')[0]);
+        
         // Safely set form data with fallback values
         setFormData({
           studentName: student.studentName || "",
@@ -113,22 +104,17 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
           schoolCollege: student.schoolCollege || "",
           preYearPercent: student.preYearPercent || "",
           branch: student.branch || "",
-          examCentre: student.examCentre || "",
+          examCentre: student.examCentre || "", // This will be the centerId
           examYear: student.examYear || "",
           studentPhoto: student.studentPhoto || ""
         });
         
-        // Set exam centre search if exists
-        if (student.examCentre) {
-          const centreName = student.examCentre.split('-')[1];
-          if (centreName) {
-            setExamCentreSearch(centreName);
+        // Find and set exam centre name for search field
+        if (student.examCentre && examCentres.length > 0) {
+          const selectedCentre = examCentres.find(centre => centre.centerId === student.examCentre);
+          if (selectedCentre) {
+            setExamCentreSearch(selectedCentre.centerName);
           }
-        }
-        
-        // If student ID was provided as prop, directly open edit mode
-        if (propStudentId) {
-          setEditMode(true);
         }
         
         setSearchError("");
@@ -145,68 +131,6 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
       setSearchLoader(false);
     }
   };
-  // const handleStudentSearch = async () => {
-  //   if (!studentId.trim()) {
-  //     setSearchError("Please enter a student ID");
-  //     return;
-  //   }
-
-  //   setSearchLoader(true);
-  //   setSearchError("");
-    
-  //   try {
-  //     const response = await api.get(`/counsellor/student/${studentId}`);
-      
-  //     if (response.status === 200) {
-  //       const student = response.data.student;
-  //       console.log("Fetched student data:", student);
-  //       setStudentData(student);
-  //       console.log(new Date(student.dob).toISOString().split('T')[0]);
-  //       // Safely set form data with fallback values
-  //       setFormData({
-  //         studentName: student.studentName || "",
-  //         gender: student.gender || "",
-  //         dob: new Date(student.dob).toISOString().split('T')[0] || "",
-  //         motherName: student.motherName || "",
-  //         address: student.address || "",
-  //         pincode: student.pincode || "",
-  //         email: student.email || "",
-  //         studentNo: student.studentNo || "",
-  //         parentsNo: student.parentsNo || "",
-  //         appNo: student.appNo || "",
-  //         notificationNo: student.notificationNo || "",
-  //         standard: student.standard || "",
-  //         previousYear: student.previousYear || "",
-  //         schoolCollege: student.schoolCollege || "",
-  //         preYearPercent: student.preYearPercent || "",
-  //         branch: student.branch || "",
-  //         examCentre: student.examCentre || "",
-  //         examYear: student.examYear || "",
-  //         studentPhoto: student.studentPhoto || ""
-  //       });
-        
-  //       // Set exam centre search if exists
-  //       if (student.examCentre) {
-  //         const centreName = student.examCentre.split('-')[1];
-  //         if (centreName) {
-  //           setExamCentreSearch(centreName);
-  //         }
-  //       }
-        
-  //       setSearchError("");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error in handleStudentSearch:", error);
-  //     if (error.response?.status === 404) {
-  //       setSearchError("Student not found with this ID");
-  //     } else {
-  //       setSearchError("Error fetching student data. Please try again.");
-  //     }
-  //     setStudentData(null);
-  //   } finally {
-  //     setSearchLoader(false);
-  //   }
-  // };
 
   // Filter function for searchable exam centre dropdown
   const filteredExamCentres = examCentres.filter(centre =>
@@ -229,10 +153,9 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
   // Handle exam centre selection
   const handleExamCentreSelect = (centre) => {
-    const examCentreValue = `${centre.centerId}-${centre.centerName}`;
     setFormData(prevData => ({
       ...prevData,
-      examCentre: examCentreValue
+      examCentre: centre.centerId // Store only centerId
     }));
     setExamCentreSearch(centre.centerName);
     setShowExamCentreDropdown(false);
@@ -259,15 +182,23 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
       });
   }, []);
 
+  // Update exam centre search when exam centres are loaded and student data exists
+  useEffect(() => {
+    if (studentData && examCentres.length > 0 && formData.examCentre) {
+      const selectedCentre = examCentres.find(centre => centre.centerId === formData.examCentre);
+      if (selectedCentre) {
+        setExamCentreSearch(selectedCentre.centerName);
+      }
+    }
+  }, [examCentres, studentData, formData.examCentre]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-   const resetForm = () => {
-    setStudentId("");
+  const resetForm = () => {
     setStudentData(null);
-    setEditMode(false);
     setSearchError("");
     setFormData({
       studentName: "",
@@ -333,7 +264,7 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
       if (response.status === 200) {
         alert("Student details updated successfully!");
-        resetForm();
+        handleCloseModal();
       }
     } catch (error) {
       if (error.response?.status === 400) {
@@ -344,15 +275,12 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
       }
     } finally {
       setSubmitLoader(false);
-      handleCloseModal();
     }
   };
 
   const handleCloseModal = () => {
     if (onClose) {
       onClose();
-    } else {
-      resetForm();
     }
   };
 
@@ -364,70 +292,28 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
             <h2 className="text-2xl font-bold">Edit Student Registration</h2>
           </div>
 
-          {/* Student Search Section */}
-          {/* <div className="p-4 border-b bg-gray-50">
-            <div className="max-w-md mx-auto">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={studentId}
-                  onChange={(e) => setStudentId(e.target.value)}
-                  placeholder="Enter Student ID"
-                  className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                />
-                <button
-                  onClick={handleStudentSearch}
-                  disabled={searchLoader}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 min-w-[100px]"
-                >
-                  {searchLoader ? (
-                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full inline-block"></span>
-                  ) : (
-                    "Search"
-                  )}
-                </button>
-              </div>
-              {searchError && (
-                <p className="text-red-500 text-sm mt-2">{searchError}</p>
-              )}
+          {/* Loading State */}
+          {searchLoader && (
+            <div className="p-8 text-center">
+              <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p>Loading student data...</p>
             </div>
-          </div> */}
+          )}
 
-          {/* Student Found - Edit Options */}
-          {/* {studentData && !editMode && (
-            <div className="p-4 bg-green-50 border border-green-200">
-              <div className="max-w-2xl mx-auto">
-                <h3 className="text-lg font-semibold text-green-800 mb-2">
-                  Student Found: {studentData.studentName}
-                </h3>
-                
-                <div className="flex gap-3 flex-wrap">
-                  <button
-                    onClick={() => setEditMode(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                  >
-                    Edit Student Details
-                  </button>
-                  <button
-                    onClick={resetForm}
-                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
-                  >
-                    Search Another Student
-                  </button>
-                </div>
-              </div>
+          {/* Error State */}
+          {searchError && (
+            <div className="p-4 bg-red-50 border border-red-200">
+              <p className="text-red-600 text-center">{searchError}</p>
             </div>
-          )} */}
+          )}
 
-          {/* Combined Edit Mode */}
-          {!studentData && <p>Loading......</p>}
-          {onClose && studentData && (
+          {/* Student Edit Form */}
+          {!searchLoader && !searchError && studentData && (
             <div className="p-2 sm:p-4">
               <div className="max-w-6xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold">Edit Student Details & Photo</h3>
                   <button
-                    // onClick={() => setEditMode(false)}
                     onClick={handleCloseModal}
                     className="text-gray-500 hover:text-gray-700 text-xl font-bold"
                   >
@@ -621,37 +507,7 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                         </select>
                       )}
                       
-                      {show10thBranchDropdown && (
-                        <select 
-                          name="branch" 
-                          value={formData.branch} 
-                          onChange={handleChange} 
-                          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
-                          required
-                        >
-                          <option value="">Select Medium</option>
-                          <option value="Marathi">Marathi</option>
-                          <option value="Semi-English">Semi-English</option>
-                          <option value="English">English</option>
-                        </select>
-                      )}
-                      
                       {show11thPlusBranchDropdown && (
-                        <select 
-                          name="branch" 
-                          value={formData.branch} 
-                          onChange={handleChange} 
-                          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
-                          required
-                        >
-                          <option value="">Select Group</option>
-                          <option value="PCM">PCM</option>
-                          <option value="PCB">PCB</option>
-                          <option value="PCMB">PCMB</option>
-                        </select>
-                      )}
-                      
-                      {showBranchDropdown && (
                         <select 
                           name="branch" 
                           value={formData.branch} 

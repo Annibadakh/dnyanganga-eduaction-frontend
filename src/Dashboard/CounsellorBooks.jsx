@@ -80,7 +80,7 @@ const CounsellorBooks = () => {
   };
 
   const callMarkGivenAPI = async (student, bookSet) => {
-    if (!window.confirm(`Are you sure you want to mark the ${bookSet} book set as distributed ${student.studentName}?`)) return;
+    if (!window.confirm(`Are you sure you want to mark the ${bookSet} book set as distributed for ${student.Student.studentName}?`)) return;
     const key = `${student.studentId}-${bookSet}`;
     setUpdatingStudent(key);
     try {
