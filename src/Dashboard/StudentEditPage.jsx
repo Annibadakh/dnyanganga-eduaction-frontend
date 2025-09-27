@@ -477,6 +477,18 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                           required
                         />
                       </div>
+                      <div className="w-full flex flex-row items-center gap-1 order-1">
+                        <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Previous Year:</label>
+                        <input 
+                          type="text" 
+                          name="previousYear" 
+                          disabled
+                          value={formData.previousYear}
+                          onChange={handleChange}
+                          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
+                          required
+                        />
+                      </div>
                       
                       {/* Previous Year Percentage */}
                       <input 
