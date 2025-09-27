@@ -386,26 +386,26 @@ const ChallanManagement = () => {
                     <p className="text-gray-600">{groupedItems.books.length} different books • {totalBookCount} total copies</p>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-gradient-to-r from-purple-50 to-purple-100">
                         <tr>
-                          <th className="p-4 text-left font-semibold text-purple-800">Standard</th>
-                          <th className="p-4 text-left font-semibold text-purple-800">Book Name</th>
-                          <th className="p-4 text-center font-semibold text-purple-800">Count Sent</th>
+                          <th className="p-4 border text-left font-semibold text-purple-800">Standard</th>
+                          <th className="p-4 border text-left font-semibold text-purple-800">Book Name</th>
+                          <th className="p-4 border text-center font-semibold text-purple-800">Count Sent</th>
                         </tr>
                       </thead>
                       <tbody>
                         {groupedItems.books.map((item, index) => (
                           <tr key={index} className="border-t border-gray-100 hover:bg-purple-50 transition-colors">
-                            <td className="p-4">
-                              <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            <td className="p-4 border">
+                              <span className=" text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
                                 {item.Book?.standard || 'N/A'}
                               </span>
                             </td>
-                            <td className="p-4 font-medium text-gray-900">{item.Book?.bookName || 'N/A'}</td>
-                            <td className="p-4 text-center">
+                            <td className="p-4 border font-medium text-gray-900">{item.Book?.bookName || 'N/A'}</td>
+                            <td className="p-4 border text-center">
                               <span className="bg-purple-600 text-white px-3 py-1 rounded-full font-bold">
                                 {item.countSent || 0}
                               </span>
@@ -433,20 +433,20 @@ const ChallanManagement = () => {
                     <p className="text-gray-600">{groupedItems.pamphlets.length} different pamphlets • {totalPamphletCount} total copies</p>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-gradient-to-r from-green-50 to-green-100">
                         <tr>
-                          <th className="p-4 text-left font-semibold text-green-800">Pamphlet Name</th>
-                          <th className="p-4 text-center font-semibold text-green-800">Count Sent</th>
+                          <th className="p-4 border text-left font-semibold text-green-800">Pamphlet Name</th>
+                          <th className="p-4 border text-center font-semibold text-green-800">Count Sent</th>
                         </tr>
                       </thead>
                       <tbody>
                         {groupedItems.pamphlets.map((item, index) => (
                           <tr key={index} className="border-t border-gray-100 hover:bg-green-50 transition-colors">
-                            <td className="p-4 font-medium text-gray-900">{item.Book?.bookName || 'N/A'}</td>
-                            <td className="p-4 text-center">
+                            <td className="p-4 border font-medium text-gray-900">{item.Book?.bookName || 'N/A'}</td>
+                            <td className="p-4 border text-center">
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full font-bold">
                                 {item.countSent || 0}
                               </span>
@@ -474,20 +474,20 @@ const ChallanManagement = () => {
                     <p className="text-gray-600">{groupedItems.receiptBooks.length} different receipt books • {totalReceiptCount} total copies</p>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white shadow-sm border border-gray-200 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-gradient-to-r from-orange-50 to-orange-100">
                         <tr>
-                          <th className="p-4 text-left font-semibold text-orange-800">Book Number</th>
-                          <th className="p-4 text-center font-semibold text-orange-800">Range Count</th>
+                          <th className="p-4 border text-left font-semibold text-orange-800">Book Number</th>
+                          <th className="p-4 border text-center font-semibold text-orange-800">Range Count</th>
                         </tr>
                       </thead>
                       <tbody>
                         {groupedItems.receiptBooks.map((item, index) => (
                           <tr key={index} className="border-t border-gray-100 hover:bg-orange-50 transition-colors">
-                            <td className="p-4 font-medium text-gray-900">{item.Book?.bookName || 'N/A'}</td>
-                            <td className="p-4 text-center">
+                            <td className="p-4 border font-medium text-gray-900">{item.Book?.bookName || 'N/A'}</td>
+                            <td className="p-4 border text-center">
                               <span className="bg-orange-600 text-white px-3 py-1 rounded-full font-bold">
                                 {item.countSent || 0}
                               </span>
@@ -716,15 +716,15 @@ const ChallanManagement = () => {
               <table className="w-full text-sm">
                 <thead className="bg-primary text-white">
                   <tr>
-                    <th className="p-3 text-left">Sr. No.</th>
-                    <th className="p-3 text-left">Challan No</th>
-                    <th className="p-3 text-left">Date</th>
-                    {user.role === "admin" && <th className="p-3 text-left">Counsellor</th>}
-                    <th className="p-3 text-center">Total Items</th>
-                    <th className="p-3 text-center">Books</th>
-                    <th className="p-3 text-center">Pamphlets</th>
-                    <th className="p-3 text-center">Receipt Books</th>
-                    <th className="p-3 text-center">Actions</th>
+                    <th className="p-3 text-left border">Sr. No.</th>
+                    <th className="p-3 text-left border">Challan No</th>
+                    <th className="p-3 text-left border">Date</th>
+                    {user.role === "admin" && <th className="p-3 text-left border">Counsellor</th>}
+                    <th className="p-3 text-center border">Total Items</th>
+                    <th className="p-3 text-center border">Books</th>
+                    <th className="p-3 text-center border">Pamphlets</th>
+                    <th className="p-3 text-center border">Receipt Books</th>
+                    <th className="p-3 text-center border">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -745,15 +745,15 @@ const ChallanManagement = () => {
 
                     return (
                       <tr key={challan.uuid || idx} className="border-b hover:bg-gray-50">
-                        <td className="p-3 font-semibold text-primary">{indexOfFirstChallan + idx + 1}</td>
-                        <td className="p-3 font-semibold text-primary">{challan.chalanNo || 'N/A'}</td>
-                        <td className="p-3">{formatDate(challan.date)}</td>
-                        {user.role === "admin" && <td className="p-3">{challan.User?.name}</td>}
-                        <td className="p-3 text-center">{items.length}</td>
-                        <td className="p-3 text-center">{bookCount}</td>
-                        <td className="p-3 text-center">{pamphletCount}</td>
-                        <td className="p-3 text-center">{receiptCount}</td>
-                        <td className="p-3 text-center">
+                        <td className="p-3 text-center font-semibold text-primary border">{indexOfFirstChallan + idx + 1}</td>
+                        <td className="p-3 text-center font-semibold text-primary border">{challan.chalanNo || 'N/A'}</td>
+                        <td className="p-3 text-center border">{formatDate(challan.date)}</td>
+                        {user.role === "admin" && <td className="p-3 text-center border">{challan.User?.name}</td>}
+                        <td className="p-3 text-center border">{items.length}</td>
+                        <td className="p-3 text-center border">{bookCount}</td>
+                        <td className="p-3 text-center border">{pamphletCount}</td>
+                        <td className="p-3 text-center border">{receiptCount}</td>
+                        <td className="p-3 text-center border">
                           <button
                             onClick={() => viewChallanDetails(challan)}
                             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition"
