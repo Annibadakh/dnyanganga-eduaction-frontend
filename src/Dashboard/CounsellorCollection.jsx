@@ -133,7 +133,8 @@ const CounsellorCollection = () => {
 
   const handleSettle = async (e) => {
     e.preventDefault();
-    if (collection) return;
+    console.log("sending collection");
+    // if (collection) return;
 
     const value = parseFloat(settleAmount);
     if (!value || value <= 0) {
