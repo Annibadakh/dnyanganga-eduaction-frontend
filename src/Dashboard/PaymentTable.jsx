@@ -2,6 +2,7 @@ import { Fragment, useState, useEffect, useRef } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import { Dialog, Transition } from "@headlessui/react";
+import { RotateCw } from "lucide-react";
 
 // Mobile-friendly PDF viewer component (same as before)
 const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) => {
@@ -290,6 +291,8 @@ const PaymentTable = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState("");
   const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const [rotation, setRotation] = useState(0);
+
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfFileName, setPdfFileName] = useState("");
   const [currentPdfStudent, setCurrentPdfStudent] = useState(null);
@@ -361,7 +364,7 @@ const PaymentTable = () => {
     api
       .get("/counsellor/getPayments", { params })
       .then((response) => {
-        setPaymentsData(response.data.students);
+        setPaymentsData(response.data.payments);
         setTotalCount(response.data.totalCount);
         setTotalPages(response.data.totalPages);
         setLoading(false);
@@ -414,6 +417,9 @@ const PaymentTable = () => {
     setStartDate("");
     setEndDate("");
   };
+  const handleRotate = () => {
+    setRotation((prev) => (prev + 90) % 360);
+  };
 
   const handleViewReceipt = (receiptPhoto) => {
     if (receiptPhoto) {
@@ -424,23 +430,23 @@ const PaymentTable = () => {
     }
   };
 
-  const handleViewReceiptPDF = async (student) => {
+  const handleViewReceiptPDF = async (payment) => {
     try {
-      setLoadingPdfId(student.studentId);
+      setLoadingPdfId(payment.paymentId);
       const response = await api.get("/pdf/payment-receipt", {
-        params: { studentId: student.studentId },
+        params: { studentId: payment.Student.studentId },
         responseType: "blob",
       });
 
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
-      const fileName = student.studentName
-        ? `${student.studentName.replace(/\s+/g, "_")}_RECEIPT.pdf`
-        : `${student.studentId}_RECEIPT.pdf`;
+      const fileName = payment.Student.studentName
+        ? `${payment.Student.studentName.replace(/\s+/g, "_")}_RECEIPT.pdf`
+        : `${payment.Student.studentId}_RECEIPT.pdf`;
 
       setPdfUrl(url);
       setPdfFileName(fileName);
-      setCurrentPdfStudent(student);
+      setCurrentPdfStudent(payment.Student);
       setShowPdfPreview(true);
 
     } catch (err) {
@@ -466,7 +472,7 @@ const PaymentTable = () => {
       <h1 className="text-3xl text-center font-bold text-primary mb-6">Payment Records</h1>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row justify-between gap-2  mb-4">
+      <div className="flex flex-col md:flex-row justify-between gap-2 mb-4">
         <input
           type="text"
           placeholder="Search by name, student ID, payment ID, or receipt no..."
@@ -570,85 +576,60 @@ const PaymentTable = () => {
                 <thead className="bg-primary text-customwhite uppercase tracking-wider">
                   <tr>
                     <th className="p-3 text-left border whitespace-nowrap">Sr. No.</th>
-                    <th className="p-3 border text-left whitespace-nowrap">Register Date</th>
+                    <th className="p-3 border text-left whitespace-nowrap">Payment Date</th>
                     {user.role === 'admin' && <th className="p-3 border whitespace-nowrap">Counsellor</th>}
-                    <th className="p-3 border whitespace-nowrap">Student ID.</th>
+                    <th className="p-3 border whitespace-nowrap">Student ID</th>
                     <th className="p-3 border whitespace-nowrap">Student Name</th>
+                    <th className="p-3 border whitespace-nowrap">Payment ID</th>
+                    <th className="p-3 border whitespace-nowrap">Receipt No</th>
                     <th className="p-3 border whitespace-nowrap">Amount Paid</th>
-                    <th className="p-3 border whitespace-nowrap">Amount Remaining</th>
-                    <th className="p-3 border whitespace-nowrap">Due Date</th>
-                    <th className="p-3 border whitespace-nowrap">Payments</th>
+                    <th className="p-3 border whitespace-nowrap">Payment Mode</th>
+                    <th className="p-3 border whitespace-nowrap">Receipt</th>
                     <th className="p-3 border whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody className="text-customblack">
-                  {paymentsData.map((student, index) => (
-                    <tr key={student.studentId} className="border-b border-gray-200 hover:bg-gray-100 transition">
+                  {paymentsData.map((payment, index) => (
+                    <tr key={payment.paymentId} className="border-b border-gray-200 hover:bg-gray-100 transition">
                       <td className="p-3 border whitespace-nowrap">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
                       <td className="p-3 border whitespace-nowrap">
-                        {new Date(student.createdAt).toLocaleDateString('en-GB')}
+                        {new Date(payment.createdAt).toLocaleDateString('en-GB')}
                       </td>
                       {user.role === 'admin' && (
-                        <td className="p-3 border whitespace-nowrap">{student.User.name}</td>
+                        <td className="p-3 border whitespace-nowrap">
+                          {payment.Student?.User?.name || '-'}
+                        </td>
                       )}
-                      <td className="p-3 border whitespace-nowrap">{student.studentId}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.studentName}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.amountPaid.toLocaleString('en-IN')}</td>
-                      <td className="p-3 border whitespace-nowrap">{student.amountRemaining.toLocaleString('en-IN')}</td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {student.dueDate
-                          ? new Date(student.dueDate).toLocaleDateString("en-GB")
-                          : "-"}
+                      <td className="p-3 border whitespace-nowrap">{payment.Student?.studentId}</td>
+                      <td className="p-3 border whitespace-nowrap">{payment.Student?.studentName}</td>
+                      <td className="p-3 border whitespace-nowrap">{payment.paymentId}</td>
+                      <td className="p-3 border whitespace-nowrap">{payment.receiptNo}</td>
+                      <td className="p-3 text-green-500 font-bold border whitespace-nowrap">
+                        {payment.amountPaid.toLocaleString('en-IN')}
                       </td>
+                      <td className="p-3 border whitespace-nowrap">{payment.paymentMode}</td>
                       <td className="p-3 border whitespace-nowrap">
-                        <table className="w-full text-xs border border-gray-300">
-                          <thead>
-                            <tr className="bg-gray-100">
-                              <th className="p-1 border">Payment ID.</th>
-                              <th className="p-1 border">Receipt No.</th>
-                              <th className="p-1 border">Amount</th>
-                              <th className="p-1 border">Date</th>
-                              <th className="p-1 border">Mode</th>
-                              <th className="p-1 border">Receipt</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {student.Payments.map((payment) => (
-                              <tr key={payment.paymentId}>
-                                <td className="p-1 border">{payment.paymentId}</td>
-                                <td className="p-1 border">{payment.receiptNo}</td>
-                                <td className="p-1 border">{payment.amountPaid.toLocaleString('en-IN')}</td>
-                                <td className="p-1 border">
-                                  {new Date(payment.createdAt).toLocaleDateString("en-GB")}
-                                </td>
-                                <td className="p-1 border">{payment.paymentMode}</td>
-                                <td className="p-1 border">
-                                  <button
-                                    onClick={() => handleViewReceipt(payment.receiptPhoto)}
-                                    className="text-blue-600 hover:underline"
-                                  >
-                                    View
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        <button
+                          onClick={() => handleViewReceipt(payment.receiptPhoto)}
+                          className="text-blue-600 hover:underline"
+                        >
+                          View
+                        </button>
                       </td>
                       <td className="p-3 border whitespace-nowrap">
                         <button
-                          onClick={() => handleViewReceiptPDF(student)}
-                          disabled={loadingPdfId === student.studentId}
+                          onClick={() => handleViewReceiptPDF(payment)}
+                          disabled={loadingPdfId === payment.paymentId}
                           className={`bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded grid place-items-center ${
-                            loadingPdfId === student.studentId ? "opacity-60 cursor-not-allowed" : ""
+                            loadingPdfId === payment.paymentId ? "opacity-60 cursor-not-allowed" : ""
                           }`}
                         >
-                          {loadingPdfId === student.studentId ? (
+                          {loadingPdfId === payment.paymentId ? (
                             <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
                           ) : (
-                            "Receipt"
+                            "PDF"
                           )}
                         </button>
                       </td>
@@ -675,58 +656,75 @@ const PaymentTable = () => {
         )}
       </div>
 
-      {/* Receipt Image Modal (existing) */}
+      {/* Receipt Image Modal */}
       <Transition appear show={showReceiptModal} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowReceiptModal(false)}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black bg-opacity-50" />
-          </Transition.Child>
+      <Dialog as="div" className="relative z-50" onClose={() => setShowReceiptModal(false)}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-50" />
+        </Transition.Child>
 
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex items-center justify-center min-h-full p-2 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-xl bg-white md:p-6 p-2 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
-                    Receipt Image
-                  </Dialog.Title>
-                  <div className="mt-4">
-                    <img
-                      src={selectedReceiptUrl}
-                      alt="Receipt"
-                      className="max-h-[500px] w-full object-contain rounded border"
-                    />
-                  </div>
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
-                      onClick={() => setShowReceiptModal(false)}
-                    >
-                      Close
-                    </button>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-full p-2 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="relative w-full max-w-2xl transform overflow-hidden rounded-xl bg-white md:p-6 p-2 text-left align-middle shadow-xl transition-all">
+                {/* Title */}
+                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                  Receipt Image
+                </Dialog.Title>
+
+                {/* Rotate button */}
+                <button
+                  onClick={handleRotate}
+                  className="absolute top-5 right-6 rounded-full bg-gray-100 hover:bg-gray-200 p-2"
+                  title="Rotate Image"
+                >
+                  <RotateCw className="w-5 h-5 text-gray-700" />
+                </button>
+
+                {/* Close button (top right corner) */}
+
+                {/* Image */}
+                <div className="mt-6 flex justify-center overflow-hidden">
+                  <img
+                    src={selectedReceiptUrl}
+                    alt="Receipt"
+                    className="min-h-[600px] w-auto object-contain rounded border transition-transform duration-300"
+                    style={{ transform: `rotate(${rotation}deg)` }}
+                  />
+                </div>
+
+                {/* Footer Close button (optional, can remove if top one is enough) */}
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+                    onClick={() => setShowReceiptModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
-        </Dialog>
-      </Transition>
+        </div>
+      </Dialog>
+    </Transition>
 
       {/* Mobile-Optimized PDF Preview */}
       {showPdfPreview && (

@@ -329,7 +329,21 @@ const RegistrationTable = () => {
     user.name.toLowerCase().includes(counsellorSearch.toLowerCase())
   );
 
-  const filteredBranch = branch.filter(user =>
+  const getDistinctBranches = (branchList) => {
+    const distinctBranches = [];
+    const seenBranches = new Set();
+    
+    branchList.forEach(item => {
+      if (item.counsellorBranch && !seenBranches.has(item.counsellorBranch)) {
+        seenBranches.add(item.counsellorBranch);
+        distinctBranches.push(item);
+      }
+    });
+    
+    return distinctBranches;
+  };
+
+  const filteredBranch = getDistinctBranches(branch).filter(user =>
     user.counsellorBranch.toLowerCase().includes(branchSearch.toLowerCase())
   );
 
@@ -674,9 +688,9 @@ const RegistrationTable = () => {
                     >
                       All Branch
                     </div>
-                    {filteredBranch.map((counsellor) => (
+                    {filteredBranch.map((counsellor, index) => (
                       <div
-                        key={counsellor.uuid}
+                        key={`${counsellor.counsellorBranch}-${index}`}
                         className="p-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => handleBranchSelect(counsellor)}
                       >

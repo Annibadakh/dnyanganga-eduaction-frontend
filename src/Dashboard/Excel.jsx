@@ -18,18 +18,21 @@ const Excel = () => {
   const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
 
   const allColumns = [
-    "studentId", "studentName", "standard", "branch", "studentNo",
-    "parentsNo", "examCentre", "counsellor", "counsellorBranch", "totalAmount",
+    "studentId", "studentName", "motherName", "standard", "branch", "studentNo",
+    "parentsNo", "notificationNo", "appNo", "examCentre", "counsellor", "counsellorBranch", "totalAmount",
     "amountPaid", "amountRemaining", "dueDate", "createdAt"
   ];
 
   const columnDisplayNames = {
     "studentId": "Student ID",
     "studentName": "Student Name",
+    "motherName": "Mother's Name",
     "standard": "Standard",
     "branch": "Grp/Med",
     "studentNo": "Student Phone",
     "parentsNo": "Parent Phone",
+    "notificationNo": "Notification No",
+    "appNo": "Application No",
     "examCentre": "Exam Centre",
     "counsellor": "Counsellor",
     "counsellorBranch": "Branch",
@@ -166,6 +169,7 @@ const Excel = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <select value={selectedStandard} onChange={(e) => setSelectedStandard(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
           <option value="">All Standards</option>
+          <option value="9th+10th">9th+10th</option>
           <option value="10th">10th</option>
           <option value="12th">11th+12th</option>
           <option value="12th">12th</option>
@@ -178,7 +182,7 @@ const Excel = () => {
 
         <select value={selectedExamCentre} onChange={(e) => setSelectedExamCentre(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
           <option value="">All Exam Centres</option>
-          {examCentres.map(ec => <option key={ec.centerId} value={ec.centerName}>{ec.centerName}</option>)}
+          {examCentres.map(ec => <option key={ec.centerId} value={ec.centerId}>{ec.centerName}</option>)}
         </select>
 
         <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading} placeholder="From Date" />
