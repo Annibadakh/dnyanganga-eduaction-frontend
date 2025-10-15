@@ -40,7 +40,7 @@ const Excel = () => {
     "amountPaid": "Amount Paid",
     "amountRemaining": "Amount Remaining",
     "dueDate": "Due Date",
-    "createdAt": "Created At"
+    "createdAt": "Register Date"
   };
 
   useEffect(() => {
@@ -88,18 +88,18 @@ const Excel = () => {
 
   const getAutoWidths = (data) => {
     return selectedColumns.map((col) => {
-      const headerText = columnDisplayNames[col] || col;
-      const headerLength = headerText.length;
-      const maxContentLength = Math.max(
+      const displayName = columnDisplayNames[col] || col;
+      const headerLength = displayName.length;
+      
+      const maxContentLength = data.length > 0 ? Math.max(
         ...data.map((row) => {
-          if (!row[col]) return 0;
-          let value = row[col];
-          if (value instanceof Date) value = value.toLocaleDateString("en-GB");
-          else value = String(value);
-          return value.length;
+          const value = row[displayName];
+          if (!value && value !== 0) return 0;
+          return String(value).length;
         })
-      );
-      return { wch: Math.min(Math.max(headerLength, maxContentLength) + 3, 50) };
+      ) : 0;
+      
+      return { wch: Math.min(Math.max(headerLength, maxContentLength) + 2, 50) };
     });
   };
 
@@ -124,9 +124,8 @@ const Excel = () => {
         onlyNonZeroRemaining,
         columns: selectedColumns
       };
-
       const { data: filteredStudents } = await api.post("/counsellor/getFilteredRegister", body);
-
+      // console.log("Filtered Students:", filteredStudents);
       if (!filteredStudents || filteredStudents.length === 0) {
         setError("No students found for the selected filters.");
         return;
