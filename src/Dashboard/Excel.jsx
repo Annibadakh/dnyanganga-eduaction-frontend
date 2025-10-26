@@ -18,29 +18,32 @@ const Excel = () => {
   const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
 
   const allColumns = [
-    "studentId", "studentName", "motherName", "standard", "branch", "studentNo",
-    "parentsNo", "notificationNo", "appNo", "examCentre", "counsellor", "counsellorBranch", "totalAmount",
-    "amountPaid", "amountRemaining", "dueDate", "createdAt"
+    "createdAt", "studentId", "studentName", "dob", "motherName", "address", "pincode", "standard", "branch", "schoolCollege", "studentNo",
+    "parentsNo", "appNo", "notificationNo", "amountPaid", "amountRemaining", "dueDate", "examCentre", "counsellor", "counsellorBranch",
   ];
 
   const columnDisplayNames = {
+    "createdAt": "Register Date",
+    "registerTime": "Register Time", // ✅ Added new display name
     "studentId": "Student ID",
     "studentName": "Student Name",
+    "dob": "Date of Birth",
     "motherName": "Mother's Name",
+    "address": "Address",
+    "pincode": "Pin Code",
     "standard": "Standard",
     "branch": "Grp/Med",
+    "schoolCollege": "School/College",
     "studentNo": "Student Phone",
     "parentsNo": "Parent Phone",
-    "notificationNo": "Notification No",
     "appNo": "Application No",
-    "examCentre": "Exam Centre",
-    "counsellor": "Counsellor",
-    "counsellorBranch": "Branch",
-    "totalAmount": "Total Amount",
+    "notificationNo": "Notification No",
     "amountPaid": "Amount Paid",
     "amountRemaining": "Amount Remaining",
     "dueDate": "Due Date",
-    "createdAt": "Register Date"
+    "examCentre": "Exam Centre",
+    "counsellor": "Counsellor",
+    "counsellorBranch": "Branch",
   };
 
   useEffect(() => {
@@ -87,21 +90,27 @@ const Excel = () => {
   }, [fromDate, toDate]);
 
   const getAutoWidths = (data) => {
-    return selectedColumns.map((col) => {
-      const displayName = columnDisplayNames[col] || col;
-      const headerLength = displayName.length;
-      
-      const maxContentLength = data.length > 0 ? Math.max(
-        ...data.map((row) => {
-          const value = row[displayName];
-          if (!value && value !== 0) return 0;
-          return String(value).length;
-        })
-      ) : 0;
-      
-      return { wch: Math.min(Math.max(headerLength, maxContentLength) + 2, 50) };
-    });
-  };
+  const headers = ["Sr. No.", ...selectedColumns.flatMap(col => {
+    if (col === "createdAt") return [columnDisplayNames[col], "Register Time"];
+    return [columnDisplayNames[col] || col];
+  })];
+
+  return headers.map(header => {
+    const headerLength = header.length;
+    const maxContentLength = data.length > 0 ? Math.max(
+      ...data.map(row => {
+        const value = row[header];
+        if (value === null || value === undefined) return 0;
+        return String(value).length;
+      })
+    ) : 0;
+
+    // dynamically scale within a range
+    const optimalWidth = Math.min(Math.max(headerLength, maxContentLength) + 3, 50);
+    return { wch: optimalWidth };
+  });
+};
+
 
   const handleGenerateExcel = async () => {
     if (!validateDateRange()) return;
@@ -125,20 +134,29 @@ const Excel = () => {
         columns: selectedColumns
       };
       const { data: filteredStudents } = await api.post("/counsellor/getFilteredRegister", body);
-      // console.log("Filtered Students:", filteredStudents);
       if (!filteredStudents || filteredStudents.length === 0) {
         setError("No students found for the selected filters.");
         return;
       }
 
-      const exportData = filteredStudents.map(student => {
+      const exportData = filteredStudents.map((student, index) => {
         const row = {};
+
+        // ✅ Add Serial Number
+        row["Sr. No."] = index + 1;
+
         selectedColumns.forEach(col => {
           let value = student[col];
-          if (col === "createdAt" || col === "dueDate") {
+          if (col === "createdAt" || col === "dueDate" || col === "dob") {
             value = value ? new Date(value).toLocaleDateString("en-GB") : "";
           }
           row[columnDisplayNames[col] || col] = value;
+
+          // ✅ Add Register Time automatically if createdAt is selected
+          if (col === "createdAt") {
+            const time = student.createdAt ? new Date(student.createdAt).toLocaleTimeString("en-GB") : "";
+            row["Register Time"] = time;
+          }
         });
         return row;
       });
@@ -150,6 +168,7 @@ const Excel = () => {
       XLSX.writeFile(wb, `Filtered_Registrations_${Date.now()}.xlsx`);
 
       alert("Excel file downloaded successfully!");
+      setSelectedColumns([]);
     } catch (err) {
       console.error("Error generating Excel:", err);
       setError("Failed to generate Excel file. Please try again.");
@@ -165,6 +184,7 @@ const Excel = () => {
       {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
       {loading && <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">Loading...</div>}
 
+      {/* ... rest of your JSX remains unchanged ... */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <select value={selectedStandard} onChange={(e) => setSelectedStandard(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
           <option value="">All Standards</option>
