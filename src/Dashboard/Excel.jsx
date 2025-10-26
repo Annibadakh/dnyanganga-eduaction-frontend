@@ -80,6 +80,15 @@ const Excel = () => {
     );
   };
 
+  const formatTimeTo12Hour = (dateTimeString) => {
+    const date = new Date(dateTimeString);
+    return date.toLocaleTimeString('en-GB', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   const validateDateRange = useCallback(() => {
     if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
       setError("From Date cannot be later than To Date");
@@ -154,7 +163,7 @@ const Excel = () => {
 
           // ✅ Add Register Time automatically if createdAt is selected
           if (col === "createdAt") {
-            const time = student.createdAt ? new Date(student.createdAt).toLocaleTimeString("en-GB") : "";
+            const time = student.createdAt ? formatTimeTo12Hour(student.createdAt) : "";
             row["Register Time"] = time;
           }
         });
