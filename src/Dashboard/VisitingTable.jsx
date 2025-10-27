@@ -3,7 +3,7 @@ import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import VisitingFormView from "./VisitingFormView";
 
-// Pagination Component (same as RegistrationTable)
+// Pagination Component
 const Pagination = ({ 
   currentPage, 
   totalPages, 
@@ -118,6 +118,10 @@ const VisitingTable = () => {
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedStandard, setSelectedStandard] = useState("");
+  
+  // Date range filter states
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -189,13 +193,14 @@ const VisitingTable = () => {
       search: searchQuery,
       counsellor: selectedCounsellor,
       branch: selectedBranch,
-      standard: selectedStandard
+      standard: selectedStandard,
+      dateFrom: dateFrom,
+      dateTo: dateTo
     };
 
     api
       .get("/counsellor/getVisiting", { params })
       .then((response) => {
-        // console.log(response.data);
         setVisitingData(response.data.data);
         setTotalCount(response.data.totalCount);
         setTotalPages(response.data.totalPages);
@@ -218,13 +223,15 @@ const VisitingTable = () => {
     searchQuery, 
     selectedCounsellor, 
     selectedBranch, 
-    selectedStandard
+    selectedStandard,
+    dateFrom,
+    dateTo
   ]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedCounsellor, selectedBranch, selectedStandard]);
+  }, [searchQuery, selectedCounsellor, selectedBranch, selectedStandard, dateFrom, dateTo]);
 
   const handleCounsellorSelect = (counsellor) => {
     setSelectedCounsellor(counsellor.uuid);
@@ -248,6 +255,11 @@ const VisitingTable = () => {
     setBranchSearch("");
   };
 
+  const clearDateFilters = () => {
+    setDateFrom("");
+    setDateTo("");
+  };
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -266,13 +278,11 @@ const VisitingTable = () => {
     });
   };
 
-  // New function to handle view action
   const handleViewVisit = (visit) => {
     setSelectedVisit(visit);
     setShowViewModal(true);
   };
 
-  // Function to close view modal
   const handleCloseView = () => {
     setShowViewModal(false);
     setSelectedVisit(null);
@@ -283,18 +293,65 @@ const VisitingTable = () => {
       <h1 className="text-3xl text-center font-bold text-primary mb-6">Visiting Table</h1>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search by name, email, or number..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"
-        />
+      <div className="flex flex-col gap-4 mb-4">
+        
 
+        {/* Second Row - Date Range and Standard */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-3/4">
+            <div className="flex items-center gap-2 w-full md:w-1/3">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">From:</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="p-2 w-full border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div className="flex items-center gap-2 w-full md:w-1/3">
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">To:</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="p-2 w-full border border-gray-300 rounded-lg"
+              />
+            </div>
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={clearDateFilters}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 whitespace-nowrap"
+              >
+                Clear Dates
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Third Row - Counsellor and Branch (Admin only) */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <input
+            type="text"
+            placeholder="Search by name, email, or number..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"
+          />
+          <select
+            value={selectedStandard}
+            onChange={(e) => setSelectedStandard(e.target.value)}
+            className="p-2 w-full md:w-2/4 border border-gray-300 rounded-lg"
+          >
+            <option value="">All Standards</option>
+            <option value="9th+10th">9th+10th</option>
+            <option value="10th">10th</option>
+            <option value="11th+12th">11th+12th</option>
+            <option value="12th">12th</option>
+          </select>
+        </div>
         {user.role === "admin" && (
-          <>
-            <div className="relative w-full md:w-1/4" ref={counsellorDropdownRef}>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative w-full md:w-1/2" ref={counsellorDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
@@ -342,9 +399,10 @@ const VisitingTable = () => {
                   )}
                 </div>
               )}
+              
             </div>
 
-            <div className="relative w-full md:w-1/4" ref={branchDropdownRef}>
+            <div className="relative w-full md:w-1/2" ref={branchDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
@@ -393,20 +451,8 @@ const VisitingTable = () => {
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
-
-        <select
-          value={selectedStandard}
-          onChange={(e) => setSelectedStandard(e.target.value)}
-          className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
-        >
-          <option value="">All Standards</option>
-          <option value="9th+10th">9th+10th</option>
-          <option value="10th">10th</option>
-          <option value="11th+12th">11th+12th</option>
-          <option value="12th">12th</option>
-        </select>
       </div>
 
       {/* Table */}

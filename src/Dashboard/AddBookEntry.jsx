@@ -262,17 +262,38 @@ const AddBookEntry = () => {
     c.name.toLowerCase().includes(viewInternalSearch.toLowerCase())
   );
 
-  // Group books by standard for display
+  // Group books by standard for display with proper ordering
   const groupBooksByStandard = () => {
     const grouped = {};
+    
+    // Group books by standard first
     counsellorBooks.forEach(book => {
       if (!grouped[book.standard]) {
         grouped[book.standard] = [];
       }
       grouped[book.standard].push(book);
     });
+    
+    // Sort books within each standard according to classOptions order
+    Object.keys(grouped).forEach(standard => {
+      if (classOptions[standard]) {
+        // Sort based on the order in classOptions
+        grouped[standard].sort((a, b) => {
+          const indexA = classOptions[standard].indexOf(a.bookName);
+          const indexB = classOptions[standard].indexOf(b.bookName);
+          return indexA - indexB;
+        });
+      }
+    });
+    
     return grouped;
   };
+
+  const groupedBooks = groupBooksByStandard();
+  
+  // Define the order of standards and filter only those that exist
+  const standardOrder = ["10th", "11th", "12th", "receiptBook", "pamphlet"];
+  const orderedStandards = standardOrder.filter(std => groupedBooks[std]);
 
   const CustomDropdown = ({ 
     isOpen, 
@@ -492,8 +513,6 @@ const AddBookEntry = () => {
     </div>
   );
 
-  const groupedBooks = groupBooksByStandard();
-
   return (
     <div className="p-1 container mx-auto">
       <h1 className="text-3xl text-center font-bold text-primary mb-6">
@@ -634,15 +653,15 @@ const AddBookEntry = () => {
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(groupedBooks).map((standard, standardIndex) => (
+                {orderedStandards.map((standard, standardIndex) => (
                   <tr key={standard} className="text-center border-b hover:bg-gray-100 transition">
                     <td className="p-2 border">{standardIndex + 1}</td>
-                    <td className="p-2 border font-semibold text-primary capitalize">{standard == "receiptBook" ? "receipt book" : standard}</td>
+                    <td className="p-2 border font-semibold text-primary capitalize">{standard === "receiptBook" ? "receipt book" : standard}</td>
                     <td className="p-2 border">
                       <table className="w-full text-xs border border-gray-300">
                         <thead>
                           <tr className="bg-gray-100">
-                            {standard !== "pamphlet" && (standard == "receiptBook" ? <th className="p-1 border">Receipt Number</th> : <th className="p-1 border">Book Name</th>)}
+                            {standard !== "pamphlet" && (standard === "receiptBook" ? <th className="p-1 border">Receipt Number</th> : <th className="p-1 border">Book Name</th>)}
                             
                             <th className="p-1 border">Total Count</th>
                             <th className="p-1 border">Distributed</th>

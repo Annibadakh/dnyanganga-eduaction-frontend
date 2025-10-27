@@ -294,6 +294,8 @@ const RegistrationTable = () => {
   const [selectedExamCentre, setSelectedExamCentre] = useState("");
   const [selectedStandard, setSelectedStandard] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -386,10 +388,6 @@ const RegistrationTable = () => {
       api
         .get("/admin/getUser")
         .then((response) => {
-          // const counsellors = response.data.data.filter(
-          //   (user) => user.role === "counsellor"
-          // );
-          // console.log(counsellors);
           setUsers(response.data.data);
           setBranch(response.data.data);
         })
@@ -417,14 +415,14 @@ const RegistrationTable = () => {
       counsellor: selectedCounsellor,
       branch: selectedBranch,
       examCentre: selectedExamCentre,
-      standard: selectedStandard
+      standard: selectedStandard,
+      dateFrom: dateFrom,
+      dateTo: dateTo
     };
 
     api
       .get("/counsellor/getRegister", { params })
       .then((response) => {
-        // console.log(params);
-        // console.log(response.data);
         setRegistrations(response.data.data);
         setTotalCount(response.data.totalCount);
         setTotalPages(response.data.totalPages);
@@ -449,6 +447,8 @@ const RegistrationTable = () => {
     selectedBranch, 
     selectedExamCentre, 
     selectedStandard,
+    dateFrom,
+    dateTo,
     showPayment, 
     showEditStudent
   ]);
@@ -456,7 +456,7 @@ const RegistrationTable = () => {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedCounsellor, selectedBranch, selectedExamCentre, selectedStandard]);
+  }, [searchQuery, selectedCounsellor, selectedBranch, selectedExamCentre, selectedStandard, dateFrom, dateTo]);
 
   const handleCounsellorSelect = (counsellor) => {
     setSelectedCounsellor(counsellor.uuid);
@@ -595,6 +595,46 @@ const RegistrationTable = () => {
           <h1 className="text-3xl text-center font-bold text-primary mb-6">
             Registration Table
           </h1>
+          
+          {/* Date Range Filter Row */}
+          <div className="flex flex-col md:flex-row justify-start gap-4 mb-4">
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              <div className="flex flex-col">
+                <label htmlFor="dateFrom" className="text-sm text-gray-600 mb-1">From Date</label>
+                <input
+                  id="dateFrom"
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  max={dateTo || undefined}
+                  className="p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label htmlFor="dateTo" className="text-sm text-gray-600 mb-1">To Date</label>
+                <input
+                  id="dateTo"
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  min={dateFrom || undefined}
+                  className="p-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              {(dateFrom || dateTo) && (
+                <button
+                  onClick={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors whitespace-nowrap"
+                >
+                  Clear Dates
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
             <input
               type="text"
@@ -795,6 +835,11 @@ const RegistrationTable = () => {
                         <th className="p-3 border whitespace-nowrap">Student No.</th>
                         <th className="p-3 border whitespace-nowrap">Parent No.</th>
                         <th className="p-3 border whitespace-nowrap">Exam Centre</th>
+                        
+                        <th className="p-3 border whitespace-nowrap">Total Amount</th>
+                        <th className="p-3 border whitespace-nowrap">Paid</th>
+                        <th className="p-3 border whitespace-nowrap">Remaining</th>
+                        <th className="p-3 border whitespace-nowrap">Due Date</th>
                         {user.role === "admin" && (
                           <>
                             <th className="p-3 border whitespace-nowrap">Counsellor</th>
@@ -803,10 +848,6 @@ const RegistrationTable = () => {
                             </th>
                           </>
                         )}
-                        <th className="p-3 border whitespace-nowrap">Total Amount</th>
-                        <th className="p-3 border whitespace-nowrap">Paid</th>
-                        <th className="p-3 border whitespace-nowrap">Remaining</th>
-                        <th className="p-3 border whitespace-nowrap">Due Date</th>
                         <th className="p-3 border whitespace-nowrap">Actions</th>
                       </tr>
                     </thead>
@@ -830,14 +871,6 @@ const RegistrationTable = () => {
                           <td className="p-3 border whitespace-nowrap">{student.studentNo}</td>
                           <td className="p-3 border whitespace-nowrap">{student.parentsNo}</td>
                           <td className="p-3 border whitespace-nowrap">{student.ExamCenter.centerName}</td>
-                          {user.role === "admin" && (
-                            <>
-                              <td className="p-3 border whitespace-nowrap">{student.User.name}</td>
-                              <td className="p-3 border whitespace-nowrap">
-                                {student.User.counsellorBranch}
-                              </td>
-                            </>
-                          )}
                           <td className="p-3 border whitespace-nowrap">{student.totalAmount.toLocaleString('en-IN')}</td>
                           <td className="p-3 border whitespace-nowrap text-green-500 font-bold">
                             {student.amountPaid.toLocaleString('en-IN')}
@@ -851,6 +884,14 @@ const RegistrationTable = () => {
                               : "-"
                             }
                           </td>
+                          {user.role === "admin" && (
+                            <>
+                              <td className="p-3 border whitespace-nowrap">{student.User.name}</td>
+                              <td className="p-3 border whitespace-nowrap">
+                                {student.User.counsellorBranch}
+                              </td>
+                            </>
+                          )}
                           <td className="p-3 border whitespace-nowrap">
                             <div className="flex items-center space-x-2">
                               <button

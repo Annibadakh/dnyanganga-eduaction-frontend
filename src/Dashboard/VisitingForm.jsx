@@ -409,7 +409,8 @@ const VisitingForm = () => {
                     onChange={handleChange} 
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base resize-vertical" 
                     required
-                    rows="3"
+                    rows="1"
+                    maxLength="40"
                   ></textarea>
                 </div>
               )}

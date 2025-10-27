@@ -559,7 +559,7 @@ const ChallanManagement = () => {
         show: true
       },
       {
-        title: "Books Sent",
+        title: "Books Received",
         value: stats.totalBooks,
         color: "from-purple-500 to-purple-600",
         textColor: "text-purple-100",
@@ -702,7 +702,7 @@ const ChallanManagement = () => {
       {/* Challans Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="p-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-700">Challans List</h2>
+          <h2 className="text-lg font-semibold text-gray-700">Challans History</h2>
         </div>
         
         {loading ? (
@@ -716,14 +716,14 @@ const ChallanManagement = () => {
               <table className="w-full text-sm">
                 <thead className="bg-primary text-white">
                   <tr>
-                    <th className="p-3 text-left border">Sr. No.</th>
-                    <th className="p-3 text-left border">Challan No</th>
-                    <th className="p-3 text-left border">Date</th>
-                    {user.role === "admin" && <th className="p-3 text-left border">Counsellor</th>}
-                    <th className="p-3 text-center border">Total Items</th>
+                    <th className="p-3 text-center border">Sr. No.</th>
+                    <th className="p-3 text-center border">Challan No</th>
+                    <th className="p-3 text-center border">Date</th>
+                    {user.role === "admin" && <th className="p-3 text-center border">Counsellor</th>}
                     <th className="p-3 text-center border">Books</th>
                     <th className="p-3 text-center border">Pamphlets</th>
                     <th className="p-3 text-center border">Receipt Books</th>
+                    <th className="p-3 text-center border">Total Items</th>
                     <th className="p-3 text-center border">Actions</th>
                   </tr>
                 </thead>
@@ -749,10 +749,10 @@ const ChallanManagement = () => {
                         <td className="p-3 text-center font-semibold text-primary border">{challan.chalanNo || 'N/A'}</td>
                         <td className="p-3 text-center border">{formatDate(challan.date)}</td>
                         {user.role === "admin" && <td className="p-3 text-center border">{challan.User?.name}</td>}
-                        <td className="p-3 text-center border">{items.length}</td>
                         <td className="p-3 text-center border">{bookCount}</td>
                         <td className="p-3 text-center border">{pamphletCount}</td>
                         <td className="p-3 text-center border">{receiptCount}</td>
+                        <td className="p-3 text-center border">{items.length}</td>
                         <td className="p-3 text-center border">
                           <button
                             onClick={() => viewChallanDetails(challan)}

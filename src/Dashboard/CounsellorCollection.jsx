@@ -286,6 +286,7 @@ const CounsellorCollection = () => {
                   {remark === "Other" && (
                     <input
                       type="text"
+                      maxLength="30"
                       placeholder="Enter custom remark"
                       className="mt-3 w-full p-2 border rounded-md"
                       value={customRemark}

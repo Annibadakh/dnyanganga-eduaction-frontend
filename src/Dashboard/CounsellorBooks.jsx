@@ -252,7 +252,7 @@ const CounsellorBooks = () => {
                                   {student.status1.replace('_', ' ').toUpperCase()}
                                 </span>
                               </td>
-                              <td className="p-1 border">
+                              <td className="p-1 flex justify-center border">
                                 <button
                                   onClick={() => callMarkGivenAPI(student, student.bookSet1)}
                                   className={`bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-2 rounded text-xs grid place-items-center ${
