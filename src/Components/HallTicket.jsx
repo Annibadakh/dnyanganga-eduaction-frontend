@@ -43,6 +43,9 @@ const HallTicket = () => {
             else if(err.status == 404){
                 alert("Mother name does not match !!");
             }
+            else if(err.status == 405){
+                alert(`Hall Ticket is only available for ${new Date().getFullYear()+1} exam year.`);
+            }
             else {
                 alert("An error occurred while generating the hall ticket.");
             }

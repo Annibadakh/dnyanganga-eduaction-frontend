@@ -1,5 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Download, FileText, Loader2, AlertCircle } from 'lucide-react';
+
 import {
   FaHome,
   FaUser,
@@ -37,6 +39,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     { path: "bookdistribution", label: "Book Details", role: "counsellor", icon: <FaShippingFast className="text-lg" /> },
     { path: "collection", label: "Collection Entries", role: "admin", icon: <FaMoneyCheckAlt className="text-lg" /> },
     { path: "settlement", label: "Collection Details", role: "counsellor", icon: <FaBalanceScale className="text-lg" /> },
+    { path: "hallticket", label: "Bulk Hallticket", role: "admin", icon: <FileText className="w-5 h-5" /> },
     // { path: "studentedit", label: "Edit Student", role: "admin", icon: <FaUserEdit className="text-lg" /> },
   ];
 

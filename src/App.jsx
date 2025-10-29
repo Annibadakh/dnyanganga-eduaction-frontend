@@ -37,6 +37,7 @@ import AdminCollection from "./Dashboard/AdminCollection";
 import CounsellorCollection from "./Dashboard/CounsellorCollection";
 import StudentEditPage from "./Dashboard/StudentEditPage";
 import ChallanManagement from "./Dashboard/ChallanManagement";
+import BulkHallTicketGenerator from "./Dashboard/BulkHallTicketGenerator";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -109,6 +110,8 @@ function App() {
                 <Route path='examcenter' element={<AddCenter />} />
                 <Route path='collection' element={<AdminCollection />} />
                 {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
+                <Route path='hallticket' element={<BulkHallTicketGenerator />} />
+
 
               </Route>
 
