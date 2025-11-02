@@ -64,22 +64,22 @@ export default function Home() {
     }
   };
 
-  const fetchStatistics = async () => {
-    setStatsLoading(true);
-    try {
-      const queryParams = new URLSearchParams();
-      if (filters.branch) queryParams.append('branch', filters.branch);
-      if (filters.examCentre) queryParams.append('examCentre', filters.examCentre);
-      if (filters.standard) queryParams.append('standard', filters.standard);
+  // const fetchStatistics = async () => {
+  //   setStatsLoading(true);
+  //   try {
+  //     const queryParams = new URLSearchParams();
+  //     if (filters.branch) queryParams.append('branch', filters.branch);
+  //     if (filters.examCentre) queryParams.append('examCentre', filters.examCentre);
+  //     if (filters.standard) queryParams.append('standard', filters.standard);
 
-      const response = await api.get(`/admin/getStatistics?${queryParams.toString()}`);
-      setStats(response.data.data);
-    } catch (error) {
-      console.error('Error fetching statistics:', error);
-    } finally {
-      setStatsLoading(false);
-    }
-  };
+  //     const response = await api.get(`/admin/getStatistics?${queryParams.toString()}`);
+  //     setStats(response.data.data);
+  //   } catch (error) {
+  //     console.error('Error fetching statistics:', error);
+  //   } finally {
+  //     setStatsLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
     setHallLoading(true);
@@ -90,9 +90,9 @@ export default function Home() {
     setResultLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchStatistics();
-  }, [filters]);
+  // useEffect(() => {
+  //   fetchStatistics();
+  // }, [filters]);
 
   const toggleFlag = async (flagName, currentValue) => {
     if (flagName === "RESULT") setResultLoading(true);
@@ -157,7 +157,7 @@ export default function Home() {
 
         {/* Filters Panel */}
         
-          <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          {/* <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Branch</label>
@@ -212,10 +212,10 @@ export default function Home() {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <StatCard
             title="Total Registrations"
             value={stats.totalStudents}
@@ -230,26 +230,13 @@ export default function Home() {
             color="text-green-600"
             loading={statsLoading}
           />
-          {/* <StatCard
-            title="Exam Centres"
-            value={Object.keys(stats.byExamCentre || {}).length}
-            icon={MapPin}
-            color="text-purple-600"
-            loading={statsLoading}
-          /> */}
-          {/* <StatCard
-            title="Standards"
-            value={Object.keys(stats.byStandard || {}).length}
-            icon={GraduationCap}
-            color="text-orange-600"
-            loading={statsLoading}
-          /> */}
-        </div>
+         
+        </div> */}
 
         {/* Detailed Statistics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> */}
           {/* By Standard */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          {/* <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <GraduationCap className="w-5 h-5" />
               Students by Standard
@@ -272,7 +259,7 @@ export default function Home() {
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* By Exam Centre */}
           {/* <div className="bg-white rounded-lg shadow-md p-6">
@@ -299,7 +286,7 @@ export default function Home() {
               </div>
             )}
           </div> */}
-        </div>
+        {/* </div> */}
 
         {/* Admin Controls & Excel Export */}
         {user.role === 'admin' && (
@@ -329,9 +316,9 @@ export default function Home() {
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-gray-500">
+                {/* <p className="text-xs text-gray-500">
                   {hallTicket ? 'Hall tickets are visible to students' : 'Hall tickets are hidden from students'}
-                </p>
+                </p> */}
               </div>
 
               {/* Result Declared Toggle */}
@@ -355,9 +342,9 @@ export default function Home() {
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-gray-500">
+                {/* <p className="text-xs text-gray-500">
                   {resultDeclared ? 'Results are visible to students' : 'Results are hidden from students'}
-                </p>
+                </p> */}
               </div>
             </div>
 

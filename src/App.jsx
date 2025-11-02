@@ -110,7 +110,7 @@ function App() {
                 <Route path='examcenter' element={<AddCenter />} />
                 <Route path='collection' element={<AdminCollection />} />
                 {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
-                <Route path='hallticket' element={<BulkHallTicketGenerator />} />
+                {/* <Route path='hallticket' element={<BulkHallTicketGenerator />} /> */}
 
 
               </Route>
