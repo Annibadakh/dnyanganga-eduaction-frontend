@@ -334,7 +334,7 @@ export default function AddCenter() {
                       )}
                     </td>
                     <td className="p-3 whitespace-nowrap border">
-                      <div className="flex justify-center space-x-2 flex-wrap gap-y-2">
+                      <div className="flex justify-center space-x-2 gap-y-2">
                         {editId === center.centerId ? (
                           <button
                             onClick={() => handleSaveEdit(center.centerId)}
@@ -357,7 +357,7 @@ export default function AddCenter() {
                               title="Generate Bulk Hall Tickets"
                             >
                               <FileText className="w-4 h-4" />
-                              <span className="hidden sm:inline">Tickets</span>
+                              Tickets
                             </button>
                           </>
                         )}
