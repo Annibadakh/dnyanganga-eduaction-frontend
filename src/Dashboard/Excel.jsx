@@ -212,7 +212,7 @@ const Excel = () => {
           <option value="">All Standards</option>
           <option value="9th+10th">9th+10th</option>
           <option value="10th">10th</option>
-          <option value="12th">11th+12th</option>
+          <option value="11th+12th">11th+12th</option>
           <option value="12th">12th</option>
         </select>
 
