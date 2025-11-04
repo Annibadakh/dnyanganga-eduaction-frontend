@@ -18,13 +18,14 @@ const Excel = () => {
   const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
 
   const allColumns = [
-    "createdAt", "studentId", "studentName", "dob", "motherName", "address", "pincode", "standard", "branch", "schoolCollege", "studentNo",
+    "createdAt", "seatNum", "studentId", "studentName", "dob", "motherName", "address", "pincode", "standard", "branch", "schoolCollege", "studentNo",
     "parentsNo", "appNo", "notificationNo", "amountPaid", "amountRemaining", "dueDate", "examCentre", "counsellor", "counsellorBranch",
   ];
 
   const columnDisplayNames = {
     "createdAt": "Register Date",
     "registerTime": "Register Time", // ✅ Added new display name
+    "seatNum": "Seat No.",
     "studentId": "Student ID",
     "studentName": "Student Name",
     "dob": "Date of Birth",
@@ -73,12 +74,24 @@ const Excel = () => {
   }, []);
 
   const handleColumnChange = (column) => {
-    setSelectedColumns((prev) =>
-      prev.includes(column)
-        ? prev.filter((c) => c !== column)
-        : [...prev, column]
-    );
+    setSelectedColumns((prev) => {
+      let newColumns;
+
+      if (prev.includes(column)) {
+        newColumns = prev.filter((c) => c !== column);
+      } else {
+        newColumns = [...prev, column];
+      }
+
+      // Handle dependent column addition here safely
+      if (column === "seatNum" && !newColumns.includes("examCentre")) {
+        newColumns = [...newColumns, "examCentre"];
+      }
+
+      return newColumns;
+    });
   };
+
 
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
