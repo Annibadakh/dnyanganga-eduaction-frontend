@@ -12,6 +12,7 @@ const Excel = () => {
   const [selectedStandard, setSelectedStandard] = useState("");
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
   const [selectedExamCentre, setSelectedExamCentre] = useState("");
+  const [selectedExamYear, setSelectedExamYear] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
@@ -19,12 +20,12 @@ const Excel = () => {
 
   const allColumns = [
     "createdAt", "seatNum", "studentId", "studentName", "dob", "motherName", "address", "pincode", "standard", "branch", "schoolCollege", "studentNo",
-    "parentsNo", "appNo", "notificationNo", "amountPaid", "amountRemaining", "dueDate", "examCentre", "counsellor", "counsellorBranch",
+    "parentsNo", "appNo", "notificationNo", "amountPaid", "amountRemaining", "dueDate", "examCentre", "examYear", "counsellor", "counsellorBranch",
   ];
 
   const columnDisplayNames = {
     "createdAt": "Register Date",
-    "registerTime": "Register Time", // ✅ Added new display name
+    "registerTime": "Register Time",
     "seatNum": "Seat No.",
     "studentId": "Student ID",
     "studentName": "Student Name",
@@ -43,8 +44,20 @@ const Excel = () => {
     "amountRemaining": "Amount Remaining",
     "dueDate": "Due Date",
     "examCentre": "Exam Centre",
+    "examYear": "Exam Year",
     "counsellor": "Counsellor",
     "counsellorBranch": "Branch",
+  };
+
+  // Generate exam year options (current year - 1, and 4 years before that)
+  const getExamYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const startYear = currentYear - 1;
+    const years = [];
+    for (let i = 0; i < 5; i++) {
+      years.push(startYear + i);
+    }
+    return years;
   };
 
   useEffect(() => {
@@ -92,7 +105,6 @@ const Excel = () => {
     });
   };
 
-
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
     return date.toLocaleTimeString('en-GB', {
@@ -112,27 +124,25 @@ const Excel = () => {
   }, [fromDate, toDate]);
 
   const getAutoWidths = (data) => {
-  const headers = ["Sr. No.", ...selectedColumns.flatMap(col => {
-    if (col === "createdAt") return [columnDisplayNames[col], "Register Time"];
-    return [columnDisplayNames[col] || col];
-  })];
+    const headers = ["Sr. No.", ...selectedColumns.flatMap(col => {
+      if (col === "createdAt") return [columnDisplayNames[col], "Register Time"];
+      return [columnDisplayNames[col] || col];
+    })];
 
-  return headers.map(header => {
-    const headerLength = header.length;
-    const maxContentLength = data.length > 0 ? Math.max(
-      ...data.map(row => {
-        const value = row[header];
-        if (value === null || value === undefined) return 0;
-        return String(value).length;
-      })
-    ) : 0;
+    return headers.map(header => {
+      const headerLength = header.length;
+      const maxContentLength = data.length > 0 ? Math.max(
+        ...data.map(row => {
+          const value = row[header];
+          if (value === null || value === undefined) return 0;
+          return String(value).length;
+        })
+      ) : 0;
 
-    // dynamically scale within a range
-    const optimalWidth = Math.min(Math.max(headerLength, maxContentLength) + 3, 50);
-    return { wch: optimalWidth };
-  });
-};
-
+      const optimalWidth = Math.min(Math.max(headerLength, maxContentLength) + 3, 50);
+      return { wch: optimalWidth };
+    });
+  };
 
   const handleGenerateExcel = async () => {
     if (!validateDateRange()) return;
@@ -149,6 +159,7 @@ const Excel = () => {
         standard: selectedStandard || null,
         counsellor: selectedCounsellor || null,
         examCentre: selectedExamCentre || null,
+        examYear: selectedExamYear || null,
         fromDate: fromDate || null,
         toDate: toDate || null,
         onlyZeroRemaining,
@@ -164,7 +175,6 @@ const Excel = () => {
       const exportData = filteredStudents.map((student, index) => {
         const row = {};
 
-        // ✅ Add Serial Number
         row["Sr. No."] = index + 1;
 
         selectedColumns.forEach(col => {
@@ -174,7 +184,6 @@ const Excel = () => {
           }
           row[columnDisplayNames[col] || col] = value;
 
-          // ✅ Add Register Time automatically if createdAt is selected
           if (col === "createdAt") {
             const time = student.createdAt ? formatTimeTo12Hour(student.createdAt) : "";
             row["Register Time"] = time;
@@ -206,7 +215,6 @@ const Excel = () => {
       {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
       {loading && <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">Loading...</div>}
 
-      {/* ... rest of your JSX remains unchanged ... */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <select value={selectedStandard} onChange={(e) => setSelectedStandard(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
           <option value="">All Standards</option>
@@ -224,6 +232,11 @@ const Excel = () => {
         <select value={selectedExamCentre} onChange={(e) => setSelectedExamCentre(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
           <option value="">All Exam Centres</option>
           {examCentres.map(ec => <option key={ec.centerId} value={ec.centerId}>{ec.centerName}</option>)}
+        </select>
+
+        <select value={selectedExamYear} onChange={(e) => setSelectedExamYear(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
+          <option value="">All Exam Years</option>
+          {getExamYearOptions().map(year => <option key={year} value={year}>{year}</option>)}
         </select>
 
         <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading} placeholder="From Date" />
@@ -270,7 +283,7 @@ const Excel = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-6">
           {allColumns.map(col => (
             <label key={col} className="flex items-center space-x-2">
               <input type="checkbox" checked={selectedColumns.includes(col)} onChange={() => handleColumnChange(col)} disabled={loading} />
