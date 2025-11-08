@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { FileText, Loader2, AlertCircle, Download, X, CheckCircle } from "lucide-react";
+import { FileText, Loader2, AlertCircle, Download, X, CheckCircle, Users } from "lucide-react";
 
 export default function BulkHallTicketGenerator({ centerId, onClose }) {
   const [progress, setProgress] = useState({
-    stage: 'initializing',
+    stage: 'fetching',
     message: '',
     current: 0,
     total: 0,
@@ -103,173 +103,235 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
     return Math.round((progress.current / progress.total) * 100);
   };
 
-  const getStageDisplay = () => {
-    switch (progress.stage) {
-      case 'initializing':
-        return { text: 'Initializing...', color: 'text-blue-600' };
-      case 'fetching':
-        return { text: 'Fetching Students', color: 'text-blue-600' };
-      case 'students_fetched':
-        return { text: 'Students Loaded', color: 'text-green-600' };
-      case 'fetching_subjects':
-        return { text: 'Loading Subjects', color: 'text-blue-600' };
-      case 'generating':
-        return { text: 'Generating Hall Tickets', color: 'text-blue-600' };
-      case 'merging':
-        return { text: 'Merging PDFs', color: 'text-blue-600' };
-      case 'complete':
-        return { text: 'Completed!', color: 'text-green-600' };
-      default:
-        return { text: 'Processing...', color: 'text-blue-600' };
-    }
-  };
-
-  const stageDisplay = getStageDisplay();
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <FileText className="w-6 h-6" />
-            <h2 className="text-xl font-bold">Bulk Hall Ticket Generator</h2>
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-5 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="bg-white bg-opacity-20 p-2 rounded-lg">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Bulk Hall Ticket Generator</h2>
+              <p className="text-blue-100 text-sm">Center ID: {centerId}</p>
+            </div>
           </div>
           <button 
             onClick={onClose} 
-            className="hover:bg-blue-700 rounded-full p-1 transition-colors"
+            className="hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all"
             disabled={!isComplete && !error}
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-8">
           {/* Progress Section */}
           {!isComplete && !error && (
-            <div className="space-y-6">
-              {/* Stage Display */}
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  {progress.stage === 'complete' ? (
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  ) : (
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                  )}
-                  <h3 className={`text-2xl font-bold ${stageDisplay.color}`}>
-                    {stageDisplay.text}
-                  </h3>
+            <div className="max-w-2xl mx-auto space-y-8">
+              {/* Main Status */}
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-4">
+                  <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
                 </div>
-                <p className="text-gray-600">{progress.message}</p>
+                
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                    {progress.stage === 'fetching' && 'Fetching Students...'}
+                    {progress.stage === 'students_fetched' && 'Students Loaded'}
+                    {progress.stage === 'generating' && 'Generating Hall Tickets'}
+                  </h3>
+                  <p className="text-gray-600">{progress.message}</p>
+                </div>
               </div>
 
-              {/* Student Count Badge */}
+              {/* Student Count Card */}
               {progress.totalStudents > 0 && (
-                <div className="flex justify-center">
-                  <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-semibold">
-                    Total Students: {progress.totalStudents}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center justify-center gap-3">
+                    <Users className="w-8 h-8 text-blue-600" />
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-700">
+                        {progress.totalStudents}
+                      </div>
+                      <div className="text-sm text-blue-600 font-medium">
+                        Total Students
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Progress Bar */}
+              {/* Progress Bar with Counter */}
               {progress.stage === 'generating' && progress.total > 0 && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Progress</span>
-                    <span className="font-semibold">
-                      {progress.current} / {progress.total} ({getProgressPercentage()}%)
-                    </span>
+                <div className="space-y-4">
+                  {/* Counter Display */}
+                  <div className="text-center">
+                    <div className="text-5xl font-bold text-blue-600 mb-2">
+                      {progress.current}
+                      <span className="text-gray-400 mx-2">/</span>
+                      <span className="text-gray-600">{progress.total}</span>
+                    </div>
+                    <p className="text-gray-500 text-sm">Hall Tickets Generated</p>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                    <div 
-                      className="bg-blue-600 h-full transition-all duration-300 ease-out rounded-full"
-                      style={{ width: `${getProgressPercentage()}%` }}
-                    />
+
+                  {/* Progress Bar */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm font-medium text-gray-600">
+                      <span>Progress</span>
+                      <span className="text-blue-600">{getProgressPercentage()}%</span>
+                    </div>
+                    <div className="relative w-full bg-gray-200 rounded-full h-6 overflow-hidden shadow-inner">
+                      <div 
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ease-out rounded-full flex items-center justify-end pr-3"
+                        style={{ width: `${getProgressPercentage()}%` }}
+                      >
+                        {getProgressPercentage() > 10 && (
+                          <span className="text-white text-xs font-bold">
+                            {getProgressPercentage()}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  {progress.studentName && (
-                    <p className="text-sm text-gray-500 text-center">
-                      Current: {progress.studentName}
-                    </p>
-                  )}
                 </div>
               )}
 
               {/* Stage Indicators */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                {[
-                  { stage: 'fetching', label: 'Fetch Students', icon: '📋' },
-                  { stage: 'students_fetched', label: 'Load Data', icon: '✓' },
-                  { stage: 'generating', label: 'Generate PDFs', icon: '📄' },
-                  { stage: 'merging', label: 'Merge Files', icon: '🔗' }
-                ].map((item, idx) => {
-                  const isActive = progress.stage === item.stage;
-                  const isPassed = ['students_fetched', 'generating', 'merging', 'complete'].includes(progress.stage) && 
-                    ['fetching', 'students_fetched', 'generating', 'merging'].indexOf(item.stage) < 
-                    ['fetching', 'students_fetched', 'generating', 'merging'].indexOf(progress.stage);
-                  
-                  return (
-                    <div 
-                      key={idx}
-                      className={`p-4 rounded-lg text-center transition-all ${
-                        isActive 
-                          ? 'bg-blue-100 border-2 border-blue-500' 
-                          : isPassed 
-                          ? 'bg-green-100 border-2 border-green-500' 
-                          : 'bg-gray-100 border-2 border-gray-300'
-                      }`}
-                    >
-                      <div className="text-2xl mb-1">{item.icon}</div>
-                      <div className={`text-sm font-medium ${
-                        isActive ? 'text-blue-700' : isPassed ? 'text-green-700' : 'text-gray-600'
-                      }`}>
-                        {item.label}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center justify-center gap-4">
+                {/* Stage 1: Fetching */}
+                <div className={`flex flex-col items-center ${
+                  progress.stage === 'fetching' 
+                    ? 'opacity-100' 
+                    : progress.stage === 'students_fetched' || progress.stage === 'generating'
+                    ? 'opacity-100'
+                    : 'opacity-40'
+                }`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+                    progress.stage === 'fetching'
+                      ? 'bg-blue-600 text-white'
+                      : progress.stage === 'students_fetched' || progress.stage === 'generating'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-300 text-gray-600'
+                  }`}>
+                    {progress.stage === 'students_fetched' || progress.stage === 'generating' ? (
+                      <CheckCircle className="w-6 h-6" />
+                    ) : (
+                      <span className="text-lg font-bold">1</span>
+                    )}
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">Fetch Students</span>
+                </div>
+
+                {/* Connector */}
+                <div className={`w-16 h-1 ${
+                  progress.stage === 'students_fetched' || progress.stage === 'generating'
+                    ? 'bg-green-600'
+                    : 'bg-gray-300'
+                }`}></div>
+
+                {/* Stage 2: Count */}
+                <div className={`flex flex-col items-center ${
+                  progress.stage === 'students_fetched'
+                    ? 'opacity-100'
+                    : progress.stage === 'generating'
+                    ? 'opacity-100'
+                    : 'opacity-40'
+                }`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+                    progress.stage === 'students_fetched'
+                      ? 'bg-blue-600 text-white'
+                      : progress.stage === 'generating'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-300 text-gray-600'
+                  }`}>
+                    {progress.stage === 'generating' ? (
+                      <CheckCircle className="w-6 h-6" />
+                    ) : (
+                      <span className="text-lg font-bold">2</span>
+                    )}
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">Count Students</span>
+                </div>
+
+                {/* Connector */}
+                <div className={`w-16 h-1 ${
+                  progress.stage === 'generating'
+                    ? 'bg-green-600'
+                    : 'bg-gray-300'
+                }`}></div>
+
+                {/* Stage 3: Generating */}
+                <div className={`flex flex-col items-center ${
+                  progress.stage === 'generating' ? 'opacity-100' : 'opacity-40'
+                }`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+                    progress.stage === 'generating'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-300 text-gray-600'
+                  }`}>
+                    <span className="text-lg font-bold">3</span>
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">Generate Tickets</span>
+                </div>
               </div>
             </div>
           )}
 
           {/* Error Display */}
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md flex gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <div>
-                <p className="text-red-700 font-semibold">Error</p>
-                <p className="text-red-600">{error}</p>
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-6 flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-red-600" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-red-900 mb-1">Error Occurred</h3>
+                  <p className="text-red-700">{error}</p>
+                </div>
               </div>
             </div>
           )}
 
           {/* PDF Preview */}
           {pdfUrl && isComplete && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    Generated Successfully
-                  </h3>
-                  <p className="text-gray-600">
-                    Center ID: {centerId} | Year: {new Date().getFullYear()} | 
-                    Total: {progress.totalStudents} tickets
-                  </p>
+            <div className="space-y-6">
+              {/* Success Header */}
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-green-600 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-green-900">Generation Complete!</h3>
+                      <p className="text-green-700">
+                        Successfully generated {progress.totalStudents} hall tickets
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleDownload}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    <Download className="w-5 h-5" />
+                    <span className="font-semibold">Download PDF</span>
+                  </button>
                 </div>
-                <button
-                  onClick={handleDownload}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 transition-colors"
-                >
-                  <Download className="w-4 h-4" /> Download PDF
-                </button>
               </div>
-              <iframe
-                src={pdfUrl}
-                className="w-full h-[60vh] border-2 border-gray-300 rounded-md"
-                title="Hall Ticket Preview"
-              />
+
+              {/* PDF Preview */}
+              <div className="bg-gray-100 rounded-xl p-4 shadow-inner">
+                <iframe
+                  src={pdfUrl}
+                  className="w-full h-[60vh] border-2 border-gray-300 rounded-lg bg-white"
+                  title="Hall Ticket Preview"
+                />
+              </div>
             </div>
           )}
         </div>
