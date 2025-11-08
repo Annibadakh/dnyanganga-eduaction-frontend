@@ -42,7 +42,7 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
 
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        
+        console.log('SSE Data:', data);
         if (data.stage === 'error') {
           setError(data.message);
           eventSource.close();
@@ -129,6 +129,7 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-8">
           {/* Progress Section */}
+          {/* Progress Section */}
           {!isComplete && !error && (
             <div className="max-w-2xl mx-auto space-y-8">
               {/* Main Status */}
@@ -147,38 +148,23 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
                 </div>
               </div>
 
-              {/* Student Count Card */}
+              {/* Progress Bar with Counter - Only show during generation */}
               {progress.totalStudents > 0 && (
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm">
-                  <div className="flex items-center justify-center gap-3">
-                    <Users className="w-8 h-8 text-blue-600" />
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-700">
-                        {progress.totalStudents}
-                      </div>
-                      <div className="text-sm text-blue-600 font-medium">
-                        Total Students
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Progress Bar with Counter */}
-              {progress.stage === 'generating' && progress.total > 0 && (
                 <div className="space-y-4">
                   {/* Counter Display */}
-                  <div className="text-center">
+                  {/* <div className="text-center">
                     <div className="text-5xl font-bold text-blue-600 mb-2">
                       {progress.current}
                       <span className="text-gray-400 mx-2">/</span>
-                      <span className="text-gray-600">{progress.total}</span>
+                      <span className="text-gray-600">{progress.totalStudents}</span>
                     </div>
-                    <p className="text-gray-500 text-sm">Hall Tickets Generated</p>
-                  </div>
+                    <p className="text-gray-500 text-sm">
+                      {progress.stage === 'generating' ? 'Hall Tickets Generated' : 'Total Students'}
+                    </p>
+                  </div> */}
 
                   {/* Progress Bar */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <div className="flex justify-between text-sm font-medium text-gray-600">
                       <span>Progress</span>
                       <span className="text-blue-600">{getProgressPercentage()}%</span>
@@ -195,88 +181,9 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               )}
-
-              {/* Stage Indicators */}
-              <div className="flex items-center justify-center gap-4">
-                {/* Stage 1: Fetching */}
-                <div className={`flex flex-col items-center ${
-                  progress.stage === 'fetching' 
-                    ? 'opacity-100' 
-                    : progress.stage === 'students_fetched' || progress.stage === 'generating'
-                    ? 'opacity-100'
-                    : 'opacity-40'
-                }`}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
-                    progress.stage === 'fetching'
-                      ? 'bg-blue-600 text-white'
-                      : progress.stage === 'students_fetched' || progress.stage === 'generating'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-300 text-gray-600'
-                  }`}>
-                    {progress.stage === 'students_fetched' || progress.stage === 'generating' ? (
-                      <CheckCircle className="w-6 h-6" />
-                    ) : (
-                      <span className="text-lg font-bold">1</span>
-                    )}
-                  </div>
-                  <span className="text-xs font-medium text-gray-700">Fetch Students</span>
-                </div>
-
-                {/* Connector */}
-                <div className={`w-16 h-1 ${
-                  progress.stage === 'students_fetched' || progress.stage === 'generating'
-                    ? 'bg-green-600'
-                    : 'bg-gray-300'
-                }`}></div>
-
-                {/* Stage 2: Count */}
-                <div className={`flex flex-col items-center ${
-                  progress.stage === 'students_fetched'
-                    ? 'opacity-100'
-                    : progress.stage === 'generating'
-                    ? 'opacity-100'
-                    : 'opacity-40'
-                }`}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
-                    progress.stage === 'students_fetched'
-                      ? 'bg-blue-600 text-white'
-                      : progress.stage === 'generating'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-300 text-gray-600'
-                  }`}>
-                    {progress.stage === 'generating' ? (
-                      <CheckCircle className="w-6 h-6" />
-                    ) : (
-                      <span className="text-lg font-bold">2</span>
-                    )}
-                  </div>
-                  <span className="text-xs font-medium text-gray-700">Count Students</span>
-                </div>
-
-                {/* Connector */}
-                <div className={`w-16 h-1 ${
-                  progress.stage === 'generating'
-                    ? 'bg-green-600'
-                    : 'bg-gray-300'
-                }`}></div>
-
-                {/* Stage 3: Generating */}
-                <div className={`flex flex-col items-center ${
-                  progress.stage === 'generating' ? 'opacity-100' : 'opacity-40'
-                }`}>
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
-                    progress.stage === 'generating'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-300 text-gray-600'
-                  }`}>
-                    <span className="text-lg font-bold">3</span>
-                  </div>
-                  <span className="text-xs font-medium text-gray-700">Generate Tickets</span>
-                </div>
-              </div>
             </div>
           )}
 
