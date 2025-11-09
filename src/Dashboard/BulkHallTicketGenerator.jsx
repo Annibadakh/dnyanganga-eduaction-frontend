@@ -209,27 +209,35 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
             <div className="space-y-6">
               {/* Success Header */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-sm">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 md:gap-0">
+                  
+                  {/* Left Section */}
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-green-600 rounded-full flex items-center justify-center">
+                    <div className="w-14 h-14 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
                       <CheckCircle className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-green-900">Generation Complete!</h3>
-                      <p className="text-green-700">
+                      <h3 className="text-xl md:text-2xl font-bold text-green-900 text-center md:text-left">
+                        Generation Complete!
+                      </h3>
+                      <p className="text-green-700 text-sm md:text-base text-center md:text-left">
                         Successfully generated {progress.totalStudents} hall tickets
                       </p>
                     </div>
                   </div>
+
+                  {/* Right Section */}
                   <button
                     onClick={handleDownload}
-                    className="bg-green-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                    className="w-full md:w-auto bg-green-600 text-white px-6 py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   >
                     <Download className="w-5 h-5" />
-                    <span className="font-semibold">Download PDF</span>
+                    <span className="font-semibold text-sm md:text-base">Download PDF</span>
                   </button>
+
                 </div>
               </div>
+
 
               {/* PDF Preview */}
               <div className="bg-gray-100 rounded-xl p-4 shadow-inner">
