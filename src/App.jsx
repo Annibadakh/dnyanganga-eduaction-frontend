@@ -88,11 +88,16 @@ function App() {
               <Route path='profile' element={<Profile />} />
               
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor', 'admin']} />}>
+                <Route path='paymenttable' element={<PaymentTable />} />
+              </Route>
+
+              <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor', 'admin', 'logistics']} />}>
+                <Route path='chalan' element={<ChallanManagement />} />
+              </Route>
+
+              <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor', 'admin', "followUp"]} />}>
                 <Route path='visitingtable' element={<VisitingTable />} />
                 <Route path='registertable' element={<RegistrationTable />} />
-                <Route path='paymenttable' element={<PaymentTable />} />
-                <Route path='chalan' element={<ChallanManagement />} />
-
               </Route>
               
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor']} />}>
@@ -100,13 +105,11 @@ function App() {
                 <Route path='visiting' element={<VisitingForm />} />
                 <Route path='bookdistribution' element={<CounsellorBooks />} />
                 <Route path='settlement' element={<CounsellorCollection />} />
-
               </Route>
               
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['admin']} />}>
                 <Route path='user' element={<AddUser />} />
                 <Route path='settings' element={<Settings />} />
-                <Route path='bookentries' element={<AddBookEntry />} />
                 <Route path='examcenter' element={<AddCenter />} />
                 <Route path='collection' element={<AdminCollection />} />
                 {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
@@ -114,6 +117,12 @@ function App() {
 
 
               </Route>
+              <Route element={<ProtectedRoleBasedRoute allowedRoles={['admin', 'logistics']} />}>
+                <Route path='bookentries' element={<AddBookEntry />} />
+              </Route>
+
+              
+              
 
             </Route>
           </Route>

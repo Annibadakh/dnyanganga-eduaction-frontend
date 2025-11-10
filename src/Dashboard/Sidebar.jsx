@@ -25,20 +25,20 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
 
   const links = [
     { path: "home", label: "Home", icon: <FaHome className="text-lg" /> },
-    { path: "profile", label: "Profile", role: "teacher", icon: <FaUser className="text-lg" /> },
-    { path: "settings", label: "Subjects Details", role: "admin", icon: <FaCog className="text-lg" /> },
-    { path: "user", label: "User Details", role: "admin", icon: <FaUsers className="text-lg" /> },
-    { path: "examcenter", label: "Exam Centre", role: "admin", icon: <FaSchool className="text-lg" /> },
-    { path: "register", label: "Registration Form", role: "counsellor", icon: <FaFileAlt className="text-lg" /> },
-    { path: "visiting", label: "Visiting Form", role: "counsellor", icon: <FaClipboardList className="text-lg" /> },
-    { path: "registertable", label: "Register Table", icon: <FaTable className="text-lg" /> },
-    { path: "visitingtable", label: "Visiting Table", icon: <FaTable className="text-lg" /> },
-    { path: "paymenttable", label: "Payment Table", icon: <FaMoneyBill className="text-lg" /> },
-    { path: "chalan", label: "Chalan", icon: <FaFileInvoice className="text-lg" /> },
-    { path: "bookentries", label: "Book Entries", role: "admin", icon: <FaBook className="text-lg" /> },
-    { path: "bookdistribution", label: "Book Details", role: "counsellor", icon: <FaShippingFast className="text-lg" /> },
-    { path: "collection", label: "Collection Entries", role: "admin", icon: <FaMoneyCheckAlt className="text-lg" /> },
-    { path: "settlement", label: "Collection Details", role: "counsellor", icon: <FaBalanceScale className="text-lg" /> },
+    { path: "profile", label: "Profile", role: ["teacher"], icon: <FaUser className="text-lg" /> },
+    { path: "settings", label: "Subjects Details", role: ["admin"], icon: <FaCog className="text-lg" /> },
+    { path: "user", label: "User Details", role: ["admin"], icon: <FaUsers className="text-lg" /> },
+    { path: "examcenter", label: "Exam Centre", role: ["admin"], icon: <FaSchool className="text-lg" /> },
+    { path: "register", label: "Registration Form", role: ["counsellor"], icon: <FaFileAlt className="text-lg" /> },
+    { path: "visiting", label: "Visiting Form", role: ["counsellor"], icon: <FaClipboardList className="text-lg" /> },
+    { path: "registertable", label: "Register Table", role: ["counsellor", "admin", "followUp"], icon: <FaTable className="text-lg" /> },
+    { path: "visitingtable", label: "Visiting Table", role: ["counsellor", "admin", "followUp"], icon: <FaTable className="text-lg" /> },
+    { path: "paymenttable", label: "Payment Table", role: ["counsellor", "admin"], icon: <FaMoneyBill className="text-lg" /> },
+    { path: "chalan", label: "Chalan", role: ["counsellor", "admin", "logistics"], icon: <FaFileInvoice className="text-lg" /> },
+    { path: "bookentries", label: "Book Entries", role: ["counsellor", "admin", "logistics"], icon: <FaBook className="text-lg" /> },
+    { path: "bookdistribution", label: "Book Details", role: ["counsellor"], icon: <FaShippingFast className="text-lg" /> },
+    { path: "collection", label: "Collection Entries", role: ["admin"], icon: <FaMoneyCheckAlt className="text-lg" /> },
+    { path: "settlement", label: "Collection Details", role: ["counsellor"], icon: <FaBalanceScale className="text-lg" /> },
     // { path: "hallticket", label: "Bulk Hallticket", role: "admin", icon: <FileText className="w-5 h-5" /> },
     // { path: "studentedit", label: "Edit Student", role: "admin", icon: <FaUserEdit className="text-lg" /> },
   ];
@@ -54,7 +54,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       <nav className={`${isSidebarOpen ? "block h-full overflow-y-auto scrollbar-hide" : "hidden"}`}>
         <ul>
           {links.map(({ path, label, role, icon }) => {
-            if (role && role !== userRole.role) return null;
+            if (role && !role.includes(userRole.role)) return null;
             return (
               <li
                 key={path}

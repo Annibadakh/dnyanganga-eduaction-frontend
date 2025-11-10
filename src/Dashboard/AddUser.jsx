@@ -320,6 +320,8 @@ const AddUser = () => {
               >
                 <option value="counsellor">Counsellor</option>
                 <option value="teacher">Teacher</option>
+                <option value="logistics">Logistics</option>
+                <option value="followUp">Follow-up</option>
               </select>
               {formData.role === "counsellor" && (
                 <input 
