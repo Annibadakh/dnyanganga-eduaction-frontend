@@ -238,7 +238,7 @@ const RegistrationTable = () => {
   }, [pdfUrl]);
 
   useEffect(() => {
-    if (user.role === "admin") {
+    if (user.role === "admin" || user.role === "followUp") {
       api.get("/admin/getUser").then((response) => {
         setUsers(response.data.data);
         setBranch(response.data.data);
