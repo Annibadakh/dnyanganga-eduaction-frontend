@@ -6,7 +6,7 @@ import { Outlet } from "react-router-dom";
 import api from "../Api";
 
 function Dashboard() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showExploreComment, setShowExploreComment] = useState(false);
   const {user} = useAuth();
 
