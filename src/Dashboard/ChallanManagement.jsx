@@ -38,7 +38,7 @@ const ChallanManagement = () => {
 
   useEffect(() => {
     fetchAllChallans();
-    if (user.role === "admin") {
+    if (user.role === "admin" || user.role === "logistics") {
       fetchCounsellors();
     }
   }, [user.role]);
@@ -604,7 +604,7 @@ const ChallanManagement = () => {
             <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
           </svg>
         ),
-        show: user.role === "admin" // Only show for admin users
+        show: (user.role === "admin" || user.role === "logistics") // Only show for admin users
       }
     ];
 
@@ -619,7 +619,7 @@ const ChallanManagement = () => {
 
       {/* Enhanced Statistics Cards */}
       <div className={`grid gap-4 mb-6 ${
-        user.role === "admin" 
+        (user.role === "admin" || user.role === "logistics")
           ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6" 
           : "grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
       }`}>
@@ -643,11 +643,11 @@ const ChallanManagement = () => {
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Filters</h2>
         
         <div className={`grid gap-4 ${
-          user.role === "admin" 
+          (user.role === "admin" || user.role === "logistics")
             ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4" 
             : "grid-cols-1 md:grid-cols-3"
         }`}>
-          {user.role === "admin" && (
+          {(user.role === "admin" || user.role === "logistics") && (
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700">Counsellor</label>
               <CustomDropdown />
@@ -719,7 +719,7 @@ const ChallanManagement = () => {
                     <th className="p-3 text-center border">Sr. No.</th>
                     <th className="p-3 text-center border">Challan No</th>
                     <th className="p-3 text-center border">Date</th>
-                    {user.role === "admin" && <th className="p-3 text-center border">Counsellor</th>}
+                    {(user.role === "admin" || user.role === "logistics") && <th className="p-3 text-center border">Counsellor</th>}
                     <th className="p-3 text-center border">Books</th>
                     <th className="p-3 text-center border">Pamphlets</th>
                     <th className="p-3 text-center border">Receipt Books</th>
@@ -748,7 +748,7 @@ const ChallanManagement = () => {
                         <td className="p-3 text-center font-semibold text-primary border">{indexOfFirstChallan + idx + 1}</td>
                         <td className="p-3 text-center font-semibold text-primary border">{challan.chalanNo || 'N/A'}</td>
                         <td className="p-3 text-center border">{formatDate(challan.date)}</td>
-                        {user.role === "admin" && <td className="p-3 text-center border">{challan.User?.name}</td>}
+                        {(user.role === "admin" || user.role === "logistics") && <td className="p-3 text-center border">{challan.User?.name}</td>}
                         <td className="p-3 text-center border">{bookCount}</td>
                         <td className="p-3 text-center border">{pamphletCount}</td>
                         <td className="p-3 text-center border">{receiptCount}</td>

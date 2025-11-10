@@ -349,7 +349,7 @@ const VisitingTable = () => {
             <option value="12th">12th</option>
           </select>
         </div>
-        {user.role === "admin" && (
+        {(user.role === "admin" || user.role === "followUp") && (
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative w-full md:w-1/2" ref={counsellorDropdownRef}>
               <div className="relative">

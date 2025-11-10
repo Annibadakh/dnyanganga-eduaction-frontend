@@ -455,7 +455,7 @@ const RegistrationTable = () => {
           <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
             <input type="text" placeholder="Search by name, ID, or contact..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg" />
 
-            {user.role === "admin" && (
+            {(user.role === "admin" || user.role === "followUp") && (
               <>
                 <div className="relative w-full md:w-1/4" ref={counsellorDropdownRef}>
                   <div className="relative">
