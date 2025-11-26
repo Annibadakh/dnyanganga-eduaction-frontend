@@ -3,6 +3,7 @@ import { useAuth } from "../Context/AuthContext";
 import api from "../Api";
 import PaymentForm from "./PaymentForm";
 import StudentEditPage from "./StudentEditPage";
+import DeleteStudentDialog from "./DeleteStudentDialog";
 
 // Mobile-friendly PDF viewer component
 const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) => {
@@ -195,7 +196,9 @@ const RegistrationTable = () => {
   const counsellorDropdownRef = useRef(null);
   const examCentreDropdownRef = useRef(null);
   const branchDropdownRef = useRef(null);
-
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState(null);
+  const [loadingDeleteId, setLoadingDeleteId] = useState(null);
   const filteredCounsellors = users.filter(user => user.name.toLowerCase().includes(counsellorSearch.toLowerCase()));
 
   const getDistinctBranches = (branchList) => {
@@ -343,6 +346,42 @@ const RegistrationTable = () => {
   const handleEditStudent = (student) => {
     setEditStudentId(student.studentId);
     setShowEditStudent(true);
+  };
+
+  const handleDeleteStudent = (student) => {
+    setStudentToDelete(student);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async (studentId, refundedAmount) => {
+    console.log(refundedAmount);
+    try {
+      setLoadingDeleteId(studentId);
+      const response = await api.delete(`/counsellor/deleteStudent/${studentId}`, {
+        data: { refundedAmount }
+      });
+      if (response.status === 200) {
+        alert("Student deleted successfully!");
+        setShowDeleteDialog(false);
+        setStudentToDelete(null);
+        fetchRegistrations();
+      }
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      if (error.response?.data?.message) {
+        alert(`Error: ${error.response.data.message}`);
+      } else {
+        alert("Failed to delete student. Please try again.");
+      }
+      throw error;
+    } finally {
+      setLoadingDeleteId(null);
+    }
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setShowDeleteDialog(false);
+    setStudentToDelete(null);
   };
 
   const handleStudentStatus = async (student) => {
@@ -595,6 +634,17 @@ const RegistrationTable = () => {
                               {user.role === "admin" && (
                                 <>
                                   <button onClick={() => handleEditStudent(student)} className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600">Edit</button>
+                                  <button 
+                                    onClick={() => handleDeleteStudent(student)}
+                                    disabled={loadingDeleteId === student.studentId}
+                                    className="bg-red-500 text-white px-3 py-1 min-w-20 rounded hover:bg-red-600 transition-colors grid place-items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {loadingDeleteId === student.studentId ? (
+                                      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                    ) : (
+                                      "Delete"
+                                    )}
+                                  </button>
                                   <button onClick={() => handleStudentStatus(student)} disabled={loadingStatusId === student.studentId} className={`${student.isActive ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"} text-white px-3 py-1 min-w-24 rounded transition-colors grid place-items-center disabled:opacity-50 disabled:cursor-not-allowed`}>
                                     {loadingStatusId === student.studentId ? (
                                       <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
@@ -628,6 +678,14 @@ const RegistrationTable = () => {
       {showPdfPreview && (
         <MobilePDFViewer pdfUrl={pdfUrl} onClose={handleClosePdfPreview} fileName={pdfFileName} studentName={currentPdfStudent?.studentName} studentId={currentPdfStudent?.studentId} />
       )}
+
+      {showDeleteDialog && studentToDelete && (
+      <DeleteStudentDialog
+        student={studentToDelete}
+        onClose={handleCloseDeleteDialog}
+        onConfirm={handleConfirmDelete}
+      />
+    )}
     </div>
   );
 };
