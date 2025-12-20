@@ -199,6 +199,8 @@ const RegistrationTable = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [loadingDeleteId, setLoadingDeleteId] = useState(null);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
   const filteredCounsellors = users.filter(user => user.name.toLowerCase().includes(counsellorSearch.toLowerCase()));
 
   const getDistinctBranches = (branchList) => {
@@ -252,12 +254,21 @@ const RegistrationTable = () => {
     }).catch((error) => console.error("Error fetching exam centers", error));
   }, [user.role]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500); // 500ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+
   const fetchRegistrations = () => {
     setLoading(true);
     const params = {
       page: currentPage,
       limit: itemsPerPage,
-      search: searchQuery,
+      search: debouncedSearchQuery,
       counsellor: selectedCounsellor,
       branch: selectedBranch,
       examCentre: selectedExamCentre,
@@ -283,11 +294,11 @@ const RegistrationTable = () => {
 
   useEffect(() => {
     fetchRegistrations();
-  }, [user?.uuid, currentPage, itemsPerPage, searchQuery, selectedCounsellor, selectedBranch, selectedExamCentre, selectedStandard, selectedStatus, dateFrom, dateTo, showPayment, showEditStudent]);
+  }, [user?.uuid, currentPage, itemsPerPage, debouncedSearchQuery, selectedCounsellor, selectedBranch, selectedExamCentre, selectedStandard, selectedStatus, dateFrom, dateTo, showPayment, showEditStudent]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedCounsellor, selectedBranch, selectedExamCentre, selectedStandard, selectedStatus, dateFrom, dateTo]);
+  }, [debouncedSearchQuery, selectedCounsellor, selectedBranch, selectedExamCentre, selectedStandard, selectedStatus, dateFrom, dateTo]);
 
   const handleCounsellorSelect = (counsellor) => {
     setSelectedCounsellor(counsellor.uuid);

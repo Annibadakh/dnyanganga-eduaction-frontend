@@ -302,6 +302,8 @@ const PaymentTable = () => {
   const [showCounsellorDropdown, setShowCounsellorDropdown] = useState(false);
   const counsellorDropdownRef = useRef(null);
 
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
   const imgUrl = import.meta.env.VITE_IMG_URL;
 
   // Filter functions for searchable dropdowns
@@ -332,6 +334,14 @@ const PaymentTable = () => {
     };
   }, [pdfUrl]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // Fetch users data
   useEffect(() => {
     if (user.role === "admin") {
@@ -355,7 +365,7 @@ const PaymentTable = () => {
     const params = {
       page: currentPage,
       limit: itemsPerPage,
-      search: searchTerm,
+      search: debouncedSearchTerm,
       counsellor: selectedCounsellor,
       startDate: startDate,
       endDate: endDate
@@ -382,7 +392,7 @@ const PaymentTable = () => {
   }, [
     currentPage,
     itemsPerPage,
-    searchTerm,
+    debouncedSearchTerm,
     selectedCounsellor,
     startDate,
     endDate
@@ -391,7 +401,7 @@ const PaymentTable = () => {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCounsellor, startDate, endDate]);
+  }, [debouncedSearchTerm, selectedCounsellor, startDate, endDate]);
 
   const handleCounsellorSelect = (counsellor) => {
     setSelectedCounsellor(counsellor.uuid);

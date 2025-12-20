@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import VisitingFormView from "./VisitingFormView";
+import VisitingFormEdit from "./VisitingFormEdit";
 
 // Pagination Component
 const Pagination = ({ 
@@ -129,8 +130,9 @@ const VisitingTable = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // New state for view modal
+  // Modal states
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
 
   // New state for searchable dropdowns
@@ -283,9 +285,23 @@ const VisitingTable = () => {
     setShowViewModal(true);
   };
 
+  const handleEditVisit = (visit) => {
+    setSelectedVisit(visit);
+    setShowEditModal(true);
+  };
+
   const handleCloseView = () => {
     setShowViewModal(false);
     setSelectedVisit(null);
+  };
+
+  const handleCloseEdit = () => {
+    setShowEditModal(false);
+    setSelectedVisit(null);
+  };
+
+  const handleUpdateSuccess = () => {
+    fetchVisitingData(); // Refresh the table data
   };
 
   return (
@@ -294,8 +310,6 @@ const VisitingTable = () => {
 
       {/* Filters */}
       <div className="flex flex-col gap-4 mb-4">
-        
-
         {/* Second Row - Date Range and Standard */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-3/4">
@@ -478,7 +492,7 @@ const VisitingTable = () => {
                     <th className="p-3 border whitespace-nowrap">Reason</th>
                     {user.role === "admin" && <><th className="p-3 border whitespace-nowrap">Counsellor Name</th>
                     <th className="p-3 border whitespace-nowrap">Counsellor Branch</th></>}
-                    <th className="p-3 border whitespace-nowrap">Action</th>
+                    <th className="p-3 border whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="text-customblack">
@@ -504,12 +518,20 @@ const VisitingTable = () => {
                       {user.role === "admin" && <><td className="p-3 border whitespace-nowrap">{visit.User.name}</td>
                       <td className="p-3 border whitespace-nowrap">{visit.User.counsellorBranch}</td></>}
                       <td className="p-3 border whitespace-nowrap">
-                        <button
-                          onClick={() => handleViewVisit(visit)}
-                          className="bg-primary text-white px-3 py-1 rounded hover:bg-blue-700"
-                        >
-                          View
-                        </button>
+                        <div className="flex gap-2 justify-center">
+                          <button
+                            onClick={() => handleViewVisit(visit)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleEditVisit(visit)}
+                            className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700 text-xs"
+                          >
+                            Edit
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -539,6 +561,15 @@ const VisitingTable = () => {
         <VisitingFormView
           visitData={selectedVisit}
           onClose={handleCloseView}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && selectedVisit && (
+        <VisitingFormEdit
+          visitData={selectedVisit}
+          onClose={handleCloseEdit}
+          onUpdate={handleUpdateSuccess}
         />
       )}
     </div>
