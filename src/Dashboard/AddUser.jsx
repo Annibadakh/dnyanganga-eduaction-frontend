@@ -323,6 +323,19 @@ const AddUser = () => {
                 <option value="logistics">Logistics</option>
                 <option value="followUp">Follow-up</option>
               </select>
+              
+              <div className="flex flex-row items-center gap-2">
+                <p>DOB:</p>
+                <input 
+                type="date" 
+                name="dob" 
+                placeholder="Date of Birth" 
+                value={formData.dob} 
+                onChange={handleChange} 
+                required 
+                className="p-2 border w-full rounded-md" 
+              />
+              </div>
               {formData.role === "counsellor" && (
                 <input 
                   type="text" 
@@ -334,15 +347,6 @@ const AddUser = () => {
                   className="p-2 border rounded-md" 
                 />
               )}
-              <input 
-                type="date" 
-                name="dob" 
-                placeholder="Date of Birth" 
-                value={formData.dob} 
-                onChange={handleChange} 
-                required 
-                className="p-2 border rounded-md" 
-              />
             </div>
             <div className="flex gap-2">
               <button 

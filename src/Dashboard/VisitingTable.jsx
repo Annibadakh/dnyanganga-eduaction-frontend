@@ -358,7 +358,7 @@ const VisitingTable = () => {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-3/4">
             <div className="flex items-center gap-2 w-full md:w-1/3">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">From:</label>
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">From Date</label>
               <input
                 type="date"
                 value={dateFrom}
@@ -367,7 +367,7 @@ const VisitingTable = () => {
               />
             </div>
             <div className="flex items-center gap-2 w-full md:w-1/3">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">To:</label>
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">To Date</label>
               <input
                 type="date"
                 value={dateTo}

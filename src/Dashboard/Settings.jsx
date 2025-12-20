@@ -38,14 +38,31 @@ function Settings() {
   const fetchSubjects = async () => {
     try {
       const response = await api.get('/admin/getsubjects');
-      const sortedSubjects = response.data.data.sort((a, b) => a.subjectCode - b.subjectCode);
-      // console.log(sortedSubjects);
-      setSubjects(sortedSubjects);
+      setSubjects(response.data.data);
       setError(null);
     } catch (err) {
       console.error('Error fetching subjects:', err);
       setError('Failed to load subjects');
     }
+  };
+
+  // Sort subjects by standard first, then alphabetically by subject name
+  const getSortedSubjects = () => {
+    const standardOrder = ['10th', '12th'];
+    
+    return [...subjects].sort((a, b) => {
+      // First, sort by standard
+      const standardIndexA = standardOrder.indexOf(a.standard);
+      const standardIndexB = standardOrder.indexOf(b.standard);
+      
+      if (standardIndexA !== standardIndexB) {
+        return standardIndexA - standardIndexB;
+      }
+      
+      // If same standard, sort alphabetically by subject name
+      // return a.subjectName.localeCompare(b.subjectName);
+      return Number(a.subjectCode) - Number(b.subjectCode);
+    });
   };
 
   const handleFormChange = (e) => {
@@ -63,7 +80,6 @@ function Settings() {
       [name]: value,
     });
   };
-
 
   const handleSubjectSubmit = async (e) => {
     e.preventDefault();
@@ -109,17 +125,6 @@ function Settings() {
     }
   };
 
-  // const openExamModal = (subject) => {
-  //   const [from, to] = subject.examTime?.split('-') || ['', ''];
-  //   setSelectedSubject(subject);
-  //   setExamData({
-  //     examDate: subject.examDate ? new Date(subject.examDate).toISOString().split('T')[0] : '',
-  //     examTimeFrom: from,
-  //     examTimeTo: to
-  //   });
-  //   setShowModal(true);
-  //   setModalError(null);
-  // };
   const openExamModal = (subject) => {
     const [from, to] = subject.examTime?.split('-') || ['', ''];
 
@@ -150,7 +155,6 @@ function Settings() {
     setModalError(null);
   };
 
-
   const closeExamModal = () => {
     setShowModal(false);
     setSelectedSubject(null);
@@ -166,8 +170,6 @@ function Settings() {
       toHour, toMinute, toPeriod
     } = examData;
 
-    // console.log(examDate, fromHour, fromMinute, fromPeriod, toHour, toMinute, toPeriod);
-
     if (!examDate || !fromHour || !fromMinute || !fromPeriod || !toHour || !toMinute || !toPeriod) {
       setModalError('All fields are required');
       return;
@@ -175,7 +177,7 @@ function Settings() {
 
     const examTimeFrom = `${fromHour}:${fromMinute} ${fromPeriod}`;
     const examTimeTo = `${toHour}:${toMinute} ${toPeriod}`;
-    // console.log(examTimeFrom, examTimeTo)
+    
     const updatedExamData = {
       examDate,
       examTime: `${examTimeFrom}-${examTimeTo}`,
@@ -194,9 +196,27 @@ function Settings() {
     }
   };
 
-
   const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('en-GB') : 'Not set';
   const formatTime = (timeString) => timeString || 'Not set';
+
+  // Get sorted subjects for display
+  const sortedSubjects = getSortedSubjects();
+
+  // Group subjects by standard for merged display
+  const groupSubjectsByStandard = () => {
+    const grouped = {};
+    sortedSubjects.forEach(subject => {
+      if (!grouped[subject.standard]) {
+        grouped[subject.standard] = [];
+      }
+      grouped[subject.standard].push(subject);
+    });
+    return grouped;
+  };
+
+  const groupedSubjects = groupSubjectsByStandard();
+  const standardOrder = ['10th', '12th'];
+  const orderedStandards = standardOrder.filter(std => groupedSubjects[std]);
 
   return (
     <div className="container mx-auto p-2">
@@ -302,9 +322,7 @@ function Settings() {
         </div>
       )}
 
-
       <div className="bg-white md:p-6 p-2 rounded shadow-custom">
-        {/* <h2 className="text-xl font-semibold mb-4 text-secondary">Subjects List</h2> */}
         {error ? (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             {error}
@@ -316,38 +334,58 @@ function Settings() {
             <table className="min-w-full border text-center border-gray-300">
               <thead className="bg-primary text-white">
                 <tr>
-                  <th className="px-4 py-2 whitespace-nowrap border">Code</th>
-                  <th className="px-4 py-2 whitespace-nowrap border">Name</th>
-                  <th className="px-4 py-2 whitespace-nowrap border">Language</th>
                   <th className="px-4 py-2 whitespace-nowrap border">Standard</th>
-                  <th className="px-4 py-2 whitespace-nowrap border">Date</th>
-                  <th className="px-4 py-2 whitespace-nowrap border">Time</th>
-                  <th className="px-4 py-2 whitespace-nowrap border">Actions</th>
+                  <th className="px-4 py-2 whitespace-nowrap border">Subject Details</th>
                 </tr>
               </thead>
               <tbody>
-                {subjects.map(subject => (
-                  <tr key={subject.subjectCode} className="hover:bg-gray-100">
-                    <td className="px-4 py-2 whitespace-nowrap border">{subject.subjectCode}</td>
-                    <td className="px-4 py-2 whitespace-nowrap border">{subject.subjectName}</td>
-                    <td className="px-4 py-2 whitespace-nowrap border">{subject.language}</td>
-                    <td className="px-4 py-2 whitespace-nowrap border">{subject.standard}</td>
-                    <td className="px-4 py-2 whitespace-nowrap border">{formatDate(subject.examDate)}</td>
-                    <td className="px-4 py-2 whitespace-nowrap border">{formatTime(subject.examTime)}</td>
-                    <td className="px-4 py-2 whitespace-nowrap border gap-2 flex flex-row justify-center">
-                      <button
-                        onClick={() => openExamModal(subject)}
-                        className="bg-green-500 hover:bg-green-700 text-white w-24 h-8 rounded text-sm"
-                      >
-                        {subject.examDate ? 'Update' : 'Add'} Exam
-                      </button>
-                      <button
-                        onClick={() => deleteSubject(subject.subjectCode)}
-                        disabled={deleteLoader == subject.subjectCode}
-                        className="bg-red-500 hover:bg-red-700 disabled:opacity-50 text-white h-8 rounded text-sm min-w-16 flex items-center justify-center"
-                      >
-                        {deleteLoader == subject.subjectCode ? <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span> : "Delete"}
-                      </button>
+                {orderedStandards.map((standard, standardIndex) => (
+                  <tr key={standard} className="text-center border-b hover:bg-gray-100 transition">
+                    <td className="p-2 border font-semibold text-primary align-center">{standard}</td>
+                    <td className="p-2 border">
+                      <table className="w-full text-sm border border-gray-300">
+                        <thead>
+                          <tr className="bg-gray-300">
+                            <th className="p-2 border">Code</th>
+                            <th className="p-2 border">Subject Name</th>
+                            <th className="p-2 border">Language</th>
+                            <th className="p-2 border">Exam Date</th>
+                            <th className="p-2 border">Exam Time</th>
+                            <th className="p-2 border">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {groupedSubjects[standard].map((subject) => (
+                            <tr key={subject.subjectCode} className="hover:bg-gray-50">
+                              <td className="p-2 border">{subject.subjectCode}</td>
+                              <td className="p-2 border font-medium">{subject.subjectName}</td>
+                              <td className="p-2 border">{subject.language}</td>
+                              <td className="p-2 border">{formatDate(subject.examDate)}</td>
+                              <td className="p-2 border">{formatTime(subject.examTime)}</td>
+                              <td className="p-2 border">
+                                <div className="flex gap-2 justify-center">
+                                  <button
+                                    onClick={() => openExamModal(subject)}
+                                    className="bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
+                                  >
+                                    {subject.examDate ? 'Update' : 'Add'}
+                                  </button>
+                                  <button
+                                    onClick={() => deleteSubject(subject.subjectCode)}
+                                    disabled={deleteLoader == subject.subjectCode}
+                                    className="bg-red-500 hover:bg-red-700 disabled:opacity-50 text-white px-2 py-1 rounded text-sm min-w-12 flex items-center justify-center"
+                                  >
+                                    {deleteLoader == subject.subjectCode ? 
+                                      <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></span> : 
+                                      "Delete"
+                                    }
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </td>
                   </tr>
                 ))}
@@ -383,28 +421,26 @@ function Settings() {
                 />
               </div>
               <div className="mb-4 grid grid-cols-2 gap-4">
-                  {/* From */}
-                  <div>
-                    <label className="block mb-2">From*</label>
-                    <div className="flex gap-2">
-                      <select name="fromHour" value={examData.fromHour} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
-                        {[...Array(12)].map((_, i) => (
-                          <option key={i+1} value={String(i+1).padStart(2, '0')}>{i+1}</option>
-                        ))}
-                      </select>
-                      <select name="fromMinute" value={examData.fromMinute} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
-                        {[...Array(60)].map((_, i) => (
-                          <option key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</option>
-                        ))}
-                      </select>
-                      <select name="fromPeriod" value={examData.fromPeriod} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded">
-                        <option value="AM">AM</option>
-                        <option value="PM">PM</option>
-                      </select>
-                    </div>
+                <div>
+                  <label className="block mb-2">From*</label>
+                  <div className="flex gap-2">
+                    <select name="fromHour" value={examData.fromHour} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
+                      {[...Array(12)].map((_, i) => (
+                        <option key={i+1} value={String(i+1).padStart(2, '0')}>{i+1}</option>
+                      ))}
+                    </select>
+                    <select name="fromMinute" value={examData.fromMinute} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
+                      {[...Array(60)].map((_, i) => (
+                        <option key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</option>
+                      ))}
+                    </select>
+                    <select name="fromPeriod" value={examData.fromPeriod} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded">
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
                   </div>
+                </div>
 
-                {/* To */}
                 <div>
                   <label className="block mb-2">To*</label>
                   <div className="flex gap-2">

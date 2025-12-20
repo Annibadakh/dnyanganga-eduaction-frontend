@@ -722,7 +722,7 @@ const ChallanManagement = () => {
                     {(user.role === "admin" || user.role === "logistics") && <th className="p-3 text-center border">Counsellor</th>}
                     <th className="p-3 text-center border">Books</th>
                     <th className="p-3 text-center border">Pamphlets</th>
-                    <th className="p-3 text-center border">Receipt Books</th>
+                    <th className="p-3 text-center border">Receipt Count</th>
                     <th className="p-3 text-center border">Total Items</th>
                     <th className="p-3 text-center border">Actions</th>
                   </tr>

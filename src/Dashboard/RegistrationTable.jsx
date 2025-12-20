@@ -486,11 +486,11 @@ const RegistrationTable = () => {
           
           <div className="flex flex-col md:flex-row justify-start gap-4 mb-4">
             <div className="flex flex-col md:flex-row gap-4 items-end">
-              <div className="flex flex-col">
+              <div className="flex flex-row items-center gap-2">
                 <label htmlFor="dateFrom" className="text-sm text-gray-600 mb-1">From Date</label>
                 <input id="dateFrom" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} max={dateTo || undefined} className="p-2 border border-gray-300 rounded-lg" />
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-row items-center gap-2">
                 <label htmlFor="dateTo" className="text-sm text-gray-600 mb-1">To Date</label>
                 <input id="dateTo" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} min={dateFrom || undefined} className="p-2 border border-gray-300 rounded-lg" />
               </div>
