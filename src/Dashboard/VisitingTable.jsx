@@ -315,6 +315,39 @@ const VisitingTable = () => {
     fetchVisitingData(); // Refresh the table data
   };
 
+  // Handle follow-up checkbox change
+  const handleFollowUpChange = async (visitId, currentFollowUpStatus) => {
+    try {
+      const newFollowUpStatus = !currentFollowUpStatus;
+      
+      // Optimistically update the UI
+      setVisitingData(prevData =>
+        prevData.map(visit =>
+          visit.id === visitId
+            ? { ...visit, followUp: newFollowUpStatus }
+            : visit
+        )
+      );
+
+      // Make API call to update the follow-up status
+      await api.put(`/counsellor/updateVisitingFollowUp/${visitId}`, {
+        followUp: newFollowUpStatus
+      });
+
+    } catch (error) {
+      console.error("Error updating follow-up status:", error);
+      // Revert the optimistic update on error
+      setVisitingData(prevData =>
+        prevData.map(visit =>
+          visit.id === visitId
+            ? { ...visit, followUp: currentFollowUpStatus }
+            : visit
+        )
+      );
+      alert("Failed to update follow-up status. Please try again.");
+    }
+  };
+
   return (
     <div className="p-2 container mx-auto">
       <h1 className="text-3xl text-center font-bold text-primary mb-6">Visiting Table</h1>
@@ -503,6 +536,7 @@ const VisitingTable = () => {
                     <th className="p-3 border whitespace-nowrap">Reason</th>
                     {user.role === "admin" && <><th className="p-3 border whitespace-nowrap">Counsellor Name</th>
                     <th className="p-3 border whitespace-nowrap">Counsellor Branch</th></>}
+                    {(user.role === "admin" || user.role === "followUp") && <th className="p-3 border whitespace-nowrap">Follow-up</th>}
                     <th className="p-3 border whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
@@ -528,6 +562,16 @@ const VisitingTable = () => {
                       <td className="p-3 border whitespace-nowrap">{visit.reason}</td>
                       {user.role === "admin" && <><td className="p-3 border whitespace-nowrap">{visit.User.name}</td>
                       <td className="p-3 border whitespace-nowrap">{visit.User.counsellorBranch}</td></>}
+                      {(user.role === "admin" || user.role === "followUp") && (
+                        <td className="p-3 border whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={visit.followUp || false}
+                          onChange={() => handleFollowUpChange(visit.id, visit.followUp)}
+                          className="w-5 h-5 cursor-pointer accent-primary"
+                          title={visit.followUp ? "Follow-up completed" : "Mark follow-up as done"}
+                        />
+                      </td>)}
                       <td className="p-3 border whitespace-nowrap">
                         <div className="flex gap-2 justify-center">
                           <button
