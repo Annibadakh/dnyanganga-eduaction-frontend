@@ -203,7 +203,7 @@ const StudentStatistics = () => {
                           selectedStandard || selectedStatus || dateFrom || dateTo;
 
   return (
-    <div className="p-4 container mx-auto">
+    <div className="container mx-auto">
       <h1 className="text-3xl text-center font-bold text-primary mb-6">Student Statistics Dashboard</h1>
 
       {/* Filters Section */}
