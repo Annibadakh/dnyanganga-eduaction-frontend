@@ -145,6 +145,9 @@ const VisitingTable = () => {
   const counsellorDropdownRef = useRef(null);
   const branchDropdownRef = useRef(null);
 
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+
   // Filter functions for searchable dropdowns
   const filteredCounsellors = users.filter(user =>
     user.name.toLowerCase().includes(counsellorSearch.toLowerCase())
@@ -171,6 +174,14 @@ const VisitingTable = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500); // 500ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Fetch users data
   useEffect(() => {
     if (user.role === "admin" || user.role === "followUp") {
@@ -192,7 +203,7 @@ const VisitingTable = () => {
     const params = {
       page: currentPage,
       limit: itemsPerPage,
-      search: searchQuery,
+      search: debouncedSearchQuery,
       counsellor: selectedCounsellor,
       branch: selectedBranch,
       standard: selectedStandard,
@@ -222,7 +233,7 @@ const VisitingTable = () => {
     user?.uuid, 
     currentPage, 
     itemsPerPage, 
-    searchQuery, 
+    debouncedSearchQuery, 
     selectedCounsellor, 
     selectedBranch, 
     selectedStandard,
@@ -233,7 +244,7 @@ const VisitingTable = () => {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedCounsellor, selectedBranch, selectedStandard, dateFrom, dateTo]);
+  }, [debouncedSearchQuery, selectedCounsellor, selectedBranch, selectedStandard, dateFrom, dateTo]);
 
   const handleCounsellorSelect = (counsellor) => {
     setSelectedCounsellor(counsellor.uuid);
