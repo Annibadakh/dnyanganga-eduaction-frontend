@@ -35,9 +35,9 @@ import AddBookEntry from "./Dashboard/AddBookEntry";
 import CounsellorBooks from "./Dashboard/CounsellorBooks";
 import AdminCollection from "./Dashboard/AdminCollection";
 import CounsellorCollection from "./Dashboard/CounsellorCollection";
-import StudentEditPage from "./Dashboard/StudentEditPage";
 import ChallanManagement from "./Dashboard/ChallanManagement";
-import BulkHallTicketGenerator from "./Dashboard/BulkHallTicketGenerator";
+import ExcelTableUploader from "./Dashboard/ExcelTableUploader";
+import TemplatesManagementPage from "./Dashboard/WhatsApp/TemplatesManagementPage";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -112,6 +112,8 @@ function App() {
                 <Route path='settings' element={<Settings />} />
                 <Route path='examcenter' element={<AddCenter />} />
                 <Route path='collection' element={<AdminCollection />} />
+                <Route path='excelupload' element={<ExcelTableUploader />} />
+                <Route path='template' element={<TemplatesManagementPage />} />
                 {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
                 {/* <Route path='hallticket' element={<BulkHallTicketGenerator />} /> */}
 
