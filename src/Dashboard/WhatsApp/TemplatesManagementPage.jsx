@@ -382,11 +382,11 @@ const TestTemplateModal = ({ template, onClose }) => {
 
       if (response.data.success) {
         const cleaned = response.data.data.rendered_message
-            ?.replace(/\\n/g, '\n')   // convert escaped \n
+            ?.replace(/\\n/g, '\n')
             ?.replace(/\r\n/g, '\n')
-        // console.log(response.data);
+        
         setResult({ success: true, message: response.data.message, rendered: cleaned });
-        alert('Test message sent successfully!');
+        alert('Test message sent successfully !!');
       } else {
         setResult({ success: false, message: response.data.message });
       }
