@@ -215,6 +215,7 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
                 setFormData(prev => ({ ...prev, headerFileUrl: '' }));
               }}
             />
+
           </div>
         )}
 
@@ -304,7 +305,7 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
         )}
 
         <div className="flex gap-2">
-          {!errors.name && !errors.body && (!formData.header_type || formData.header_type === 'none' || headerFile.isSaved || formData.headerFileUrl) && detectedVariables.length > 0 && Object.values(variableLabels).every(v => v.trim()) ? (
+          {!errors.name && !errors.body && (!formData.header_type || formData.header_type === 'none' || headerFile.isSaved || formData.headerFileUrl) && Object.values(variableLabels).every(v => v.trim()) ? (
             <button
               onClick={handleSubmit}
               disabled={submitLoader}

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, X } from 'lucide-react';
+import { Camera, Upload, X, FileText } from 'lucide-react';
 
 const FileUpload = ({ 
   title, 
@@ -17,7 +17,12 @@ const FileUpload = ({
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
+  const isDocument = imageType === "document";
+
+  // ---------- CAMERA (unchanged logic) ----------
   const startCamera = async () => {
+    if (isDocument) return;   // no camera for documents
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' } 
@@ -84,7 +89,6 @@ const FileUpload = ({
           sourceY = (video.videoHeight - sourceHeight) / 2;
         }
       } else {
-        // normal photo (no crop, full frame)
         sourceX = 0;
         sourceY = 0;
         sourceWidth = video.videoWidth;
@@ -113,8 +117,28 @@ const FileUpload = ({
   return (
     <div className="mb-6">
       <h4 className="text-md font-bold mb-3 text-gray-700">{title}</h4>
+
+      {/* Document preview box */}
+      {isDocument && imageUrl && (
+        <div className="flex flex-col items-center mb-4 p-3 border rounded bg-gray-50">
+          <FileText className="w-10 h-10 text-blue-600 mb-2" />
+          <p className="font-medium break-all text-center">{imageUrl}</p>
+
+          <a
+            href={imageUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 text-blue-600 underline"
+          >
+            View / Download
+          </a>
+        </div>
+      )}
+
       <div className="flex flex-col items-center w-full">
+
         {showCamera ? (
+          // ---------- CAMERA MODE ----------
           <div className="w-full max-w-xs">
             <div className="relative bg-black rounded-lg overflow-hidden mb-4">
               <div 
@@ -138,87 +162,90 @@ const FileUpload = ({
               </div>
               <canvas ref={canvasRef} className="hidden" />
             </div>
+
             <div className="flex space-x-4 justify-center">
               <button 
                 type="button" 
                 onClick={stopCamera}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition flex items-center gap-2"
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center gap-2"
               >
-                <X size={16} />
-                Cancel
+                <X size={16} /> Cancel
               </button>
+
               <button 
                 type="button" 
                 onClick={capturePhoto}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition flex items-center gap-2"
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
               >
-                <Camera size={16} />
-                Capture
+                <Camera size={16} /> Capture
               </button>
             </div>
           </div>
+
         ) : imageUrl ? (
+          // ---------- PREVIEW MODE ----------
           <>
-            <img 
-              src={imageUrl} 
-              alt={title} 
-              className={`rounded-md mb-4 ${imageType === "passport" ? "w-48 h-auto" : "w-full max-w-xs h-auto"}`}
-              style={{ aspectRatio: imageType === "passport" ? "3/4" : "auto" }}
-            />
+            {!isDocument && (
+              <img 
+                src={imageUrl} 
+                alt={title} 
+                className={`rounded-md mb-4 ${imageType === "passport" ? "w-48 h-auto" : "w-full max-w-xs h-auto"}`}
+                style={{ aspectRatio: imageType === "passport" ? "3/4" : "auto" }}
+              />
+            )}
+
             <div className="flex space-x-4 w-full justify-center">
               {!isSaved && (
                 <button 
                   type="button" 
                   onClick={onRemovePhoto} 
                   disabled={loader}
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
                 >
                   Remove {title}
                 </button>
               )}
+
               <button 
                 type="button" 
                 onClick={onUploadImage} 
                 disabled={isSaved || loader}
-                className="px-4 py-2 min-w-28 bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50 grid place-items-center"
+                className="px-4 py-2 min-w-28 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
               >
-                {isSaved ? `${title} Saved` : (loader ? 
-                  <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : 
-                  `Save ${title}`
+                {isSaved ? `${title} Saved` : (
+                  loader ? 
+                  <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> 
+                  : `Save ${title}`
                 )}
               </button>
             </div>
           </>
         ) : (
+          // ---------- INPUT MODE ----------
           <div className="w-full space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <label className="block w-full">
-                  <input 
-                    type="file" 
-                    onChange={onFileUpload} 
-                    accept=".jpg,.jpeg"
-                    className="w-full px-3 py-2 border rounded cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                </label>
+                <input 
+                  type="file" 
+                  onChange={onFileUpload} 
+                  accept={isDocument ? ".pdf,.doc,.docx" : ".jpg,.jpeg"}
+                  className="w-full px-3 py-2 border rounded"
+                />
               </div>
-              <button 
-                type="button" 
-                onClick={startCamera}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition flex items-center justify-center gap-2 whitespace-nowrap"
-              >
-                <Camera size={16} />
-                Take {title}
-              </button>
+
+              {!isDocument && (
+                <button 
+                  type="button" 
+                  onClick={startCamera}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
+                >
+                  <Camera size={16} />
+                  Take {title}
+                </button>
+              )}
             </div>
-            
+
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <p className="text-sm text-gray-500">
-              Supported formats: JPG, JPEG. You can upload a file or take a photo with your camera. 
-              {imageType === "passport" 
-                ? ` Photos will be cropped to ${title} dimensions (3:4 ratio).` 
-                : ` Photos will keep their original size.`}
-            </p>
           </div>
         )}
       </div>
