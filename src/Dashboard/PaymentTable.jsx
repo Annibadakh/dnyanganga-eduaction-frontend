@@ -267,6 +267,12 @@ const Pagination = ({
   );
 };
 
+const capitalizeFirstLetter = (string) => {
+  if (!string || typeof string !== 'string') {
+    return '';
+  }
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+}
 const PaymentTable = () => {
   const { user } = useAuth();
   const [paymentsData, setPaymentsData] = useState([]);
@@ -610,6 +616,7 @@ const PaymentTable = () => {
                     <th className="p-3 border whitespace-nowrap">Receipt No</th>
                     <th className="p-3 border whitespace-nowrap">Amount Paid</th>
                     <th className="p-3 border whitespace-nowrap">Payment Mode</th>
+                    <th className="p-3 border whitespace-nowrap">Payment Type</th>
                     <th className="p-3 border whitespace-nowrap">Receipt</th>
                     <th className="p-3 border whitespace-nowrap">Action</th>
                   </tr>
@@ -636,6 +643,7 @@ const PaymentTable = () => {
                         {payment.amountPaid.toLocaleString('en-IN')}
                       </td>
                       <td className="p-3 border whitespace-nowrap">{payment.paymentMode}</td>
+                      <td className="p-3 border whitespace-nowrap">{capitalizeFirstLetter(payment.paymentType)}</td>
                       <td className="p-3 border whitespace-nowrap">
                         <button
                           onClick={() => handleViewReceipt(payment.receiptPhoto)}
