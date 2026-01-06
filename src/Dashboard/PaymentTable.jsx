@@ -279,6 +279,8 @@ const PaymentTable = () => {
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [paymentType, setPaymentType] = useState("");
+
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -368,7 +370,8 @@ const PaymentTable = () => {
       search: debouncedSearchTerm,
       counsellor: selectedCounsellor,
       startDate: startDate,
-      endDate: endDate
+      endDate: endDate,
+      paymentType
     };
 
     api
@@ -395,13 +398,14 @@ const PaymentTable = () => {
     debouncedSearchTerm,
     selectedCounsellor,
     startDate,
-    endDate
+    endDate,
+    paymentType
   ]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedCounsellor, startDate, endDate]);
+  }, [debouncedSearchTerm, selectedCounsellor, startDate, endDate, paymentType]);
 
   const handleCounsellorSelect = (counsellor) => {
     setSelectedCounsellor(counsellor.uuid);
@@ -571,6 +575,18 @@ const PaymentTable = () => {
             </button>
           )}
         </div>
+        <div className="w-full md:w-1/4">
+          <select
+            value={paymentType}
+            onChange={(e) => setPaymentType(e.target.value)}
+            className="p-3 w-full border border-gray-300 rounded-lg"
+          >
+            <option value="">All Payment Types</option>
+            <option value="INITIAL">INITIAL</option>
+            <option value="RECOLLECTION">RECOLLECTION</option>
+          </select>
+        </div>
+
 
       </div>
 
