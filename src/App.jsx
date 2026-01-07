@@ -38,7 +38,8 @@ import CounsellorCollection from "./Dashboard/CounsellorCollection";
 import ChallanManagement from "./Dashboard/ChallanManagement";
 import ExcelTableUploader from "./Dashboard/ExcelTableUploader";
 import TemplatesManagementPage from "./Dashboard/WhatsApp/TemplatesManagementPage";
-
+import JobCreation from "./Dashboard/WhatsApp/JobCreation";
+import JobsList from "./Dashboard/WhatsApp/JobsList";
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [hallTicket, setHallTicket] = useState(false);
@@ -114,6 +115,8 @@ function App() {
                 <Route path='collection' element={<AdminCollection />} />
                 <Route path='excelupload' element={<ExcelTableUploader />} />
                 <Route path='template' element={<TemplatesManagementPage />} />
+                <Route path='jobCreation' element={<JobCreation />} />
+                <Route path="jobs" element={<JobsList />} />
                 {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
                 {/* <Route path='hallticket' element={<BulkHallTicketGenerator />} /> */}
 

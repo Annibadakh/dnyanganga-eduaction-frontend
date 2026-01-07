@@ -34,7 +34,7 @@ const CoursesSection = () => {
       subjects: ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'English'],
       duration: '10 Months',
       tests: '15 Mock Tests',
-      image: studentlearn
+      image: onlinetest
     }
   };
 

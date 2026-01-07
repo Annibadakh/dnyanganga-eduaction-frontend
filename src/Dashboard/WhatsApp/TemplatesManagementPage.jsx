@@ -491,6 +491,7 @@ const TestTemplateModal = ({ template, onClose }) => {
 // Templates List
 const TemplatesList = ({ templates, onEdit, onDelete, onTest, loading }) => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [expanded, setExpanded] = useState({});
   const imgUrl = import.meta.env.VITE_IMG_URL;
 
   if (loading) {
@@ -534,9 +535,48 @@ const TemplatesList = ({ templates, onEdit, onDelete, onTest, loading }) => {
             </div>
           )}
 
-          <p className="text-sm text-gray-600 font-mono bg-gray-50 p-2 rounded border mb-3 whitespace-pre-line">
-            {template.body}
-        </p>
+          {template.header_url && template.header_type === "document" && (
+            <div className="mb-3 flex flex-col gap-2 items-center">
+              {/* <iframe
+                src={`${imgUrl}${template.header_url}`}
+                className="w-40 h-auto border rounded"
+              /> */}
+
+              <button className='bg-secondary p-2 rounded-md text-white'>
+                <a
+                  href={`${imgUrl}${template.header_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className=""
+                >
+                  Open Header Document
+                </a>
+              </button>
+            </div>
+          )}
+
+
+          {/* <div className="mb-3">
+            <p className="text-sm text-gray-600 font-mono bg-gray-50 p-2 rounded border whitespace-pre-line">
+              {expanded[template.id]
+                ? template.body
+                : `${template.body.slice(0, 120)}${template.body.length > 120 ? "..." : ""}`}
+            </p>
+
+            <div className='text-center mt-2'>
+            {template.body.length > 120 && (
+              <button
+                onClick={() =>
+                  setExpanded(prev => ({ ...prev, [template.id]: !prev[template.id] }))
+                }
+                className="mt-1 text-blue-600 text-sm text-center"
+              >
+                {expanded[template.id] ? "Show less" : "Show more"}
+              </button>
+            )}
+            </div>
+          </div> */}
+
 
 
           {template.variables_json?.length > 0 && (
