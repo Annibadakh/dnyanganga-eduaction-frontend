@@ -10,7 +10,7 @@ const SUBJECTS_BY_GROUP = {
   MARATHI: ["Math-1", "Math-2", "Science-1", "Science-2", "English"],
 };
 
-const StudentMarksTable = ({ context }) => {
+const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
   const { examCentre, standard, examYear, fromSeat, toSeat } = context;
 
   const [students, setStudents] = useState([]);
@@ -20,7 +20,12 @@ const StudentMarksTable = ({ context }) => {
   /* ------------ Fetch students with marks ------------ */
   useEffect(() => {
     if (!context) return;
+    fetchStudents();
+  }, [context]);
 
+  const fetchStudents = () => {
+    if (loading) return; // Prevent multiple simultaneous fetches
+    
     setLoading(true);
 
     api
@@ -39,8 +44,10 @@ const StudentMarksTable = ({ context }) => {
       .catch((err) => {
         console.error("Error fetching students", err);
       })
-      .finally(() => setLoading(false));
-  }, [context]);
+      .finally(() => {
+        setTimeout(() => setLoading(false), 100); // Small delay to prevent blinking
+      });
+  };
 
   /* ------------ Save mark on blur ------------ */
   const saveMark = async (studentId, subject, value) => {
@@ -106,7 +113,14 @@ const StudentMarksTable = ({ context }) => {
 
   const batchStatus = getBatchStatusCounts();
 
-  if (loading) {
+  // Expose refresh function to parent - only set once
+  useEffect(() => {
+    if (onRefresh) {
+      onRefresh(fetchStudents);
+    }
+  }, []); // Empty dependency to prevent re-registering
+
+  if (loading && students.length === 0) {
     return (
       <div className="mt-3 flex items-center justify-center py-8">
         <div className="text-center">
@@ -178,19 +192,22 @@ const StudentMarksTable = ({ context }) => {
           <table className="min-w-full text-sm">
             <thead className="bg-gradient-to-r from-primary to-tertiary">
               <tr>
-                <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Sr. No.
+                </th>
+                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Student ID.
                 </th>
-                <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Student Name
+                </th>
+                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Seat No.
                 </th>
                 <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Group
                 </th>
-                <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
-                  Seat No.
-                </th>
-                <th className="border-r px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                <th className="border-r px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Subjects & Marks
                 </th>
                 <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
@@ -200,35 +217,34 @@ const StudentMarksTable = ({ context }) => {
             </thead>
 
             <tbody className="bg-customwhite">
-              {students.map((student) => {
+              {students.map((student, index) => {
                 const subjects = SUBJECTS_BY_GROUP[student.subjectGroup] || [];
                 const status = getStudentStatus(student);
                 const isRowFocused = focusedRow === student.studentId;
 
                 return (
+                    
                   <tr
-                    key={student.studentId}
+                    key={index}
                     className={`border-b whitespace-nowrap border-gray-200 transition-all duration-150 ${
-                      isRowFocused
+                      isRowFocused && isEditMode
                         ? "bg-blue-50 ring-2 ring-inset ring-fourthcolor"
                         : "hover:bg-gray-50"
                     }`}
                     onWheel={(e) => e.target.blur()}
-                    onMouseEnter={() => setFocusedRow(student.studentId)}
+                    onMouseEnter={() => isEditMode && setFocusedRow(student.studentId)}
                     onMouseLeave={() => setFocusedRow(null)}
                   >
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
+                      {index+1}
+                    </td>
+
                     <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
                       {student.studentId}
                     </td>
 
                     <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
                       {student.studentName}
-                    </td>
-
-                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-center">
-                      <span className="inline-flex rounded bg-tertiary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                        {student.subjectGroup}
-                      </span>
                     </td>
 
                     <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-gray-700">
@@ -239,34 +255,46 @@ const StudentMarksTable = ({ context }) => {
                       </span>
                     </td>
 
-                    <td className=" border-r px-2 py-1.5">
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-center">
+                      <span className="inline-flex rounded bg-tertiary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        {student.subjectGroup}
+                      </span>
+                    </td>
+
+                    <td className="border-r px-2 py-1.5">
                       <div className="flex gap-2">
                         {subjects.map((subject) => (
                           <div key={subject} className="flex items-center gap-1">
                             <label className="text-[12px] font-medium text-gray-600 whitespace-nowrap">
                               {subject}:
                             </label>
-                            <input
-                              type="number"
-                              className="w-14 rounded border border-gray-300 px-1.5 py-1 text-sm transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
-                              value={student.marks?.[subject] ?? ""}
-                              onChange={(e) =>
-                                updateLocalMark(
-                                  student.studentId,
-                                  subject,
-                                  e.target.value
-                                )
-                              }
-                              onBlur={(e) =>
-                                saveMark(
-                                  student.studentId,
-                                  subject,
-                                  e.target.value
-                                )
-                              }
-                              onFocus={() => setFocusedRow(student.studentId)}
-                              placeholder="--"
-                            />
+                            {isEditMode ? (
+                              <input
+                                type="number"
+                                className="w-14 rounded border border-gray-300 px-1.5 py-1 text-sm transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
+                                value={student.marks?.[subject] ?? ""}
+                                onChange={(e) =>
+                                  updateLocalMark(
+                                    student.studentId,
+                                    subject,
+                                    e.target.value
+                                  )
+                                }
+                                onBlur={(e) =>
+                                  saveMark(
+                                    student.studentId,
+                                    subject,
+                                    e.target.value
+                                  )
+                                }
+                                onFocus={() => setFocusedRow(student.studentId)}
+                                placeholder="--"
+                              />
+                            ) : (
+                              <span className="w-14 rounded border border-gray-200 bg-gray-50 px-1.5 py-1 text-sm text-center inline-block">
+                                {student.marks?.[subject] ?? "--"}
+                              </span>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -317,6 +345,8 @@ const MarksContextSelector = () => {
   const [standard, setStandard] = useState("");
   const [examYear, setExamYear] = useState("");
   const [selectedBatch, setSelectedBatch] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(true);
+  const [refreshFunction, setRefreshFunction] = useState(null);
 
   /* ---------- Fetch Exam Centres ---------- */
   useEffect(() => {
@@ -347,6 +377,17 @@ const MarksContextSelector = () => {
       .catch((err) => console.error("Error fetching batches", err));
   }, [examCentre, standard, examYear]);
 
+  /* ---------- Handle Mode Toggle ---------- */
+  const handleModeToggle = () => {
+    if (isEditMode) {
+      // Switching to View Mode - fetch fresh data
+      if (refreshFunction) {
+        refreshFunction();
+      }
+    }
+    setIsEditMode(!isEditMode);
+  };
+
   const context =
     selectedBatch && examCentre && standard && examYear
       ? {
@@ -360,14 +401,42 @@ const MarksContextSelector = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-3">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-8xl">
         <div className="overflow-hidden rounded-lg bg-customwhite shadow">
           {/* Header */}
           <div className="border-b border-gray-200 bg-gradient-to-r from-primary to-tertiary px-4 py-2.5">
-            <h2 className="text-lg font-bold text-customwhite">Marks Entry System</h2>
-            <p className="text-[15px] text-blue-100">
-              Select context and batch to enter student marks
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-customwhite">Marks Entry System</h2>
+                <p className="text-[15px] text-blue-100">
+                  Select context and batch to enter student marks
+                </p>
+              </div>
+              
+              {/* Mode Toggle */}
+              {context && (
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-medium ${isEditMode ? 'text-customwhite' : 'text-blue-200'}`}>
+                    Edit
+                  </span>
+                  <button
+                    onClick={handleModeToggle}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-customwhite focus:ring-offset-2 ${
+                      isEditMode ? 'bg-secondary' : 'bg-green-500'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-customwhite transition-transform duration-200 ${
+                        isEditMode ? 'translate-x-1' : 'translate-x-6'
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-sm font-medium ${!isEditMode ? 'text-customwhite' : 'text-blue-200'}`}>
+                    View
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="p-4">
@@ -378,7 +447,7 @@ const MarksContextSelector = () => {
                   Exam Centre
                 </label>
                 <select
-                  className="w-full rounded border border-gray-300 bg-customwhite px-2 py-1.5 text-sm  transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
+                  className="w-full rounded border border-gray-300 bg-customwhite px-2 py-1.5 text-sm transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
                   value={examCentre}
                   onChange={(e) => setExamCentre(e.target.value)}
                 >
@@ -455,7 +524,13 @@ const MarksContextSelector = () => {
             )}
 
             {/* -------- Student Marks Table -------- */}
-            {context && <StudentMarksTable context={context} />}
+            {context && (
+              <StudentMarksTable 
+                context={context} 
+                isEditMode={isEditMode}
+                onRefresh={(fn) => setRefreshFunction(() => fn)}
+              />
+            )}
           </div>
         </div>
       </div>
