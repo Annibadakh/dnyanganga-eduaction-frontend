@@ -1,0 +1,466 @@
+import React, { useEffect, useState } from "react";
+import api from "../../Api";
+
+const SUBJECTS_BY_GROUP = {
+  PCM: ["Physics", "Chemistry", "Mathematics"],
+  PCB: ["Physics", "Chemistry", "Biology"],
+  PCMB: ["Physics", "Chemistry", "Mathematics", "Biology"],
+  ENGLISH: ["Math-1", "Math-2", "Science-1", "Science-2", "English"],
+  "SEMI-ENGLISH": ["Math-1", "Math-2", "Science-1", "Science-2", "English"],
+  MARATHI: ["Math-1", "Math-2", "Science-1", "Science-2", "English"],
+};
+
+const StudentMarksTable = ({ context }) => {
+  const { examCentre, standard, examYear, fromSeat, toSeat } = context;
+
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [focusedRow, setFocusedRow] = useState(null);
+
+  /* ------------ Fetch students with marks ------------ */
+  useEffect(() => {
+    if (!context) return;
+
+    setLoading(true);
+
+    api
+      .get("/admin/studentsWithMarks", {
+        params: {
+          examCentre,
+          standard,
+          examYear,
+          fromSeat,
+          toSeat,
+        },
+      })
+      .then((res) => {
+        setStudents(res.data || []);
+      })
+      .catch((err) => {
+        console.error("Error fetching students", err);
+      })
+      .finally(() => setLoading(false));
+  }, [context]);
+
+  /* ------------ Save mark on blur ------------ */
+  const saveMark = async (studentId, subject, value) => {
+    if (value === "") return;
+
+    try {
+      await api.post("/admin/saveMarks", {
+        studentId,
+        subject,
+        marks: Number(value),
+      });
+    } catch (error) {
+      console.error("Error saving mark", error);
+    }
+  };
+
+  /* ------------ Update local state ------------ */
+  const updateLocalMark = (studentId, subject, value) => {
+    setStudents((prev) =>
+      prev.map((s) =>
+        s.studentId === studentId
+          ? {
+              ...s,
+              marks: {
+                ...s.marks,
+                [subject]: value,
+              },
+            }
+          : s
+      )
+    );
+  };
+
+  /* ------------ Student-level status ------------ */
+  const getStudentStatus = (student) => {
+    const subjects = SUBJECTS_BY_GROUP[student.subjectGroup] || [];
+    const marks = student.marks || {};
+
+    const filledCount = subjects.filter(
+      (sub) => marks[sub] !== undefined && marks[sub] !== ""
+    ).length;
+
+    if (filledCount === 0) return "NOT_STARTED";
+    if (filledCount === subjects.length) return "COMPLETED";
+    return "PARTIAL";
+  };
+
+  /* ------------ Batch-level status ------------ */
+  const getBatchStatusCounts = () => {
+    let completed = 0;
+    let partial = 0;
+    let notStarted = 0;
+
+    students.forEach((student) => {
+      const status = getStudentStatus(student);
+      if (status === "COMPLETED") completed++;
+      else if (status === "PARTIAL") partial++;
+      else notStarted++;
+    });
+
+    return { completed, partial, notStarted };
+  };
+
+  const batchStatus = getBatchStatusCounts();
+
+  if (loading) {
+    return (
+      <div className="mt-3 flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-2 text-sm text-gray-600">Loading students...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!students.length) {
+    return (
+      <div className="mt-3 rounded border-2 border-dashed border-customgray bg-gray-50 py-8 text-center">
+        <p className="text-md text-gray-500">No students found for this batch</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      {/* -------- Batch Summary -------- */}
+      <div className="mb-3 grid grid-cols-3 gap-2 text-sm">
+        <div className="rounded border-l-4 border-green-500 bg-green-50 p-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-green-800">Completed</p>
+              <p className="text-lg font-bold text-green-600">
+                {batchStatus.completed}
+              </p>
+            </div>
+            <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+
+        <div className="rounded border-l-4 border-secondary bg-orange-50 p-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-orange-800">Partial</p>
+              <p className="text-lg font-bold text-secondary">
+                {batchStatus.partial}
+              </p>
+            </div>
+            <svg className="h-5 w-5 text-secondary" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+
+        <div className="rounded border-l-4 border-red-500 bg-red-50 p-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-red-800">Not Started</p>
+              <p className="text-lg font-bold text-red-600">
+                {batchStatus.notStarted}
+              </p>
+            </div>
+            <svg className="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* -------- Table -------- */}
+      <div className="overflow-hidden rounded border border-gray-300">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="bg-gradient-to-r from-primary to-tertiary">
+              <tr>
+                <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Student ID.
+                </th>
+                <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Student Name
+                </th>
+                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Group
+                </th>
+                <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Seat No.
+                </th>
+                <th className="border-r px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Subjects & Marks
+                </th>
+                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Status
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="bg-customwhite">
+              {students.map((student) => {
+                const subjects = SUBJECTS_BY_GROUP[student.subjectGroup] || [];
+                const status = getStudentStatus(student);
+                const isRowFocused = focusedRow === student.studentId;
+
+                return (
+                  <tr
+                    key={student.studentId}
+                    className={`border-b whitespace-nowrap border-gray-200 transition-all duration-150 ${
+                      isRowFocused
+                        ? "bg-blue-50 ring-2 ring-inset ring-fourthcolor"
+                        : "hover:bg-gray-50"
+                    }`}
+                    onWheel={(e) => e.target.blur()}
+                    onMouseEnter={() => setFocusedRow(student.studentId)}
+                    onMouseLeave={() => setFocusedRow(null)}
+                  >
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
+                      {student.studentId}
+                    </td>
+
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
+                      {student.studentName}
+                    </td>
+
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-center">
+                      <span className="inline-flex rounded bg-tertiary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        {student.subjectGroup}
+                      </span>
+                    </td>
+
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-gray-700">
+                      <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[13px]">
+                        DE
+                        {String(student.examCentre).padStart(2, "0")}
+                        {String(student.seatNum).padStart(3, "0")}
+                      </span>
+                    </td>
+
+                    <td className=" border-r px-2 py-1.5">
+                      <div className="flex gap-2">
+                        {subjects.map((subject) => (
+                          <div key={subject} className="flex items-center gap-1">
+                            <label className="text-[12px] font-medium text-gray-600 whitespace-nowrap">
+                              {subject}:
+                            </label>
+                            <input
+                              type="number"
+                              className="w-14 rounded border border-gray-300 px-1.5 py-1 text-sm transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
+                              value={student.marks?.[subject] ?? ""}
+                              onChange={(e) =>
+                                updateLocalMark(
+                                  student.studentId,
+                                  subject,
+                                  e.target.value
+                                )
+                              }
+                              onBlur={(e) =>
+                                saveMark(
+                                  student.studentId,
+                                  subject,
+                                  e.target.value
+                                )
+                              }
+                              onFocus={() => setFocusedRow(student.studentId)}
+                              placeholder="--"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-center font-semibold">
+                      {status === "COMPLETED" && (
+                        <span className="inline-flex items-center gap-0.5 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-800">
+                          <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          Done
+                        </span>
+                      )}
+                      {status === "PARTIAL" && (
+                        <span className="inline-flex items-center gap-0.5 rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-medium text-orange-800">
+                          <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                          </svg>
+                          Partial
+                        </span>
+                      )}
+                      {status === "NOT_STARTED" && (
+                        <span className="inline-flex items-center gap-0.5 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium text-red-800">
+                          <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                          Pending
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const MarksContextSelector = () => {
+  const [examCentres, setExamCentres] = useState([]);
+  const [batches, setBatches] = useState([]);
+
+  const [examCentre, setExamCentre] = useState("");
+  const [standard, setStandard] = useState("");
+  const [examYear, setExamYear] = useState("");
+  const [selectedBatch, setSelectedBatch] = useState(null);
+
+  /* ---------- Fetch Exam Centres ---------- */
+  useEffect(() => {
+    api
+      .get("/admin/getExamCenters")
+      .then((res) => setExamCentres(res.data.data || []))
+      .catch((err) => console.error("Error fetching exam centres", err));
+  }, []);
+
+  /* ---------- Exam Years ---------- */
+  const getExamYears = () => {
+    const y = new Date().getFullYear();
+    return Array.from({ length: 5 }, (_, i) => y - 2 + i);
+  };
+
+  /* ---------- Fetch Batches ---------- */
+  useEffect(() => {
+    if (!examCentre || !standard || !examYear) return;
+
+    setSelectedBatch(null);
+    setBatches([]);
+
+    api
+      .get("/admin/batches", {
+        params: { examCentre, standard, examYear },
+      })
+      .then((res) => setBatches(res.data || []))
+      .catch((err) => console.error("Error fetching batches", err));
+  }, [examCentre, standard, examYear]);
+
+  const context =
+    selectedBatch && examCentre && standard && examYear
+      ? {
+          examCentre,
+          standard,
+          examYear,
+          fromSeat: selectedBatch.fromSeat,
+          toSeat: selectedBatch.toSeat,
+        }
+      : null;
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-3">
+      <div className="mx-auto max-w-7xl">
+        <div className="overflow-hidden rounded-lg bg-customwhite shadow">
+          {/* Header */}
+          <div className="border-b border-gray-200 bg-gradient-to-r from-primary to-tertiary px-4 py-2.5">
+            <h2 className="text-lg font-bold text-customwhite">Marks Entry System</h2>
+            <p className="text-[15px] text-blue-100">
+              Select context and batch to enter student marks
+            </p>
+          </div>
+
+          <div className="p-4">
+            {/* -------- Context Selectors -------- */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="mb-1 block text-md font-medium text-customblack">
+                  Exam Centre
+                </label>
+                <select
+                  className="w-full rounded border border-gray-300 bg-customwhite px-2 py-1.5 text-sm  transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
+                  value={examCentre}
+                  onChange={(e) => setExamCentre(e.target.value)}
+                >
+                  <option value="">Select Exam Centre</option>
+                  {examCentres.map((c) => (
+                    <option key={c.centerId} value={c.centerId}>
+                      {c.centerName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-md font-medium text-customblack">
+                  Standard
+                </label>
+                <select
+                  className="w-full rounded border border-gray-300 bg-customwhite px-2 py-1.5 text-sm transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
+                  value={standard}
+                  onChange={(e) => setStandard(e.target.value)}
+                >
+                  <option value="">Select Standard</option>
+                  <option value="10th">10th</option>
+                  <option value="12th">12th</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-md font-medium text-customblack">
+                  Exam Year
+                </label>
+                <select
+                  className="w-full rounded border border-gray-300 bg-customwhite px-2 py-1.5 text-sm transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
+                  value={examYear}
+                  onChange={(e) => setExamYear(e.target.value)}
+                >
+                  <option value="">Select Exam Year</option>
+                  {getExamYears().map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* -------- Batch Selection -------- */}
+            {batches.length > 0 && (
+              <div className="mt-3">
+                <label className="mb-1.5 block text-sm font-medium text-customblack">
+                  Select Batch
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {batches.map((b, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedBatch(b)}
+                      className={`relative rounded border px-3 py-1.5 text-sm font-medium transition-all duration-150 ${
+                        selectedBatch?.fromSeat === b.fromSeat
+                          ? "border-primary bg-primary text-customwhite shadow-sm"
+                          : "border-gray-300 bg-customwhite text-customblack hover:border-tertiary hover:bg-blue-50"
+                      }`}
+                    >
+                      {b.label}
+                      {selectedBatch?.fromSeat === b.fromSeat && (
+                        <svg className="ml-1 inline h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* -------- Student Marks Table -------- */}
+            {context && <StudentMarksTable context={context} />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MarksContextSelector;

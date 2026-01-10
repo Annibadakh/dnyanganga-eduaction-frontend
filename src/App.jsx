@@ -40,6 +40,9 @@ import ExcelTableUploader from "./Dashboard/ExcelTableUploader";
 import TemplatesManagementPage from "./Dashboard/WhatsApp/TemplatesManagementPage";
 import JobCreation from "./Dashboard/WhatsApp/JobCreation";
 import JobsList from "./Dashboard/WhatsApp/JobsList";
+import BulkGenerateQR from "./BulkGenerateQR";
+import MarksContextSelector from "./Dashboard/Result/MarksContextSelector";
+
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [hallTicket, setHallTicket] = useState(false);
@@ -62,6 +65,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="login" element={<Login />} /> 
+          <Route path="bulkqrcode" element={<BulkGenerateQR />} />
          <Route
             path="hallticket"
             element={hallTicket ? <HallTicket /> : <InfoPage type="hallticket" />}
@@ -117,6 +121,8 @@ function App() {
                 <Route path='template' element={<TemplatesManagementPage />} />
                 <Route path='jobCreation' element={<JobCreation />} />
                 <Route path="jobs" element={<JobsList />} />
+                <Route path="marksentry" element={<MarksContextSelector />} />
+
                 {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
                 {/* <Route path='hallticket' element={<BulkHallTicketGenerator />} /> */}
 
