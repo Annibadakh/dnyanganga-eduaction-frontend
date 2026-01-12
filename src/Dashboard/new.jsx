@@ -282,9 +282,9 @@ const RegistrationForm = () => {
       const currDate = new Date();
       const currentYear = currDate.getFullYear();
       const currMonth = currDate.getMonth();
-      let nextYear = currentYear;
+      let nextYear = currentYear+1;
       if(currMonth < 4){
-        nextYear = currentYear + 1;
+        nextYear = currentYear;
       }
       // const currentYear = new Date().getFullYear();
       // const nextYear = currentYear + 1;
