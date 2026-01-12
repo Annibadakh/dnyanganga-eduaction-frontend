@@ -279,8 +279,15 @@ const RegistrationForm = () => {
     const { name, value } = e.target;
     
     if (name === "standard") {
-      const currentYear = new Date().getFullYear();
-      const nextYear = currentYear + 1;
+      const currDate = new Date();
+      const currentYear = currDate.getFullYear();
+      const currMonth = currDate.getMonth();
+      let nextYear = currentYear + 1;
+      if(currMonth < 4){
+        nextYear = currentYear + 1;
+      }
+      // const currentYear = new Date().getFullYear();
+      // const nextYear = currentYear + 1;
       
       if (value === "9th+10th") {
         setFormData({
