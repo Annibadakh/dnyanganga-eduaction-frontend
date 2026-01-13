@@ -8,6 +8,53 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
   const [loading, setLoading] = useState(false);
   const [focusedRow, setFocusedRow] = useState(null);
 
+  /* ------------ Sort subjects in specific order ------------ */
+  const getSortedSubjects = (subjects) => {
+    if (!subjects || subjects.length === 0) return [];
+
+    // Define order for 10th standard
+    const order10th = [
+      "Math-1",
+      "Math-2", 
+      "Science-1",
+      "Science-2",
+      "English"
+    ];
+
+    // Define order for 12th standard
+    const order12th = [
+      "Physics",
+      "Chemistry",
+      "Mathematics",
+      "Biology"
+    ];
+
+    const priorityOrder = (standard == "10th" ? order10th : order12th);
+
+    return [...subjects].sort((a, b) => {
+      const aIndex = priorityOrder.findIndex(
+        name => a.subjectName.toLowerCase() === name.toLowerCase()
+      );
+      const bIndex = priorityOrder.findIndex(
+        name => b.subjectName.toLowerCase() === name.toLowerCase()
+      );
+
+      // If both are in priority list, sort by their position
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+
+      // If only 'a' is in priority, it comes first
+      if (aIndex !== -1) return -1;
+
+      // If only 'b' is in priority, it comes first
+      if (bIndex !== -1) return 1;
+
+      // If neither are in priority, sort alphabetically
+      return a.subjectName.localeCompare(b.subjectName);
+    });
+  };
+
   /* ------------ Fetch students with marks ------------ */
   useEffect(() => {
     if (!context) return;
@@ -41,7 +88,7 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
   };
 
   /* ------------ Save mark on blur ------------ */
-  const saveMark = async (studentId, subjectCode, subjectName, value, totalMarks) => {
+  const saveMark = async (studentId, subjectCode, value, totalMarks) => {
     if (value === "") return;
 
     const numValue = Number(value);
@@ -96,7 +143,7 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
     try {
       await api.post("/admin/saveMarks", {
         studentId,
-        subject: subjectName,
+        subject: subjectCode,
         marks: numValue,
       });
     } catch (error) {
@@ -295,7 +342,7 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
 
                     <td className="border-r px-2 py-1.5">
                       <div className="flex gap-2">
-                        {(student.subjects || []).map((subject) => (
+                        {getSortedSubjects(student.subjects || []).map((subject) => (
                           <div key={subject.subjectCode} className="flex items-center gap-1">
                             <label 
                               className="text-[12px] font-medium text-gray-600 whitespace-nowrap"
@@ -319,7 +366,6 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
                                   saveMark(
                                     student.studentId,
                                     subject.subjectCode,
-                                    subject.subjectName,
                                     e.target.value,
                                     subject.totalMarks
                                   )
@@ -451,8 +497,9 @@ const MarksContextSelector = () => {
                   Select context and batch to enter student marks
                 </p>
               </div>
-              
-              {/* Mode Toggle */}
+
+              {/* Mode Toggle  */}
+
               {context && (
                 <div className="flex items-center gap-2">
                   <span className={`text-sm font-medium ${isEditMode ? 'text-customwhite' : 'text-blue-200'}`}>
