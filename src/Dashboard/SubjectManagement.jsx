@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../Api';
 
-function Settings() {
+function SubjectManagement() {
   const [subjects, setSubjects] = useState([]);
   const [formData, setFormData] = useState({
     subjectCode: '',
     subjectName: '',
     language: 'English',
     standard: '',
+    subGroup: '',
+    marks: '',
   });
 
   const [showModal, setShowModal] = useState(false);
@@ -37,7 +39,7 @@ function Settings() {
 
   const fetchSubjects = async () => {
     try {
-      const response = await api.get('/admin/getsubjects');
+      const response = await api.get('/admin/getsubjectDetails');
       setSubjects(response.data.data);
       setError(null);
     } catch (err) {
@@ -97,9 +99,12 @@ function Settings() {
         subjectName: '',
         language: '',
         standard: '',
+        subGroup: '',
+        marks: '',
       });
       setFormError(null);
       setShowAddForm(false);
+      Alert("Subject added Success !!")
     } catch (err) {
       console.error('Error adding subject:', err);
       setFormError(err.response?.data?.message || 'Failed to add subject');
@@ -269,6 +274,19 @@ function Settings() {
                 />
               </div>
               <div>
+                <label htmlFor="subjectName" className="block mb-2 text-customblack">Total Marks*</label>
+                <input
+                  type="number"
+                  id="marks"
+                  name="marks"
+                  value={formData.marks}
+                  onChange={handleFormChange}
+                  onWheel={(e) => e.target.blur()}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              <div>
                 <label htmlFor="language" className="block mb-2 text-customblack">Language*</label>
                 <input
                   type="text"
@@ -293,6 +311,29 @@ function Settings() {
                   <option value="">Select Standard</option>
                   <option value="10th">10th</option>
                   <option value="12th">12th</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="standard" className="block mb-2 text-customblack">Grp/Med*</label>
+                <select
+                  id="subGroup"
+                  name="subGroup"
+                  value={formData.subGroup}
+                  onChange={handleFormChange}
+                  disabled={!formData.standard}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                >
+                  <option value="">Select Grp/Med</option>
+                  <option value="GENERAL">General</option>
+
+                  {formData.standard === '12th' && (<>
+                  <option value="PCM">PCM</option>
+                  <option value="PCB">PCB</option></>)}
+                  {formData.standard === '10th' && (<>
+                  <option value="ENGLISH">ENGLISH</option>
+                  <option value="SEMI-ENGLISH">SEMI-ENGLISH</option>
+                  <option value="MARATHI">MARATHI</option> </>)}
                 </select>
               </div>
             </div>
@@ -348,7 +389,9 @@ function Settings() {
                           <tr className="bg-gray-300">
                             <th className="p-2 border">Code</th>
                             <th className="p-2 border">Subject Name</th>
+                            <th className="p-2 border">Total Marks</th>
                             <th className="p-2 border">Language</th>
+                            <th className="p-2 border">Grp/Med</th>
                             <th className="p-2 border">Exam Date</th>
                             <th className="p-2 border">Exam Time</th>
                             <th className="p-2 border">Actions</th>
@@ -359,7 +402,9 @@ function Settings() {
                             <tr key={subject.subjectCode} className="hover:bg-gray-50">
                               <td className="p-2 border">{subject.subjectCode}</td>
                               <td className="p-2 border font-medium">{subject.subjectName}</td>
+                              <td className="p-2 border font-medium">{subject.marks}</td>
                               <td className="p-2 border">{subject.language}</td>
+                              <td className="p-2 border">{subject.subGroup}</td>
                               <td className="p-2 border">{formatDate(subject.examDate)}</td>
                               <td className="p-2 border">{formatTime(subject.examTime)}</td>
                               <td className="p-2 border">
@@ -487,4 +532,4 @@ function Settings() {
   );
 }
 
-export default Settings;
+export default SubjectManagement;

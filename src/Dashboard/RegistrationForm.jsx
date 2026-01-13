@@ -584,9 +584,9 @@ const RegistrationForm = () => {
                     required
                   >
                     <option value="">Select Medium</option>
-                    <option value="Marathi">Marathi</option>
-                    <option value="Semi-English">Semi-English</option>
-                    <option value="English">English</option>
+                    <option value="MARATHI">Marathi</option>
+                    <option value="SEMI-ENGLISH">Semi-English</option>
+                    <option value="ENGLISH">English</option>
                   </select>
                 )}
                 

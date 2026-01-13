@@ -11,7 +11,7 @@ import Result from "./Components/Result";
 import Dashboard from "./Dashboard/Dashboard";
 import Home from "./Dashboard/Home";
 import Profile from "./Dashboard/Profile";
-import Settings from "./Dashboard/Settings";
+import SubjectManagement from "./Dashboard/SubjectManagement";
 import VisitingForm from "./Dashboard/VisitingForm";
 import VisitingTable from "./Dashboard/VisitingTable";
 import RegistrationTable from "./Dashboard/RegistrationTable";
@@ -114,7 +114,7 @@ function App() {
               
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['admin']} />}>
                 <Route path='user' element={<AddUser />} />
-                <Route path='settings' element={<Settings />} />
+                <Route path='subject' element={<SubjectManagement />} />
                 <Route path='examcenter' element={<AddCenter />} />
                 <Route path='collection' element={<AdminCollection />} />
                 <Route path='excelupload' element={<ExcelTableUploader />} />

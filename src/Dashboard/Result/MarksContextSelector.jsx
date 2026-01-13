@@ -1,15 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../Api";
 
-const SUBJECTS_BY_GROUP = {
-  PCM: ["Physics", "Chemistry", "Mathematics"],
-  PCB: ["Physics", "Chemistry", "Biology"],
-  PCMB: ["Physics", "Chemistry", "Mathematics", "Biology"],
-  ENGLISH: ["Math-1", "Math-2", "Science-1", "Science-2", "English"],
-  "SEMI-ENGLISH": ["Math-1", "Math-2", "Science-1", "Science-2", "English"],
-  MARATHI: ["Math-1", "Math-2", "Science-1", "Science-2", "English"],
-};
-
 const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
   const { examCentre, standard, examYear, fromSeat, toSeat } = context;
 
@@ -50,31 +41,82 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
   };
 
   /* ------------ Save mark on blur ------------ */
-  const saveMark = async (studentId, subject, value) => {
+  const saveMark = async (studentId, subjectCode, subjectName, value, totalMarks) => {
     if (value === "") return;
+
+    const numValue = Number(value);
+
+    // Validate marks - should not exceed total marks
+    if (numValue > totalMarks) {
+      alert(`Marks cannot exceed ${totalMarks} for this subject!`);
+      // Reset to previous value by refetching
+      const student = students.find(s => s.studentId === studentId);
+      const subject = student?.subjects?.find(sub => sub.subjectCode === subjectCode);
+      
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.studentId === studentId
+            ? {
+                ...s,
+                subjects: s.subjects.map(sub =>
+                  sub.subjectCode === subjectCode
+                    ? { ...sub, marks: subject?.marks ?? null }
+                    : sub
+                )
+              }
+            : s
+        )
+      );
+      return;
+    }
+
+    // Validate marks - should not be negative
+    if (numValue < 0) {
+      alert("Marks cannot be negative!");
+      const student = students.find(s => s.studentId === studentId);
+      const subject = student?.subjects?.find(sub => sub.subjectCode === subjectCode);
+      
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.studentId === studentId
+            ? {
+                ...s,
+                subjects: s.subjects.map(sub =>
+                  sub.subjectCode === subjectCode
+                    ? { ...sub, marks: subject?.marks ?? null }
+                    : sub
+                )
+              }
+            : s
+        )
+      );
+      return;
+    }
 
     try {
       await api.post("/admin/saveMarks", {
         studentId,
-        subject,
-        marks: Number(value),
+        subject: subjectName,
+        marks: numValue,
       });
     } catch (error) {
       console.error("Error saving mark", error);
+      alert("Failed to save marks. Please try again.");
     }
   };
 
   /* ------------ Update local state ------------ */
-  const updateLocalMark = (studentId, subject, value) => {
+  const updateLocalMark = (studentId, subjectCode, value) => {
     setStudents((prev) =>
       prev.map((s) =>
         s.studentId === studentId
           ? {
               ...s,
-              marks: {
-                ...s.marks,
-                [subject]: value,
-              },
+              subjects: s.subjects.map((sub) =>
+                sub.subjectCode === subjectCode
+                  ? { ...sub, marks: value }
+                  : sub
+              ),
             }
           : s
       )
@@ -83,15 +125,14 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
 
   /* ------------ Student-level status ------------ */
   const getStudentStatus = (student) => {
-    const subjects = SUBJECTS_BY_GROUP[student.subjectGroup] || [];
-    const marks = student.marks || {};
+    const studentSubjects = student.subjects || [];
 
-    const filledCount = subjects.filter(
-      (sub) => marks[sub] !== undefined && marks[sub] !== ""
+    const filledCount = studentSubjects.filter(
+      (subject) => subject.marks !== null && subject.marks !== ""
     ).length;
 
     if (filledCount === 0) return "NOT_STARTED";
-    if (filledCount === subjects.length) return "COMPLETED";
+    if (filledCount === studentSubjects.length) return "COMPLETED";
     return "PARTIAL";
   };
 
@@ -192,22 +233,19 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
           <table className="min-w-full text-sm">
             <thead className="bg-gradient-to-r from-primary to-tertiary">
               <tr>
-                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
-                  Sr. No.
-                </th>
-                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Student ID.
                 </th>
-                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Student Name
-                </th>
-                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
-                  Seat No.
                 </th>
                 <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Group
                 </th>
-                <th className="border-r px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Seat No.
+                </th>
+                <th className="border-r px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Subjects & Marks
                 </th>
                 <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
@@ -217,15 +255,13 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
             </thead>
 
             <tbody className="bg-customwhite">
-              {students.map((student, index) => {
-                const subjects = SUBJECTS_BY_GROUP[student.subjectGroup] || [];
+              {students.map((student) => {
                 const status = getStudentStatus(student);
                 const isRowFocused = focusedRow === student.studentId;
 
                 return (
-                    
                   <tr
-                    key={index}
+                    key={student.studentId}
                     className={`border-b whitespace-nowrap border-gray-200 transition-all duration-150 ${
                       isRowFocused && isEditMode
                         ? "bg-blue-50 ring-2 ring-inset ring-fourthcolor"
@@ -236,15 +272,17 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
                     onMouseLeave={() => setFocusedRow(null)}
                   >
                     <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
-                      {index+1}
-                    </td>
-
-                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
                       {student.studentId}
                     </td>
 
                     <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
                       {student.studentName}
+                    </td>
+
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-center">
+                      <span className="inline-flex rounded bg-tertiary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        {student.subjectGroup}
+                      </span>
                     </td>
 
                     <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-gray-700">
@@ -255,44 +293,45 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
                       </span>
                     </td>
 
-                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-center">
-                      <span className="inline-flex rounded bg-tertiary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                        {student.subjectGroup}
-                      </span>
-                    </td>
-
                     <td className="border-r px-2 py-1.5">
                       <div className="flex gap-2">
-                        {subjects.map((subject) => (
-                          <div key={subject} className="flex items-center gap-1">
-                            <label className="text-[12px] font-medium text-gray-600 whitespace-nowrap">
-                              {subject}:
+                        {(student.subjects || []).map((subject) => (
+                          <div key={subject.subjectCode} className="flex items-center gap-1">
+                            <label 
+                              className="text-[12px] font-medium text-gray-600 whitespace-nowrap"
+                              title={`${subject.subjectName} (Out of ${subject.totalMarks})`}
+                            >
+                              {subject.subjectName}:
                             </label>
                             {isEditMode ? (
                               <input
                                 type="number"
                                 className="w-14 rounded border border-gray-300 px-1.5 py-1 text-sm transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
-                                value={student.marks?.[subject] ?? ""}
+                                value={subject.marks === null ? "" : subject.marks}
                                 onChange={(e) =>
                                   updateLocalMark(
                                     student.studentId,
-                                    subject,
+                                    subject.subjectCode,
                                     e.target.value
                                   )
                                 }
                                 onBlur={(e) =>
                                   saveMark(
                                     student.studentId,
-                                    subject,
-                                    e.target.value
+                                    subject.subjectCode,
+                                    subject.subjectName,
+                                    e.target.value,
+                                    subject.totalMarks
                                   )
                                 }
                                 onFocus={() => setFocusedRow(student.studentId)}
-                                placeholder="--"
+                                placeholder={`/${subject.totalMarks}`}
+                                max={subject.totalMarks}
+                                min="0"
                               />
                             ) : (
                               <span className="w-14 rounded border border-gray-200 bg-gray-50 px-1.5 py-1 text-sm text-center inline-block">
-                                {student.marks?.[subject] ?? "--"}
+                                {subject.marks === null ? "--" : subject.marks}/{subject.totalMarks}
                               </span>
                             )}
                           </div>
@@ -401,7 +440,7 @@ const MarksContextSelector = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-3">
-      <div className="mx-auto max-w-8xl">
+      <div className="mx-auto max-w-7xl">
         <div className="overflow-hidden rounded-lg bg-customwhite shadow">
           {/* Header */}
           <div className="border-b border-gray-200 bg-gradient-to-r from-primary to-tertiary px-4 py-2.5">
