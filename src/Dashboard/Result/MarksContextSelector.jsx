@@ -281,16 +281,19 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
             <thead className="bg-gradient-to-r from-primary to-tertiary">
               <tr>
                 <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Sr No.
+                </th><th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Student ID.
                 </th>
                 <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Student Name
                 </th>
-                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
-                  Group
-                </th>
+                
                 <th className="border-r border-white/20 px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Seat No.
+                </th>
+                <th className="border-r border-white/20 px-2 py-1.5 text-center font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
+                  Group
                 </th>
                 <th className="border-r px-2 py-1.5 text-left font-semibold uppercase tracking-wide text-customwhite whitespace-nowrap">
                   Subjects & Marks
@@ -302,7 +305,7 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
             </thead>
 
             <tbody className="bg-customwhite">
-              {students.map((student) => {
+              {students.map((student, idx) => {
                 const status = getStudentStatus(student);
                 const isRowFocused = focusedRow === student.studentId;
 
@@ -319,6 +322,9 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
                     onMouseLeave={() => setFocusedRow(null)}
                   >
                     <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
+                      {idx+1}
+                    </td>
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 font-medium text-customblack">
                       {student.studentId}
                     </td>
 
@@ -326,17 +332,16 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
                       {student.studentName}
                     </td>
 
-                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-center">
-                      <span className="inline-flex rounded bg-tertiary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                        {student.subjectGroup}
-                      </span>
-                    </td>
-
                     <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-gray-700">
                       <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[13px]">
                         DE
                         {String(student.examCentre).padStart(2, "0")}
                         {String(student.seatNum).padStart(3, "0")}
+                      </span>
+                    </td>
+                    <td className="border-r whitespace-nowrap border-gray-200 px-2 py-1.5 text-center">
+                      <span className="inline-flex rounded bg-tertiary/20 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        {student.subjectGroup}
                       </span>
                     </td>
 
