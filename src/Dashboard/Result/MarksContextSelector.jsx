@@ -88,7 +88,7 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
   };
 
   /* ------------ Save mark on blur ------------ */
-  const saveMark = async (studentId, subjectCode, value, totalMarks) => {
+  const saveMark = async (studentId, subjectCode, subjectName, value, totalMarks) => {
     if (value === "") return;
 
     const numValue = Number(value);
@@ -143,7 +143,7 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
     try {
       await api.post("/admin/saveMarks", {
         studentId,
-        subject: subjectCode,
+        subject: subjectName,
         marks: numValue,
       });
     } catch (error) {
@@ -366,6 +366,7 @@ const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
                                   saveMark(
                                     student.studentId,
                                     subject.subjectCode,
+                                    subject.subjectName,
                                     e.target.value,
                                     subject.totalMarks
                                   )
