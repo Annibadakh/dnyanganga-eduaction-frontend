@@ -26,7 +26,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
   const links = [
     { path: "home", label: "Home", icon: <FaHome className="text-lg" /> },
     { path: "profile", label: "Profile", role: ["teacher"], icon: <FaUser className="text-lg" /> },
-    { path: "settings", label: "Subjects Details", role: ["admin"], icon: <FaCog className="text-lg" /> },
+    { path: "subject", label: "Subjects Details", role: ["admin"], icon: <FaCog className="text-lg" /> },
     { path: "user", label: "User Details", role: ["admin"], icon: <FaUsers className="text-lg" /> },
     { path: "examcenter", label: "Exam Centre", role: ["admin"], icon: <FaSchool className="text-lg" /> },
     { path: "register", label: "Registration Form", role: ["counsellor"], icon: <FaFileAlt className="text-lg" /> },
