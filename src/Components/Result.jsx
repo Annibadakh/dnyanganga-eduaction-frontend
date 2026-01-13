@@ -54,13 +54,9 @@ const Result = () => {
     };
 
     const handleDownload = () => {
-        let fileName = "";
-        if(formData.studentName){
-            fileName = `${formData.studentName.replace(/\s+/g, "_")}_HallTicket.pdf`;
-        }
-        else{
-            fileName = `${formData.studentId}_HallTicket.pdf`;
-        }
+        
+        const fileName = `${formData.seatNum}_Result.pdf`;
+        
         const link = document.createElement("a");
         link.href = pdfUrl;
         link.download = fileName;
@@ -109,7 +105,7 @@ const Result = () => {
                             />
                         </div>
                         <select
-                            className="w-full rounded border border-gray-300 bg-customwhite px-2 py-1.5 text-sm transition-all duration-150 focus:border-primary focus:outline-none focus:ring-1 focus:ring-fourthcolor/40 hover:border-tertiary"
+                            className="w-full px-4 py-2 bg-white transition-all duration-150 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                             value={standard}
                             required
                             onChange={(e) => setStandard(e.target.value)}
