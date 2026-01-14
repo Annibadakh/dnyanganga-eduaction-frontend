@@ -42,6 +42,7 @@ import JobCreation from "./Dashboard/WhatsApp/JobCreation";
 import JobsList from "./Dashboard/WhatsApp/JobsList";
 import BulkGenerateQR from "./BulkGenerateQR";
 import MarksContextSelector from "./Dashboard/Result/MarksContextSelector";
+import MarksExcelExport from "./Dashboard/Result/MarksExcelExport";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -122,6 +123,7 @@ function App() {
                 <Route path='jobCreation' element={<JobCreation />} />
                 <Route path="jobs" element={<JobsList />} />
                 <Route path="marksentry" element={<MarksContextSelector />} />
+                <Route path="marksexport" element={<MarksExcelExport />} />
 
                 {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
                 {/* <Route path='hallticket' element={<BulkHallTicketGenerator />} /> */}

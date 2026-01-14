@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../Api";
+import MarksExcelExport from "./MarksExcelExport";
 
 const StudentMarksTable = ({ context, isEditMode, onRefresh }) => {
   const { examCentre, standard, examYear, fromSeat, toSeat } = context;
@@ -493,15 +494,16 @@ const MarksContextSelector = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-3">
       <div className="mx-auto max-w-7xl">
+        <MarksExcelExport />
         <div className="overflow-hidden rounded-lg bg-customwhite shadow">
           {/* Header */}
           <div className="border-b border-gray-200 bg-gradient-to-r from-primary to-tertiary px-4 py-2.5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-customwhite">Marks Entry System</h2>
-                <p className="text-[15px] text-blue-100">
+                <h2 className="text-xl font-bold text-customwhite">Marks Entry System</h2>
+                {/* <p className="text-[15px] text-blue-100">
                   Select context and batch to enter student marks
-                </p>
+                </p> */}
               </div>
 
               {/* Mode Toggle  */}
