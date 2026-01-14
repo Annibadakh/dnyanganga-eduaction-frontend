@@ -165,14 +165,12 @@ const MarksExcelExport = () => {
       });
 
       /* ------------ SORTING ------------ */
-      excelData.sort((a, b) => {
-        if (a.__obtained === -1 && b.__obtained !== -1) return 1;
-        if (a.__obtained !== -1 && b.__obtained === -1) return -1;
+     excelData.sort((a, b) => {
+        // Fully absent always at bottom
+        if (a.__percent === -1 && b.__percent !== -1) return 1;
+        if (a.__percent !== -1 && b.__percent === -1) return -1;
 
-        if (b.__obtained !== a.__obtained) {
-          return b.__obtained - a.__obtained;
-        }
-
+        // Higher percentage first
         return b.__percent - a.__percent;
       });
 
