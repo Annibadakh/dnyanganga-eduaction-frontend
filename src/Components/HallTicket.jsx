@@ -74,7 +74,7 @@ const HallTicket = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-100">
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
             {!showPreview ? (
                 <div className="bg-white p-8 shadow-lg rounded-lg w-96">
                     <div className="w-full grid place-items-center mb-4">

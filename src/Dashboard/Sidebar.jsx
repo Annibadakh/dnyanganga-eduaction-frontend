@@ -61,7 +61,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
                 className={`flex items-center gap-3 py-2 px-2 mb-1 rounded-full transition-colors duration-150 
                 ${isActive(path) ? "bg-secondary" : "hover:bg-secondary"}`}
               >
-                <Link to={path} className="flex items-center gap-3 w-full">
+                <Link to={path} className="flex items-center font-bold gap-3 w-full">
                   {icon}
                   <span className="truncate">{label}</span>
                 </Link>
