@@ -43,6 +43,7 @@ import JobsList from "./Dashboard/WhatsApp/JobsList";
 import BulkGenerateQR from "./BulkGenerateQR";
 import MarksContextSelector from "./Dashboard/Result/MarksContextSelector";
 import MarksExcelExport from "./Dashboard/Result/MarksExcelExport";
+import SeprateResult from "./Components/SeprateResult";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -74,6 +75,10 @@ function App() {
           <Route
             path="result"
             element={resultDeclared ? <Result /> : <InfoPage type="result" />}
+          />
+          <Route
+            path="seprate-result"
+            element={resultDeclared ? <SeprateResult /> : <InfoPage type="result" />}
           />
           {/* ✅ Landing Pages with Navbar + Footer */}
           <Route element={<LandingLayout />}>

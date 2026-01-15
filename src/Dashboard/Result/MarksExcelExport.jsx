@@ -127,6 +127,7 @@ const MarksExcelExport = () => {
         setLoading(false);
         return;
       }
+      // console.log(students);
 
       const allSubjects = getAllSubjects();
 
@@ -137,6 +138,7 @@ const MarksExcelExport = () => {
           "Sr No.": idx + 1,
           "Student ID": student.studentId,
           "Student Name": student.studentName,
+          "Exam Center": student.centerName,
           "Seat No.": `DE${String(student.examCentre).padStart(2, "0")}${String(
             student.seatNum
           ).padStart(3, "0")}`,
@@ -188,6 +190,7 @@ const MarksExcelExport = () => {
         { wch: 8 },
         { wch: 12 },
         { wch: 25 },
+        { wch: 12 },
         { wch: 12 },
         { wch: 8 },
         ...allSubjects.map(() => ({ wch: 12 })),
