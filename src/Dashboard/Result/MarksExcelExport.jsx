@@ -131,13 +131,13 @@ const MarksExcelExport = () => {
 
       const allSubjects = getAllSubjects();
 
-      let excelData = students.map((student, idx) => {
+     let excelData = students.map((student) => {
         const calc = calculateStudentData(student);
 
         const row = {
-          "Sr No.": idx + 1,
           "Student ID": student.studentId,
           "Student Name": student.studentName,
+          "Counsellor": student.createdBy,
           "Exam Center": student.centerName,
           "Seat No.": `DE${String(student.examCentre).padStart(2, "0")}${String(
             student.seatNum
@@ -158,13 +158,11 @@ const MarksExcelExport = () => {
         row["Percentage"] = calc.percentage;
 
         // hidden sort keys
-        row.__obtained = calc.isFullyAbsent ? -1 : calc.totalObtainedMarks;
-        row.__percent = calc.isFullyAbsent
-          ? -1
-          : parseFloat(calc.percentage);
+        row.__percent = calc.isFullyAbsent ? -1 : parseFloat(calc.percentage);
 
         return row;
       });
+
 
       /* ------------ SORTING ------------ */
      excelData.sort((a, b) => {
@@ -175,6 +173,12 @@ const MarksExcelExport = () => {
         // Higher percentage first
         return b.__percent - a.__percent;
       });
+
+      excelData = excelData.map((row, index) => ({
+        "Sr No.": index + 1,
+        ...row
+      }));
+
 
       // remove helper keys
       excelData.forEach(r => {
@@ -190,7 +194,8 @@ const MarksExcelExport = () => {
         { wch: 8 },
         { wch: 12 },
         { wch: 25 },
-        { wch: 12 },
+        { wch: 20 },
+        { wch: 15 },
         { wch: 12 },
         { wch: 8 },
         ...allSubjects.map(() => ({ wch: 12 })),
