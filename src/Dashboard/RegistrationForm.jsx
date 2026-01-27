@@ -848,7 +848,7 @@ const RegistrationForm = () => {
                     paymentError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-blue-300'
                   }`}
                   required
-                  min="0"
+                  min="1"
                   max={formData.totalamount}
                 />
                 <div className="w-full flex flex-row items-center gap-1">
