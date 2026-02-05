@@ -301,7 +301,7 @@ const RegistrationForm = () => {
           previousYear: "8th",
           examYear: nextYear.toString(), // Next Year for 9th
           paymentStandard: "9th+10th",
-          totalamount: 5850
+          totalamount: 6850
         });
         setShow9thBranchDropdown(true);
         setShow10thBranchDropdown(false);
@@ -315,7 +315,7 @@ const RegistrationForm = () => {
           previousYear: "9th",
           examYear: currentYear.toString(), // Current Year for 10th
           paymentStandard: "10th",
-          totalamount: 5850
+          totalamount: 6850
         });
         setShow10thBranchDropdown(true);
         setShow9thBranchDropdown(false);
@@ -368,9 +368,9 @@ const RegistrationForm = () => {
       let newTotalAmount = 0;
       
       if (value === "9th+10th") {
-        newTotalAmount = 5850;
+        newTotalAmount = 6850;
       } else if (value === "10th") {
-        newTotalAmount = 5850;
+        newTotalAmount = 6850;
       } else if (value === "12th") {
         newTotalAmount = 7900;
       } else if (value === "11th+12th") {
