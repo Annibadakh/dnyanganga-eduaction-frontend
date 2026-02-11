@@ -80,7 +80,7 @@ function App() {
             path="seprate-result"
             element={resultDeclared ? <SeprateResult /> : <InfoPage type="result" />}
           />
-          {/* ✅ Landing Pages with Navbar + Footer */}
+
           <Route element={<LandingLayout />}>
             <Route path="/" element={<Main />} />
             <Route path="/about" element={<About />} />

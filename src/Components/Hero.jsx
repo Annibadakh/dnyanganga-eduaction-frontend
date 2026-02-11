@@ -67,7 +67,7 @@ const Hero = () => {
             }}
           >
             <div className="flex items-center justify-center h-full">
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-customwhite">
+              <div className="max-w-4xl mx-auto text-center text-customwhite">
                 <h1 className="text-4xl md:text-6xl font-bold mb-4 font-custom">
                   {slide.title}
                 </h1>

@@ -52,12 +52,12 @@ const VisitingFormView = ({ visitData, onClose }) => {
                   <span className="font-medium text-gray-700">Gender:</span>
                   <p className="text-gray-900">{visitData.gender || 'N/A'}</p>
                 </div>
-                <div>
+                {/* <div>
                   <span className="font-medium text-gray-700">Date of Birth:</span>
                   <p className="text-gray-900">
                     {visitData.dob ? formatDate(visitData.dob) : 'N/A'}
                   </p>
-                </div>
+                </div> */}
                 {/* <div>
                   <span className="font-medium text-gray-700">Mother's Name:</span>
                   <p className="text-gray-900">{visitData.motherName || 'N/A'}</p>
@@ -66,10 +66,10 @@ const VisitingFormView = ({ visitData, onClose }) => {
                   <span className="font-medium text-gray-700">Address:</span>
                   <p className="text-gray-900">{visitData.address || 'N/A'}</p>
                 </div>
-                <div>
+                {/* <div>
                   <span className="font-medium text-gray-700">Pincode:</span>
                   <p className="text-gray-900">{visitData.pincode || 'N/A'}</p>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -91,10 +91,10 @@ const VisitingFormView = ({ visitData, onClose }) => {
                   <span className="font-medium text-gray-700">Notification Number:</span>
                   <p className="text-gray-900">{visitData.notificationNo || 'N/A'}</p>
                 </div>
-                <div>
+                {/* <div>
                   <span className="font-medium text-gray-700">Email:</span>
                   <p className="text-gray-900">{visitData.email || 'N/A'}</p>
-                </div>
+                </div> */}
                 
               </div>
             </div>
