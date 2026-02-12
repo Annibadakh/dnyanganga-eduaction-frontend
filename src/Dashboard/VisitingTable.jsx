@@ -390,7 +390,7 @@ const VisitingTable = () => {
         <div className="flex flex-col md:flex-row gap-4">
           <input
             type="text"
-            placeholder="Search by name, email, or number..."
+            placeholder="Search by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"

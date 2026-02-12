@@ -5,26 +5,21 @@ const VisitingFormEdit = ({ visitData, onClose, onUpdate }) => {
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
   const [showPreviousYearDropdown, setShowPreviousYearDropdown] = useState(false);
-  const [showOtherReason, setShowOtherReason] = useState(false);
 
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
-    dob: "",
     address: "",
-    pincode: "",
     standard: "",
     previousYear: "",
     branch: "",
     schoolCollege: "",
     previousYearPercent: "",
-    email: "",
     studentNo: "",
     parentsNo: "",
     notificationNo: "",
     demoGiven: "",
     reason: "",
-    otherReason: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -32,39 +27,25 @@ const VisitingFormEdit = ({ visitData, onClose, onUpdate }) => {
   // Populate form with existing data
   useEffect(() => {
     if (visitData) {
-      const isOtherReason = ![
-        "पैश्याची अडचण",
-        "विश्वास नाही",
-        "विद्यार्थी इच्छुक नाही",
-        "पालक इच्छुक नाहीत",
-        "उपक्रम समजला नाही",
-        "जागृकता नाही",
-        "उपक्रम न ऐकलेल्या व्यक्तीचा हस्तक्षेप",
-        "मागील वर्षातील विद्यार्थ्यांचे नकारात्मक परिणाम / निरीक्षणे"
-      ].includes(visitData.reason);
-
       setFormData({
         studentName: visitData.studentName || "",
         gender: visitData.gender || "",
-        dob: visitData.dob ? visitData.dob.split('T')[0] : "",
         address: visitData.address || "",
-        pincode: visitData.pincode || "",
         standard: visitData.standard || "",
         previousYear: visitData.previousYear || "",
         branch: visitData.branch || "",
         schoolCollege: visitData.schoolCollege || "",
         previousYearPercent: visitData.previousYearPercent || "",
-        email: visitData.email || "",
         studentNo: visitData.studentNo || "",
         parentsNo: visitData.parentsNo || "",
         notificationNo: visitData.notificationNo || "",
         demoGiven: visitData.demoGiven || "",
-        reason: isOtherReason ? "Other" : visitData.reason || "",
-        otherReason: isOtherReason ? visitData.reason : "",
+        reason: visitData.reason || "",
       });
 
-      // Set dropdown visibility based on standard
+      // Dropdown logic based on standard
       const std = visitData.standard;
+
       if (std === "9th+10th" || std === "10th") {
         setShow10thBranchDropdown(true);
         setShowPreviousYearDropdown(true);
@@ -72,8 +53,6 @@ const VisitingFormEdit = ({ visitData, onClose, onUpdate }) => {
         setShowBranchDropdown(true);
         setShowPreviousYearDropdown(true);
       }
-
-      setShowOtherReason(isOtherReason);
     }
   }, [visitData]);
 
@@ -109,20 +88,12 @@ const VisitingFormEdit = ({ visitData, onClose, onUpdate }) => {
         ...formData,
         [name]: value,
         branch: newBranch,
-        previousYear: newPreviousYear
+        previousYear: newPreviousYear,
       });
-      
+
       setShow10thBranchDropdown(show10thBranch);
       setShowBranchDropdown(showBranch);
       setShowPreviousYearDropdown(showPrevYear);
-    } else if (name === "reason") {
-      setFormData({ ...formData, [name]: value });
-      if (value === "Other") {
-        setShowOtherReason(true);
-      } else {
-        setShowOtherReason(false);
-        setFormData(prev => ({ ...prev, otherReason: "" }));
-      }
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -132,17 +103,12 @@ const VisitingFormEdit = ({ visitData, onClose, onUpdate }) => {
     e.preventDefault();
     setLoading(true);
 
-    const formDataToSend = {};
-    Object.keys(formData).forEach(key => {
-      if (key === "reason" && formData.reason === "Other") {
-        formDataToSend[key] = formData.otherReason;
-      } else if (key !== "otherReason") {
-        formDataToSend[key] = formData[key];
-      }
-    });
-
     try {
-      const response = await api.put(`/counsellor/visiting/${visitData.id}`, formDataToSend);
+      const response = await api.put(
+        `/counsellor/visiting/${visitData.id}`,
+        formData
+      );
+
       alert(response.data.message || "Visit updated successfully!");
       onUpdate();
       onClose();
@@ -169,76 +135,63 @@ const VisitingFormEdit = ({ visitData, onClose, onUpdate }) => {
             ×
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Personal Details Section */}
+
+          {/* Personal Details */}
           <div className="border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Personal Details</h3>
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">
+              Student Personal Details
+            </h3>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <input 
-                type="text" 
-                name="studentName" 
-                placeholder="Enter Student Name" 
-                value={formData.studentName} 
-                onChange={handleChange} 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
-                required 
+              <input
+                type="text"
+                name="studentName"
+                value={formData.studentName}
+                onChange={handleChange}
+                placeholder="Enter Student Name"
+                className="px-3 py-2 border rounded"
+                required
               />
-              <select 
-                name="gender" 
+
+              <select
+                name="gender"
                 value={formData.gender}
-                onChange={handleChange} 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                onChange={handleChange}
+                className="px-3 py-2 border rounded"
                 required
               >
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
-              <div className="flex items-center gap-2">
-                <label className="min-w-fit text-black">Date of Birth:</label>
-                <input 
-                  type="date" 
-                  name="dob" 
-                  value={formData.dob}
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  required
-                />
-              </div>
-              <input 
-                type="text" 
-                name="address" 
+
+              <input
+                type="text"
+                name="address"
                 value={formData.address}
-                onChange={handleChange} 
-                placeholder="Enter Address" 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                onChange={handleChange}
+                placeholder="Enter Address"
+                className="px-3 py-2 border rounded lg:col-span-2"
                 required
-              />
-              <input 
-                type="number" 
-                name="pincode" 
-                value={formData.pincode}
-                onWheel={(e) => e.target.blur()}
-                onChange={handleChange} 
-                placeholder="Enter Pincode" 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-                pattern="\d{6}"
-                title="Pincode must be 6 digits"
               />
             </div>
           </div>
 
-          {/* Educational Details Section */}
+          {/* Educational Details */}
           <div className="border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Educational Details</h3>
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">
+              Student Educational Details
+            </h3>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <select 
-                name="standard" 
+
+              <select
+                name="standard"
                 value={formData.standard}
-                onChange={handleChange} 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                onChange={handleChange}
+                className="px-3 py-2 border rounded"
                 required
               >
                 <option value="">Select Standard</option>
@@ -249,23 +202,26 @@ const VisitingFormEdit = ({ visitData, onClose, onUpdate }) => {
               </select>
 
               <div className="flex items-center gap-2">
-                <label className="min-w-fit text-gray-600">Previous Year:</label>
-                <input 
-                  type="text" 
-                  name="previousYear" 
+                <label className="min-w-fit text-gray-600">
+                  Previous Year:
+                </label>
+
+                <input
+                  type="text"
+                  name="previousYear"
                   value={formData.previousYear}
-                  className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
                   disabled
                   readOnly
+                  className="w-full px-3 py-2 border rounded bg-gray-100"
                 />
               </div>
 
               {show10thBranchDropdown ? (
-                <select 
+                <select
                   name="branch"
                   value={formData.branch}
-                  onChange={handleChange} 
-                  className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  onChange={handleChange}
+                  className="px-3 py-2 border rounded"
                   required
                 >
                   <option value="">Select Medium</option>
@@ -274,11 +230,11 @@ const VisitingFormEdit = ({ visitData, onClose, onUpdate }) => {
                   <option value="English">English</option>
                 </select>
               ) : showBranchDropdown ? (
-                <select 
-                  name="branch" 
+                <select
+                  name="branch"
                   value={formData.branch}
-                  onChange={handleChange} 
-                  className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  onChange={handleChange}
+                  className="px-3 py-2 border rounded"
                   required
                 >
                   <option value="">Select Group</option>
@@ -286,176 +242,126 @@ const VisitingFormEdit = ({ visitData, onClose, onUpdate }) => {
                   <option value="PCB">PCB</option>
                   <option value="PCMB">PCMB</option>
                 </select>
-              ) : (
-                !showPreviousYearDropdown && (
-                  <input 
-                    type="text" 
-                    name="branch" 
-                    value={formData.branch} 
-                    onChange={handleChange} 
-                    placeholder="Medium/Group" 
-                    disabled={!showPreviousYearDropdown}
-                    className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    required
-                  />
-                )
-              )}
+              ) : null}
 
-              <input 
-                type="number" 
-                name="previousYearPercent" 
-                placeholder="Enter Previous Year Percentage" 
+              <input
+                type="number"
+                name="previousYearPercent"
                 value={formData.previousYearPercent}
-                onWheel={(e) => e.target.blur()} 
-                onChange={handleChange} 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300" 
-                required 
-                min="0" max="100" step="0.01"
+                onChange={handleChange}
+                placeholder="Enter Previous Year Percentage"
+                className="px-3 py-2 border rounded"
+                required
               />
 
-              <input 
-                type="text" 
-                name="schoolCollege" 
+              <input
+                type="text"
+                name="schoolCollege"
                 value={formData.schoolCollege}
-                onChange={handleChange} 
-                placeholder="Enter School/College Name" 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2"
+                onChange={handleChange}
+                placeholder="Enter School/College Name"
+                className="px-3 py-2 border rounded lg:col-span-2"
                 required
               />
             </div>
           </div>
 
-          {/* Contact Details Section */}
+          {/* Contact Details */}
           <div className="border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Student Contact Details</h3>
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">
+              Student Contact Details
+            </h3>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <input 
-                type="email" 
-                name="email" 
-                value={formData.email}
-                onChange={handleChange} 
-                placeholder="Enter Student Email" 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-              />
-              <input 
-                type="tel" 
-                name="studentNo" 
+              <input
+                type="tel"
+                name="studentNo"
                 value={formData.studentNo}
-                onChange={handleChange} 
-                placeholder="Enter Student Mobile No." 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                onChange={handleChange}
+                placeholder="Enter Student Mobile No."
+                className="px-3 py-2 border rounded"
                 required
-                pattern="[0-9]{10}"
-                title="Phone number must be 10 digits"
               />
-              <input 
-                type="tel" 
-                name="parentsNo" 
+
+              <input
+                type="tel"
+                name="parentsNo"
                 value={formData.parentsNo}
-                onChange={handleChange} 
-                placeholder="Enter Parent Mobile No." 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                onChange={handleChange}
+                placeholder="Enter Parent Mobile No."
+                className="px-3 py-2 border rounded"
                 required
-                pattern="[0-9]{10}"
-                title="Phone number must be 10 digits"
               />
-              <select 
-                name="notificationNo" 
+
+              <select
+                name="notificationNo"
                 value={formData.notificationNo}
-                onChange={handleChange} 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                onChange={handleChange}
+                className="px-3 py-2 border rounded lg:col-span-2"
                 required
               >
                 <option value="">Select Notification No.</option>
+
                 {formData.studentNo && (
                   <option value={formData.studentNo}>
-                    Student Mobile No. ({formData.studentNo})
+                    Student Mobile ({formData.studentNo})
                   </option>
                 )}
+
                 {formData.parentsNo && (
                   <option value={formData.parentsNo}>
-                    Parent Mobile No. ({formData.parentsNo})
+                    Parent Mobile ({formData.parentsNo})
                   </option>
                 )}
               </select>
             </div>
           </div>
 
-          {/* Additional Details Section */}
+          {/* Additional Details */}
           <div className="border rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold mb-4 text-tertiary">Additional Details</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <select 
-                name="demoGiven" 
-                value={formData.demoGiven}
-                onChange={handleChange} 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              >
-                <option value="">Demo Given?</option>
-                <option value="YES">YES</option>
-                <option value="NO">NO</option>
-              </select>
-              <select 
-                name="reason" 
-                value={formData.reason}
-                onChange={handleChange} 
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-                required
-              >
-                <option value="">Reason For Not Taking Admission</option>
-                <option value="पैश्याची अडचण">पैश्याची अडचण</option>
-                <option value="विश्वास नाही">विश्वास नाही</option>
-                <option value="विद्यार्थी इच्छुक नाही">विद्यार्थी इच्छुक नाही</option>
-                <option value="पालक इच्छुक नाहीत">पालक इच्छुक नाहीत</option>
-                <option value="उपक्रम समजला नाही">उपक्रम समजला नाही</option>
-                <option value="जागृकता नाही">जागृकता नाही</option>
-                <option value="उपक्रम न ऐकलेल्या व्यक्तीचा हस्तक्षेप">उपक्रम न ऐकलेल्या व्यक्तीचा हस्तक्षेप</option>
-                <option value="मागील वर्षातील विद्यार्थ्यांचे नकारात्मक परिणाम / निरीक्षणे">मागील वर्षातील विद्यार्थ्यांचे नकारात्मक परिणाम / निरीक्षणे</option>
-                <option value="Other">Other (Enter Reason Below)</option>
-              </select>
-            </div>
+            <h3 className="text-lg font-semibold mb-4 text-tertiary">
+              Additional Details
+            </h3>
 
-            {showOtherReason && (
-              <div className="mt-4">
-                <textarea 
-                  name="otherReason" 
-                  placeholder="Enter your reason here..." 
-                  value={formData.otherReason} 
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 resize-vertical" 
-                  required
-                  rows="1"
-                  maxLength="40"
-                ></textarea>
-              </div>
-            )}
+            <select
+              name="demoGiven"
+              value={formData.demoGiven}
+              onChange={handleChange}
+              className="px-3 py-2 border rounded w-full"
+              required
+            >
+              <option value="">Demo Given?</option>
+              <option value="YES">YES</option>
+              <option value="NO">NO</option>
+            </select>
+
+            <input
+              type="text"
+              name="reason"
+              value={formData.reason}
+              onChange={handleChange}
+              placeholder="Reason For Not Taking Admission"
+              className="w-full mt-4 px-3 py-2 border rounded"
+              required
+            />
           </div>
 
-          {/* Submit Buttons */}
-          <div className="flex gap-4 justify-end">
-            <button 
+          {/* Buttons */}
+          <div className="flex justify-end gap-4">
+            <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition"
+              className="px-6 py-3 bg-gray-300 rounded"
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="px-6 py-3 bg-primary text-white rounded hover:bg-opacity-90 transition disabled:opacity-50 flex items-center gap-2"
+
+            <button
+              type="submit"
               disabled={loading}
+              className="px-6 py-3 bg-primary text-white rounded"
             >
-              {loading ? (
-                <>
-                  <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
-                  Updating...
-                </>
-              ) : (
-                "Update Visit"
-              )}
+              {loading ? "Updating..." : "Update Visit"}
             </button>
           </div>
         </form>
