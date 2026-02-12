@@ -1,196 +1,157 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from "react";
 
-const TemplatesList = ({ onEdit, onDelete, onCreateNew }) => {
-  const [templates, setTemplates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const TemplatesList = ({ templates, onEdit, onDelete, onTest, loading }) => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
-
-  const fetchTemplates = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/templates', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setTemplates(data.data);
-      } else {
-        setError('Failed to load templates');
-      }
-    } catch (err) {
-      setError('Error loading templates');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      const response = await fetch(`/api/templates/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setTemplates(templates.filter(t => t.id !== id));
-        setDeleteConfirm(null);
-      } else {
-        alert('Failed to delete template');
-      }
-    } catch (err) {
-      alert('Error deleting template');
-      console.error(err);
-    }
-  };
-
-  const truncateText = (text, maxLength = 100) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
+  const imgUrl = import.meta.env.VITE_IMG_URL;
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  if (error) {
+  if (templates.length === 0) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
-        {error}
+      <div className="text-center py-16 bg-gray-50 rounded">
+        <div className="text-6xl mb-4">📝</div>
+        <p className="text-gray-500 text-lg">No templates found</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800">WhatsApp Templates</h1>
-        <button
-          onClick={onCreateNew}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {templates.map((template) => (
+        <div
+          key={template.id}
+          className="bg-white border rounded shadow-custom p-4 hover:shadow-lg transition-all"
         >
-          <span>+</span>
-          <span>Create Template</span>
-        </button>
-      </div>
+          {/* Title */}
+          <div className="flex items-start justify-between mb-3">
+            <h3 className="text-lg font-semibold text-secondary flex-1">
+              {template.name}
+            </h3>
 
-      {/* Templates Grid */}
-      {templates.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-500 text-lg mb-4">No templates found</p>
-          <button
-            onClick={onCreateNew}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Create Your First Template
-          </button>
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {templates.map((template) => (
-            <div
-              key={template.id}
-              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+            <div className="flex gap-2">
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
+                {template.language === "en"
+                  ? "🇬🇧 EN"
+                  : template.language === "hi"
+                    ? "🇮🇳 हिं"
+                    : "🇮🇳 मरा"}
+              </span>
+
+              {template.header_type !== "none" && (
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                  {template.header_type}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Header Image */}
+          {template.header_url && template.header_type === "image" && (
+            <div className="mb-3 flex justify-center">
+              <img
+                src={`${imgUrl}${template.header_url}`}
+                alt="Header"
+                className="w-40 h-40 object-contain rounded"
+              />
+            </div>
+          )}
+
+          {/* Header Document */}
+          {template.header_url && template.header_type === "document" && (
+            <div className="mb-3 flex flex-col gap-2 items-center">
+              <button className="bg-secondary p-2 rounded-md text-white">
+                <a
+                  href={`${imgUrl}${template.header_url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open Header Document
+                </a>
+              </button>
+            </div>
+          )}
+
+          {/* Variables Section */}
+          {template.variables?.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-gray-500 mb-2">
+                Variables:
+              </p>
+
+              <div className="flex flex-wrap gap-1">
+                {template.variables.map((v) => (
+                  <span
+                    key={v.id}
+                    className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
+                  >
+                    {"{{"}
+                    {v.var_index}
+                    {"}}"} → {v.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 mb-2">
+            <button
+              onClick={() => onTest(template)}
+              className="flex-1 px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
             >
-              {/* Template Name */}
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                {template.name}
-              </h3>
+              Test
+            </button>
 
-              {/* Template Body Preview */}
-              <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                {truncateText(template.body)}
+            <button
+              onClick={() => onEdit(template)}
+              className="flex-1 px-3 py-2 bg-gray-100 text-black rounded hover:bg-gray-200 text-sm"
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={() => setDeleteConfirm(template.id)}
+              className="flex-1 px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+            >
+              Delete
+            </button>
+          </div>
+
+          {/* Delete Confirm */}
+          {deleteConfirm === template.id && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded">
+              <p className="text-sm text-red-800 mb-2">
+                Delete "{template.name}"?
               </p>
 
-              {/* Variables */}
-              {template.variables_json && template.variables_json.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs font-medium text-gray-500 mb-2">Variables:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {template.variables_json.map((variable, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800"
-                      >
-                        {variable}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Provider Template ID */}
-              {template.provider_template_id && (
-                <p className="text-xs text-gray-500 mb-4">
-                  Provider ID: {template.provider_template_id}
-                </p>
-              )}
-
-              {/* Created Date */}
-              <p className="text-xs text-gray-400 mb-4">
-                Created: {new Date(template.created_at).toLocaleDateString()}
-              </p>
-
-              {/* Action Buttons */}
               <div className="flex gap-2">
                 <button
-                  onClick={() => onEdit(template)}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm font-medium"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => setDeleteConfirm(template.id)}
-                  className="flex-1 px-4 py-2 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors text-sm font-medium"
+                  onClick={() => {
+                    onDelete(template.id);
+                    setDeleteConfirm(null);
+                  }}
+                  className="flex-1 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
                 >
                   Delete
                 </button>
-              </div>
 
-              {/* Delete Confirmation */}
-              {deleteConfirm === template.id && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-800 mb-3">
-                    Are you sure you want to delete this template?
-                  </p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleDelete(template.id)}
-                      className="flex-1 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
-                    >
-                      Yes, Delete
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(null)}
-                      className="flex-1 px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors text-sm"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="flex-1 px-3 py-1 bg-gray-200 text-black rounded hover:bg-gray-300 text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          ))}
+          )}
         </div>
-      )}
+      ))}
     </div>
   );
 };

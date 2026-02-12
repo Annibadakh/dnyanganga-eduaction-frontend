@@ -27,6 +27,7 @@ const JobCreation = () => {
   // Preview & Mapping
   const [previewData, setPreviewData] = useState([]);
   const [variableMapping, setVariableMapping] = useState({});
+  const [variableMappingType, setVariableMappingType] = useState({}); // 'field' or 'manual'
   const [phoneMapping, setPhoneMapping] = useState(''); // For Excel phone number mapping
   
   // Job details
@@ -109,10 +110,13 @@ const JobCreation = () => {
     // Initialize variable mapping
     if (selectedTemplate.variables_json && selectedTemplate.variables_json.length > 0) {
       const initialMapping = {};
+      const initialMappingType = {};
       selectedTemplate.variables_json.forEach(v => {
         initialMapping[v.label] = '';
+        initialMappingType[v.label] = 'field'; // default to field mapping
       });
       setVariableMapping(initialMapping);
+      setVariableMappingType(initialMappingType);
     }
     
     setStep(4);
@@ -150,10 +154,13 @@ const JobCreation = () => {
         // Initialize variable mapping
         if (selectedTemplate.variables_json && selectedTemplate.variables_json.length > 0) {
           const initialMapping = {};
+          const initialMappingType = {};
           selectedTemplate.variables_json.forEach(v => {
             initialMapping[v.label] = '';
+            initialMappingType[v.label] = 'field'; // default to field mapping
           });
           setVariableMapping(initialMapping);
+          setVariableMappingType(initialMappingType);
         }
 
         setStep(4);
@@ -171,6 +178,18 @@ const JobCreation = () => {
     setVariableMapping(prev => ({
       ...prev,
       [variableLabel]: fieldValue
+    }));
+  };
+
+  const handleVariableMappingTypeChange = (variableLabel, type) => {
+    setVariableMappingType(prev => ({
+      ...prev,
+      [variableLabel]: type
+    }));
+    // Clear the mapping value when switching type
+    setVariableMapping(prev => ({
+      ...prev,
+      [variableLabel]: ''
     }));
   };
 
@@ -226,7 +245,8 @@ const JobCreation = () => {
           onlyNonZeroRemaining
         } : null,
         receivers: receiversData,
-        variable_mapping: variableMapping
+        variable_mapping: variableMapping,
+        variable_mapping_type: variableMappingType // Send the mapping types to backend
       });
 
       if (response.data.success) {
@@ -238,6 +258,7 @@ const JobCreation = () => {
         setJobName('');
         setScheduledDate('');
         setVariableMapping({});
+        setVariableMappingType({});
         setPhoneMapping('');
         setPreviewData([]);
         setExcelData([]);
@@ -546,27 +567,70 @@ const JobCreation = () => {
             <div className="space-y-4 mb-6">
               <h3 className="font-semibold text-gray-700 mb-2">Template Variables Mapping</h3>
               <p className="text-sm text-gray-600 mb-3">
-                Map template variables to your data fields
+                Map template variables to data fields or enter a fixed value
               </p>
               {selectedTemplate.variables_json.map((variable) => (
-                <div key={variable.index} className="border rounded p-4">
-                  <div className="flex items-center gap-4 mb-2">
+                <div key={variable.index} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-center gap-4 mb-3">
                     <span className="bg-primary text-white px-3 py-1 rounded font-bold">
                       {'{{'}{variable.index}{'}}'}
                     </span>
                     <span className="font-semibold text-black">{variable.label}</span>
                   </div>
                   
-                  <select
-                    value={variableMapping[variable.label] || ''}
-                    onChange={(e) => handleVariableMappingChange(variable.label, e.target.value)}
-                    className="border p-2 w-full rounded"
-                  >
-                    <option value="">-- Select Field --</option>
-                    {getAvailableFields().map(field => (
-                      <option key={field.value} value={field.value}>{field.label}</option>
-                    ))}
-                  </select>
+                  {/* Toggle between Field and Manual */}
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      onClick={() => handleVariableMappingTypeChange(variable.label, 'field')}
+                      className={`px-4 py-2 rounded font-medium transition ${
+                        variableMappingType[variable.label] === 'field'
+                          ? 'bg-primary text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      📋 Map to Field
+                    </button>
+                    <button
+                      onClick={() => handleVariableMappingTypeChange(variable.label, 'manual')}
+                      className={`px-4 py-2 rounded font-medium transition ${
+                        variableMappingType[variable.label] === 'manual'
+                          ? 'bg-primary text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      ✏️ Enter Value
+                    </button>
+                  </div>
+
+                  {/* Field Mapping */}
+                  {variableMappingType[variable.label] === 'field' && (
+                    <select
+                      value={variableMapping[variable.label] || ''}
+                      onChange={(e) => handleVariableMappingChange(variable.label, e.target.value)}
+                      className="border p-2 w-full rounded"
+                    >
+                      <option value="">-- Select Field --</option>
+                      {getAvailableFields().map(field => (
+                        <option key={field.value} value={field.value}>{field.label}</option>
+                      ))}
+                    </select>
+                  )}
+
+                  {/* Manual Value Entry */}
+                  {variableMappingType[variable.label] === 'manual' && (
+                    <div>
+                      <input
+                        type="text"
+                        value={variableMapping[variable.label] || ''}
+                        onChange={(e) => handleVariableMappingChange(variable.label, e.target.value)}
+                        className="border p-2 w-full rounded"
+                        placeholder="Enter fixed value (e.g., Main Hall, 15th Jan 2026, etc.)"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        💡 This value will be used for all recipients
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

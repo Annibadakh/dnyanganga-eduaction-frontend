@@ -127,6 +127,7 @@ function App() {
                 <Route path='template' element={<TemplatesManagementPage />} />
                 <Route path='jobCreation' element={<JobCreation />} />
                 <Route path="jobs" element={<JobsList />} />
+                
                 <Route path="marksentry" element={<MarksContextSelector />} />
                 <Route path="marksexport" element={<MarksExcelExport />} />
 
