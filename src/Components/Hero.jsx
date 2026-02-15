@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, BookOpen, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-
+  const navigate = useNavigate();
   const slides = [
     {
       title: "Excellence in Mock Board Exams",
@@ -78,11 +79,11 @@ const Hero = () => {
                   {slide.description}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button className="bg-secondary hover:bg-opacity-90 text-customwhite px-8 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
+                  <button onClick={() => navigate("/contact-us")} className="bg-secondary hover:bg-opacity-90 text-customwhite px-8 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
                     <BookOpen className="w-5 h-5" />
-                    <span>Register Now</span>
+                    <span>Contact Us</span>
                   </button>
-                  <button className="border-2 border-customwhite text-customwhite hover:bg-customwhite hover:text-primary px-8 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
+                  <button onClick={() => navigate('/courses')} className="border-2 border-customwhite text-customwhite hover:bg-customwhite hover:text-primary px-8 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
                     <Users className="w-5 h-5" />
                     <span>Explore Courses</span>
                   </button>
