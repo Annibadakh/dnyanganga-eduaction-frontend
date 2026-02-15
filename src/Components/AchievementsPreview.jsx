@@ -36,7 +36,7 @@ const AchievementsPreview = () => {
             Our Achievements
           </h2> */}
           <p className="text-xl text-customwhite opacity-90 max-w-2xl mx-auto">
-            Celebrating excellence and recognizing outstanding performance in education
+            Celebrating excellence and recognizing outstanding achievements in education
           </p>
         </div>
 

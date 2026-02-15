@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { BookOpen, Clock, Award, Users, CheckCircle, Download } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Courses = () => {
   const [activeTab, setActiveTab] = useState('10th');
-
+  const navigate = useNavigate();
   const coursesData = {
     '10th': {
       title: 'Class 10th Mock Board Exam Program',
@@ -11,7 +12,7 @@ const Courses = () => {
       duration: '8 Months Program',
       tests: '12 Mock Examinations',
       description:
-        'Our Class 10th program is meticulously designed to prepare students for their SSC board examinations through comprehensive mock tests, detailed performance analysis, and expert guidance.',
+        'A comprehensive mock board examination program designed to prepare students for their SSC board exams with confidence and exam readiness.',
 
       subjects: [
         { name: 'Mathematics', topics: 'Algebra, Geometry, Trigonometry, Statistics' },
@@ -22,14 +23,12 @@ const Courses = () => {
       ],
 
       features: [
-        'Complete syllabus coverage as per latest Maharashtra State Board pattern',
-        'Monthly mock examinations with board-level difficulty',
-        'Detailed answer sheets evaluation and feedback',
-        'Subject-wise performance analysis and improvement suggestions',
-        'Expert doubt resolution sessions every week',
-        'Study material including question banks and practice papers',
-        'Time management and exam strategy workshops',
-        'Parent-teacher meetings for progress discussions',
+        'Topic-wise recorded video lectures available on the mobile application to help students clearly understand every concept.',
+        'Independent practice question papers and model answer sheets for each chapter of every subject.',
+        'For complete syllabus coverage, two model question papers and model answer sheets per subject, designed strictly as per board examination standards.',
+        'District- and taluka-level career guidance sessions conducted for both parents and students.','State-level Pre-Board Examinations conducted prior to the final board examinations.',
+        'To build a strong foundation for future competitive examinations, an online state-level Foundation Test Series is conducted every month.',
+        'Monthly online guidance sessions by expert teachers covering various important subjects and academic strategies.','Scholarships ranging from ₹3,000 to ₹21,000 awarded to students securing Top 10 ranks at the state level.',
       ],
 
       benefits: [
@@ -37,8 +36,8 @@ const Courses = () => {
         'Identify and improve weak areas early',
         'Get familiar with board exam pattern and marking scheme',
         'Develop effective time management skills',
-        'Reduce exam anxiety through repeated exposure',
-        'Improve answer writing techniques',
+        // 'Reduce exam anxiety through repeated exposure',
+        // 'Improve answer writing techniques',
       ],
 
       studyMaterial: [
@@ -67,23 +66,23 @@ const Courses = () => {
       ],
 
       features: [
-        'Stream-specific preparation (Science, Commerce, Arts)',
-        'Board pattern mock tests with competitive exam level questions',
-        'Detailed performance analytics with percentile rankings',
-        'Individual mentoring sessions for career guidance',
-        'Regular doubt clearing sessions with subject experts',
-        'Comprehensive study material with latest updates',
-        'College admission guidance and counseling',
-        'Scholarship exam preparation support',
+        'Topic-wise recorded video lectures available on the mobile app to help students clearly understand every concept.',
+        'Independent practice question papers and model answer sheets for every chapter of each subject.',
+        'For thorough preparation and complete syllabus coverage, three model question papers and model answer sheets per subject, designed as per board examination standards.',
+        'District- and taluka-level career guidance sessions conducted for both parents and students.',
+        'State-level Pre-Board Examinations conducted prior to the final board examinations.',
+        'To ensure a more systematic and disciplined study routine, weekly online test series are conducted regularly.',
+        'Monthly online guidance sessions by expert teachers on various important academic subjects.',
+        'Scholarships ranging from ₹1,00,000 to ₹5,000 are awarded to students securing Top 10 ranks at the state level.'
       ],
 
       benefits: [
         'Excel in both board exams and competitive tests',
-        'Develop advanced problem-solving skills',
+        // 'Develop advanced problem-solving skills',
         'Build foundation for higher education',
         'Career counseling for future planning',
         'College admission preparation',
-        'Scholarship opportunities guidance',
+        // 'Scholarship opportunities guidance',
       ],
 
       studyMaterial: [
@@ -143,7 +142,7 @@ const Courses = () => {
               {currentCourse.title}
             </h2>
             <p className="text-xl text-secondary font-semibold mb-4">{currentCourse.subtitle}</p>
-            <div className="flex flex-wrap justify-center gap-6 text-gray-600">
+            {/* <div className="flex flex-wrap justify-center gap-6 text-gray-600">
               <div className="flex items-center space-x-2">
                 <Clock className="w-5 h-5 text-secondary" />
                 <span>{currentCourse.duration}</span>
@@ -152,12 +151,12 @@ const Courses = () => {
                 <Award className="w-5 h-5 text-secondary" />
                 <span>{currentCourse.tests}</span>
               </div>
-            </div>
+            </div> */}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-10">
               {/* Course Description */}
               <div className="bg-gray-50 rounded-xl p-6">
                 <h3 className="text-2xl font-bold text-customblack mb-4">Course Overview</h3>
@@ -165,7 +164,7 @@ const Courses = () => {
               </div>
 
               {/* Subjects Covered */}
-              <div className="bg-customwhite rounded-xl shadow-custom p-6">
+              {/* <div className="bg-customwhite rounded-xl shadow-custom p-6">
                 <h3 className="text-2xl font-bold text-customblack mb-6">Subjects Covered</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {currentCourse.subjects.map((subject, index) => (
@@ -175,7 +174,7 @@ const Courses = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Key Features */}
               <div className="bg-customwhite rounded-xl shadow-custom p-6">
@@ -189,25 +188,12 @@ const Courses = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Benefits */}
-              <div className="bg-gradient-to-br from-primary to-tertiary rounded-xl p-6 text-customwhite">
-                <h3 className="text-2xl font-bold mb-6">Benefits of Our Program</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {currentCourse.benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
-                      <span>{benefit}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Study Material */}
-              <div className="bg-customwhite rounded-xl shadow-custom p-6">
+              {/* <div className="bg-customwhite rounded-xl shadow-custom p-6">
                 <h3 className="text-xl font-bold text-customblack mb-4">Study Material Included</h3>
                 <ul className="space-y-2">
                   {currentCourse.studyMaterial.map((material, index) => (
@@ -217,15 +203,28 @@ const Courses = () => {
                     </li>
                   ))}
                 </ul>
+              </div> */}
+
+              {/* Benefits */}
+              <div className="bg-gradient-to-br from-primary to-tertiary rounded-xl p-6 text-customwhite">
+                <h3 className="text-2xl font-bold mb-6">Benefits of Our Program</h3>
+                <div className="grid grid-cols-1 gap-4">
+                  {currentCourse.benefits.map((benefit, index) => (
+                    <div key={index} className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
+                      <span>{benefit}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Enrollment Card */}
               <div className="bg-secondary text-customwhite rounded-xl p-6 text-center">
                 <h3 className="text-xl font-bold mb-4">Ready to Enroll?</h3>
                 <p className="mb-6">Join thousands of successful students</p>
-                <button className="w-full bg-customwhite text-secondary hover:bg-opacity-90 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
+                <button onClick={() => navigate('/contact-us')} className="w-full bg-customwhite text-secondary hover:bg-opacity-90 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
                   <Users className="w-5 h-5" />
-                  <span>Register Now</span>
+                  <span>Contact Us</span>
                 </button>
               </div>
 
@@ -234,8 +233,8 @@ const Courses = () => {
                 <h3 className="text-xl font-bold text-customblack mb-4">Need More Information?</h3>
                 <div className="space-y-3 text-sm">
                   <p className="text-gray-600">Call us for detailed course information</p>
-                  <p className="font-medium text-primary">+91 98765 43210</p>
-                  <p className="text-gray-600">Email: courses@dnyangangaedu.com</p>
+                  <p className="font-medium text-primary">+91 7030830520</p>
+                  <p className="text-gray-600">Email: connect.dnyangangaeducation@gmail.com</p>
                 </div>
               </div>
             </div>

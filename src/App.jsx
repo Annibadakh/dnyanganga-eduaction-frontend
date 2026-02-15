@@ -44,6 +44,7 @@ import BulkGenerateQR from "./BulkGenerateQR";
 import MarksContextSelector from "./Dashboard/Result/MarksContextSelector";
 import MarksExcelExport from "./Dashboard/Result/MarksExcelExport";
 import SeprateResult from "./Components/SeprateResult";
+import ContactUs from "./Pages/ContactUs";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -88,6 +89,7 @@ function App() {
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/exam-centers" element={<ExamCenters />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path="/contact-us" element={<ContactUs />} />
           </Route>
 
           {/* ✅ Dashboard (Protected) */}

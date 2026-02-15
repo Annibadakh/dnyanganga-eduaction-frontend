@@ -8,30 +8,34 @@ const CoursesSection = () => {
   const courses = {
     '10th': {
       title: 'Class 10th Mock Board Exams',
-      description: 'Comprehensive mock board examination program designed to prepare students for their SSC board exams with confidence.',
+      description: 'A comprehensive mock board examination program designed to prepare students for their SSC board exams with confidence and exam readiness.',
       features: [
-        'Complete syllabus coverage as per latest board pattern',
-        'Monthly mock tests with detailed performance analysis',
-        'Subject-wise practice papers and solution guides',
-        'Expert doubt resolution sessions',
-        'Performance tracking and improvement suggestions'
+        'Topic-wise recorded video lectures available on the mobile application to help students clearly understand every concept.',
+        'Independent practice question papers and model answer sheets for each chapter of every subject.',
+        'For complete syllabus coverage, two model question papers and model answer sheets per subject, designed strictly as per board examination standards.',
+        'District- and taluka-level career guidance sessions conducted for both parents and students.','State-level Pre-Board Examinations conducted prior to the final board examinations.',
+        'To build a strong foundation for future competitive examinations, an online state-level Foundation Test Series is conducted every month.',
+        'Monthly online guidance sessions by expert teachers covering various important subjects and academic strategies.','Scholarships ranging from ₹3,000 to ₹21,000 awarded to students securing Top 10 ranks at the state level.',
       ],
-      subjects: ['Mathematics', 'Science', 'Social Studies', 'English', 'Hindi'],
+      subjects: ['Mathematics', 'Science', 'English'],
       duration: '8 Months',
       tests: '12 Mock Tests',
       image: onlinetest
     },
     '12th': {
       title: 'Class 12th Mock Board Exams',
-      description: 'Advanced mock board examination program for HSC students focusing on board exam pattern and competitive exam preparation.',
+      description: 'Advanced mock board examination program for HSC students, focusing on the board examination pattern and competitive exam preparation.',
       features: [
-        'Stream-specific preparation (Science, Commerce, Arts)',
-        'Board pattern mock tests with time management training',
-        'Previous year question paper practice sessions',
-        'Career counseling and guidance sessions',
-        'College admission preparation support'
+        'Topic-wise recorded video lectures available on the mobile app to help students clearly understand every concept.',
+        'Independent practice question papers and model answer sheets for every chapter of each subject.',
+        'For thorough preparation and complete syllabus coverage, three model question papers and model answer sheets per subject, designed as per board examination standards.',
+        'District- and taluka-level career guidance sessions conducted for both parents and students.',
+        'State-level Pre-Board Examinations conducted prior to the final board examinations.',
+        'To ensure a more systematic and disciplined study routine, weekly online test series are conducted regularly.',
+        'Monthly online guidance sessions by expert teachers on various important academic subjects.',
+        'Scholarships ranging from ₹1,00,000 to ₹5,000 are awarded to students securing Top 10 ranks at the state level.'
       ],
-      subjects: ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'English'],
+      subjects: ['Physics', 'Chemistry', 'Mathematics', 'Biology'],
       duration: '10 Months',
       tests: '15 Mock Tests',
       image: onlinetest
@@ -52,7 +56,7 @@ const CoursesSection = () => {
                 <div className='md:w-48 w-36 h-2 bg-secondary'></div>
             </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Choose from our carefully designed mock board exam programs
+            Choose from our carefully designed mock board examination programs tailored to meet board exam requirements.
           </p>
         </div>
 
@@ -87,7 +91,7 @@ const CoursesSection = () => {
               </p>
 
               {/* Course Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              {/* <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="flex items-center space-x-2">
                   <Clock className="w-5 h-5 text-secondary" />
                   <span className="text-sm font-medium">{currentCourse.duration}</span>
@@ -96,7 +100,7 @@ const CoursesSection = () => {
                   <Award className="w-5 h-5 text-secondary" />
                   <span className="text-sm font-medium">{currentCourse.tests}</span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Features List */}
               <h4 className="text-lg font-semibold text-customblack mb-4">Key Features:</h4>
