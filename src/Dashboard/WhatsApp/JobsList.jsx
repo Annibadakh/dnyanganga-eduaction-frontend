@@ -20,6 +20,7 @@ const JobsList = () => {
       
       if (response.data.success) {
         setJobs(response.data.data);
+        console.log('Fetched jobs:', response.data.data);
       }
     } catch (err) {
       setError('Failed to load jobs');
@@ -139,13 +140,13 @@ const JobsList = () => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-primary">{job.total_records}</div>
+                      <div className="text-sm font-semibold text-primary">{job.total_receivers}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-yellow-600">{job.pending_records}</div>
+                      <div className="text-sm font-semibold text-yellow-600">{job.Receivers?.length}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{formatDate(job.scheduled_date)}</div>
+                      <div className="text-sm text-gray-900">{formatDate(job.schedule_date)}</div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.status)}`}>
@@ -153,7 +154,7 @@ const JobsList = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500">{formatDate(job.created_at)}</div>
+                      <div className="text-sm text-gray-500">{formatDate(job.createdAt)}</div>
                     </td>
                     <td className="px-6 py-4">
                       <button
