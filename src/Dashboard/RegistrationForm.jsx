@@ -409,21 +409,21 @@ const RegistrationForm = () => {
       setFormData({ ...formData, receiptPhoto: imageUrl });
     }
   };
-
+// console.log(formData)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitLoader(true);
     
-    console.log(formData)
+    // console.log(formData)
     try {
       const response = await api.post("/counsellor/register", formData, {
         headers: { "Content-Type": "application/json" },
       });
-
+      
       if (response.status === 201) {
         clearDraftFromLocalStorage();
         alert("Student Registered Successfully!!");
-        // navigate("/dashboard/registertable");
+        navigate("/dashboard/registertable");
       }
     } catch (error) {
       if (error.response?.status === 400) {

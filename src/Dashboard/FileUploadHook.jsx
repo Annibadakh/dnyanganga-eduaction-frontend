@@ -1,5 +1,6 @@
 // FileUploadHook.js
 import { useState } from "react";
+import imageCompression from "browser-image-compression";
 import api from "../Api";
 
 export const FileUploadHook = () => {
@@ -11,7 +12,7 @@ export const FileUploadHook = () => {
   const [error, setError] = useState("");
   const [loader, setLoader] = useState(false);
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
@@ -20,7 +21,7 @@ export const FileUploadHook = () => {
       "image/jpg",
       "application/pdf",
       "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
 
     if (!validTypes.includes(selectedFile.type)) {
@@ -29,13 +30,43 @@ export const FileUploadHook = () => {
     }
 
     setError("");
-    setFile(selectedFile);
 
-    // Images → preview
     if (selectedFile.type.startsWith("image/")) {
-      setImageUrl(URL.createObjectURL(selectedFile));
+      try {
+        const options = {
+          maxSizeMB: 0.15, // 150KB target
+          useWebWorker: true,
+        };
+
+        const compressedFile = await imageCompression(selectedFile, options);
+
+        // console.log("Original:", (selectedFile.size / 1024).toFixed(2), "KB");
+        // console.log(
+        //   "Compressed:",
+        //   (compressedFile.size / 1024).toFixed(2),
+        //   "KB"
+        // );
+
+        // 🔥 Preserve correct extension
+        const fileExtension = selectedFile.name.split(".").pop();
+
+        const renamedFile = new File(
+          [compressedFile],
+          `${Date.now()}.${fileExtension}`,
+          {
+            type: compressedFile.type,
+          }
+        );
+
+        setFile(renamedFile);
+        setImageUrl(URL.createObjectURL(renamedFile));
+
+      } catch (err) {
+        console.error("Compression error:", err);
+        setError("Image compression failed");
+      }
     } else {
-      // Documents → show file name only
+      setFile(selectedFile);
       setImageUrl(selectedFile.name);
     }
   };
@@ -44,6 +75,7 @@ export const FileUploadHook = () => {
     if (!file) return null;
 
     setLoader(true);
+
     const imageData = new FormData();
     imageData.append("file", file);
 
