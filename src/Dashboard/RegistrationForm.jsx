@@ -414,20 +414,16 @@ const RegistrationForm = () => {
     e.preventDefault();
     setSubmitLoader(true);
     
-    const formDataToSend = new FormData();
-    Object.keys(formData).forEach(key => {
-      formDataToSend.append(key, formData[key]);
-    });
-
+    console.log(formData)
     try {
-      const response = await api.post("/counsellor/register", formDataToSend, {
+      const response = await api.post("/counsellor/register", formData, {
         headers: { "Content-Type": "application/json" },
       });
 
       if (response.status === 201) {
         clearDraftFromLocalStorage();
         alert("Student Registered Successfully!!");
-        navigate("/dashboard/registertable");
+        // navigate("/dashboard/registertable");
       }
     } catch (error) {
       if (error.response?.status === 400) {
