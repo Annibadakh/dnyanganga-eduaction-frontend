@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import api from "../Api";
+import { DashboardContext } from "../Context/DashboardContext";
 
 const AddUser = () => {
+  const {getCounsellor} = useContext(DashboardContext);
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [submitLoader, setSubmitLoader] = useState(false);
@@ -124,6 +126,7 @@ const AddUser = () => {
       .then((res) => {
         alert(res.data.message);
         fetchUsers();
+        getCounsellor();
         setShowForm(false);
         setFormData({
           name: "",
@@ -170,6 +173,7 @@ const AddUser = () => {
       .then((res) => {
         alert(res.data.message);
         fetchUsers();
+        getCounsellor();
         closeEditForm();
       })
       .catch((err) => {
@@ -185,6 +189,7 @@ const AddUser = () => {
     setUpdateLoader(uuid);
     api.delete(`/admin/deleteUser/${uuid}`).then((res) => {
       fetchUsers();
+      getCounsellor();
       setUpdateLoader(null);
       alert(res.data.message);
     }).catch((err) => {

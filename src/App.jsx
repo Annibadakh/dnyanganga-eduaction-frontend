@@ -14,8 +14,8 @@ import Profile from "./Dashboard/Profile";
 import SubjectManagement from "./Dashboard/SubjectManagement";
 import VisitingForm from "./Dashboard/VisitingForm";
 import VisitingTable from "./Dashboard/VisitingTable";
-import RegistrationTable from "./Dashboard/RegistrationTable";
-import RegistrationForm from "./Dashboard/RegistrationForm";
+import RegistrationTable from "./Dashboard/Registration/RegistrationTable";
+import RegistrationForm from "./Dashboard/Registration/RegistrationForm";
 import AddUser from "./Dashboard/AddUser";
 import AddCenter from "./Dashboard/AddCenter";
 import PaymentTable from "./Dashboard/PaymentTable";
@@ -26,7 +26,7 @@ import Courses from "./Pages/Courses";
 import Achievements from "./Pages/Achievements";
 import ExamCenters from "./Pages/ExamCenters";
 
-import LandingLayout from "./LandingLayout"; 
+import LandingLayout from "./LandingLayout";
 import { ProtectedRoute, ProtectedRoleBasedRoute } from './ProtectedRoute';
 import Gallery from "./Pages/GalleryPage";
 import PageNotFound from "./Pages/PageNotFound";
@@ -45,6 +45,9 @@ import MarksContextSelector from "./Dashboard/Result/MarksContextSelector";
 import MarksExcelExport from "./Dashboard/Result/MarksExcelExport";
 import SeprateResult from "./Components/SeprateResult";
 import ContactUs from "./Pages/ContactUs";
+
+import { ToastContainer } from 'react-toastify';
+import { DashboardProvider } from "./Context/DashboardContext";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -65,11 +68,24 @@ function App() {
 
   return (
     <div className="font-custom">
+      <ToastContainer
+        position="top-right"
+        autoClose={1500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        toastClassName="!bg-customwhite text-customblack shadow-medium rounded-xl"
+        bodyClassName="text-sm text-customblack font-medium"
+      />
       <BrowserRouter>
         <Routes>
-          <Route path="login" element={<Login />} /> 
+          <Route path="login" element={<Login />} />
           <Route path="bulkqrcode" element={<BulkGenerateQR />} />
-         <Route
+          <Route
             path="hallticket"
             element={hallTicket ? <HallTicket /> : <InfoPage type="hallticket" />}
           />
@@ -93,13 +109,13 @@ function App() {
           </Route>
 
           {/* ✅ Dashboard (Protected) */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<DashboardProvider><ProtectedRoute /></DashboardProvider>}>
             <Route path="dashboard" element={<Dashboard />}>
               <Route index element={<Navigate to="home" replace />} />
-              
+
               <Route path="home" element={<Home />} />
               <Route path='profile' element={<Profile />} />
-              
+
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor', 'admin']} />}>
                 <Route path='paymenttable' element={<PaymentTable />} />
               </Route>
@@ -112,14 +128,14 @@ function App() {
                 <Route path='visitingtable' element={<VisitingTable />} />
                 <Route path='registertable' element={<RegistrationTable />} />
               </Route>
-              
+
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['counsellor']} />}>
                 <Route path='register' element={<RegistrationForm />} />
                 <Route path='visiting' element={<VisitingForm />} />
                 <Route path='bookdistribution' element={<CounsellorBooks />} />
                 <Route path='settlement' element={<CounsellorCollection />} />
               </Route>
-              
+
               <Route element={<ProtectedRoleBasedRoute allowedRoles={['admin']} />}>
                 <Route path='user' element={<AddUser />} />
                 <Route path='subject' element={<SubjectManagement />} />
@@ -129,7 +145,7 @@ function App() {
                 <Route path='template' element={<TemplatesManagementPage />} />
                 <Route path='jobCreation' element={<JobCreation />} />
                 <Route path="jobs" element={<JobsList />} />
-                
+
                 <Route path="marksentry" element={<MarksContextSelector />} />
                 <Route path="marksexport" element={<MarksExcelExport />} />
 
@@ -142,8 +158,8 @@ function App() {
                 <Route path='bookentries' element={<AddBookEntry />} />
               </Route>
 
-              
-              
+
+
 
             </Route>
           </Route>

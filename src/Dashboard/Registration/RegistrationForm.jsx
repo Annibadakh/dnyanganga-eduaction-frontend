@@ -1,19 +1,17 @@
-import { useState, useEffect, useRef } from "react";
-import api from "../Api";
-import { useAuth } from "../Context/AuthContext";
+import { useState, useEffect } from "react";
+import api from "../../Api";
+import { FileUploadHook } from "../FileUpload/FileUploadHook";
+import FileUpload from "../FileUpload/FileUpload";
+import { useToast } from "../../useToast";
+import CustomSelect from "../Generic/CustomSelect";
 import { useNavigate } from "react-router-dom";
-import { FileUploadHook } from "./FileUploadHook";
-import FileUpload from "./FileUpload";
 
 const RegistrationForm = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  
-  // File upload hooks
+  const { successToast, infoToast, errorToast } = useToast();
   const studentPhoto = FileUploadHook();
   const receiptPhoto = FileUploadHook();
-  
-  // Form states
+
   const [paymentError, setPaymentError] = useState("");
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show9thBranchDropdown, setShow9thBranchDropdown] = useState(false);
@@ -21,19 +19,12 @@ const RegistrationForm = () => {
   const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] = useState(false);
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
-  const [handleDue, setHandleDue] = useState(false);
-  
-  // Draft management states
-  const [hasDraft, setHasDraft] = useState(false);
+  const [isPaidInFull, setIsPaidInFull] = useState(false);
+  const [selectedExamCentre, setSelectedExamCentre] = useState(null);
   const [showDraftButton, setShowDraftButton] = useState(false);
-  
-  // New states for searchable exam centre dropdown
-  const [examCentreSearch, setExamCentreSearch] = useState("");
-  const [showExamCentreDropdown, setShowExamCentreDropdown] = useState(false);
-  const examCentreDropdownRef = useRef(null);
-  
+
   const DRAFT_STORAGE_KEY = 'studentRegistrationDraft';
-  
+
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
@@ -51,7 +42,7 @@ const RegistrationForm = () => {
     schoolCollege: "",
     preYearPercent: "",
     branch: "",
-    examCentre: "", // This will store centerId
+    examCentre: "",
     examYear: "",
     receiptNo: "",
     studentPhoto: "",
@@ -64,66 +55,81 @@ const RegistrationForm = () => {
     dueDate: "",
   });
 
-  // Filter function for searchable exam centre dropdown
-  const filteredExamCentres = examCentres.filter(centre =>
-    centre.centerName.toLowerCase().includes(examCentreSearch.toLowerCase()) ||
-    centre.centerId.toString().toLowerCase().includes(examCentreSearch.toLowerCase())
-  );
+  // Single source of truth for standard-related state
+  const applyStandardLogic = (standard) => {
+    const currDate = new Date();
+    const currentYear = currDate.getFullYear();
+    const currMonth = currDate.getMonth();
+    const nextYear = currMonth < 4 ? currentYear : currentYear + 1;
 
-  // Helper function to find center name by centerId
+    const standardConfig = {
+      "9th+10th": {
+        branch: "",
+        previousYear: "8th",
+        examYear: nextYear.toString(),
+        paymentStandard: "9th+10th",
+        totalamount: 6850,
+        dropdowns: { show9th: true, show10th: false, show11th: false, show12th: false },
+      },
+      "10th": {
+        branch: "",
+        previousYear: "9th",
+        examYear: currentYear.toString(),
+        paymentStandard: "10th",
+        totalamount: 6850,
+        dropdowns: { show9th: false, show10th: true, show11th: false, show12th: false },
+      },
+      "11th+12th": {
+        branch: "",
+        previousYear: "10th",
+        examYear: nextYear.toString(),
+        paymentStandard: "11th+12th",
+        totalamount: 9850,
+        dropdowns: { show9th: false, show10th: false, show11th: true, show12th: false },
+      },
+      "12th": {
+        branch: "",
+        previousYear: "11th",
+        examYear: currentYear.toString(),
+        paymentStandard: "12th",
+        totalamount: 7900,
+        dropdowns: { show9th: false, show10th: false, show11th: false, show12th: true },
+      },
+    };
+
+    const config = standardConfig[standard] ?? {
+      branch: "",
+      previousYear: "",
+      examYear: "",
+      paymentStandard: "",
+      totalamount: 0,
+      dropdowns: { show9th: false, show10th: false, show11th: false, show12th: false },
+    };
+
+    const { dropdowns, ...formFields } = config;
+
+    setShow9thBranchDropdown(dropdowns.show9th);
+    setShow10thBranchDropdown(dropdowns.show10th);
+    setShow11thPlusBranchDropdown(dropdowns.show11th);
+    setShowBranchDropdown(dropdowns.show12th);
+
+    return formFields;
+  };
+
+
+  // Helper function to find center by centerId
   const getCenterNameById = (centerId) => {
-    const center = examCentres.find(centre => centre.centerId === centerId);
-    return center ? center.centerName : "";
+    const center = examCentres.find(centre => centre.value === centerId);
+    return center ? center : "";
   };
 
-  // Click outside handler for exam centre dropdown
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (examCentreDropdownRef.current && !examCentreDropdownRef.current.contains(event.target)) {
-        setShowExamCentreDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Handle exam centre selection
-  const handleExamCentreSelect = (centre) => {
-    setFormData(prevData => ({
-      ...prevData,
-      examCentre: centre.centerId // Store only centerId
+    setFormData(prev => ({
+      ...prev,
+      examCentre: selectedExamCentre?.value ?? ""
     }));
-    setExamCentreSearch(centre.centerName); // Display centerName in search field
-    setShowExamCentreDropdown(false);
-  };
+  }, [selectedExamCentre]);
 
-  // Clear exam centre filter
-  const clearExamCentreFilter = () => {
-    setFormData(prevData => ({
-      ...prevData,
-      examCentre: ""
-    }));
-    setExamCentreSearch("");
-  };
-
-  // Draft management functions
-  const saveDraftToLocalStorage = (data) => {
-    try {
-      const draftData = { ...data };
-      delete draftData.studentPhoto;
-      delete draftData.receiptPhoto;
-      
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
-        data: draftData,
-        timestamp: new Date().toISOString()
-      }));
-    } catch (error) {
-      console.error('Error saving draft to localStorage:', error);
-    }
-  };
 
   const loadDraftFromLocalStorage = () => {
     try {
@@ -142,7 +148,6 @@ const RegistrationForm = () => {
   const clearDraftFromLocalStorage = () => {
     try {
       localStorage.removeItem(DRAFT_STORAGE_KEY);
-      setHasDraft(false);
       setShowDraftButton(false);
     } catch (error) {
       console.error('Error clearing draft from localStorage:', error);
@@ -152,10 +157,8 @@ const RegistrationForm = () => {
   const checkForExistingDraft = () => {
     const draft = loadDraftFromLocalStorage();
     if (draft && Object.values(draft).some(value => value !== "" && value !== 0)) {
-      setHasDraft(true);
       setShowDraftButton(true);
     } else {
-      setHasDraft(false);
       setShowDraftButton(false);
     }
   };
@@ -163,43 +166,21 @@ const RegistrationForm = () => {
   const loadDraftData = () => {
     const draftData = loadDraftFromLocalStorage();
     if (draftData) {
+
+      if (draftData.standard) {
+        applyStandardLogic(draftData.standard);
+      }
+
       setFormData(prevData => ({
         ...prevData,
         ...draftData
       }));
-      
-      // Update dropdown states based on loaded data
-      if (draftData.standard === "9th+10th") {
-        setShow9thBranchDropdown(true);
-        setShow10thBranchDropdown(false);
-        setShow11thPlusBranchDropdown(false);
-        setShowBranchDropdown(false);
-      } else if (draftData.standard === "10th") {
-        setShow10thBranchDropdown(true);
-        setShow9thBranchDropdown(false);
-        setShow11thPlusBranchDropdown(false);
-        setShowBranchDropdown(false);
-      } else if (draftData.standard === "11th+12th") {
-        setShow11thPlusBranchDropdown(true);
-        setShow9thBranchDropdown(false);
-        setShow10thBranchDropdown(false);
-        setShowBranchDropdown(false);
-      } else if (draftData.standard === "12th") {
-        setShowBranchDropdown(true);
-        setShow9thBranchDropdown(false);
-        setShow10thBranchDropdown(false);
-        setShow11thPlusBranchDropdown(false);
-      }
-      
-      // Update exam centre search if draft contains exam centre centerId
-      if (draftData.examCentre) {
-        // examCentre now contains centerId, so we need to find the centerName
-        const centerName = getCenterNameById(draftData.examCentre);
-        setExamCentreSearch(centerName);
-      }
-      
+
+
       setShowDraftButton(false);
-      alert("Draft data loaded successfully!");
+      // alert("Draft data loaded successfully!");
+      infoToast("Draft data loaded successfully!")
+
     }
   };
 
@@ -211,26 +192,39 @@ const RegistrationForm = () => {
   // Auto-save to localStorage whenever formData changes
   useEffect(() => {
     const hasData = Object.entries(formData).some(([key, value]) => {
-      if (['studentPhoto', 'receiptPhoto', 'amountRemaining'].includes(key)) {
-        return false;
-      }
+      if (['studentPhoto', 'receiptPhoto', 'amountRemaining'].includes(key)) return false;
       return value !== "" && value !== 0;
     });
 
-    if (hasData) {
-      const timeoutId = setTimeout(() => {
-        saveDraftToLocalStorage(formData);
-      }, 1000);
+    if (!hasData) return;
 
-      return () => clearTimeout(timeoutId);
-    }
+    const timeoutId = setTimeout(() => {
+      try {
+        const draftData = { ...formData };
+        delete draftData.studentPhoto;
+        delete draftData.receiptPhoto;
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
+          data: draftData,
+          timestamp: new Date().toISOString()
+        }));
+      } catch (error) {
+        console.error('Error saving draft:', error);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
   }, [formData]);
-  
+
+
   useEffect(() => {
     api
       .get("/admin/getExamCenters")
       .then((response) => {
-        setExamCentres(response.data.data);
+        setExamCentres(response.data.data.map((centre) => ({
+          value: centre.centerId,
+          label: centre.centerName,
+        })))
+        // setExamCentres(response.data.data);
       })
       .catch((error) => {
         console.error("Error fetching exam centers", error);
@@ -241,8 +235,8 @@ const RegistrationForm = () => {
   useEffect(() => {
     if (examCentres.length > 0 && formData.examCentre) {
       const centerName = getCenterNameById(formData.examCentre);
-      if (centerName && !examCentreSearch) {
-        setExamCentreSearch(centerName);
+      if (centerName) {
+        setSelectedExamCentre(centerName);
       }
     }
   }, [examCentres, formData.examCentre]);
@@ -251,133 +245,31 @@ const RegistrationForm = () => {
   useEffect(() => {
     const totalAmount = parseFloat(formData.totalamount) || 0;
     const amountPaid = parseFloat(formData.amountPaid) || 0;
-    
-    if (amountPaid > totalAmount && amountPaid > 0) {
-      setPaymentError("Amount paid cannot be greater than total amount");
-    } else {
-      setPaymentError("");
-    }
-    
     const remaining = totalAmount - amountPaid;
-    if(remaining === 0){
-      setFormData(prevData => ({
-        ...prevData,
-        dueDate: ""
-      }));
-      setHandleDue(true);  
-    } else {
-      setHandleDue(false);
-    }
-    setFormData(prevData => ({
-      ...prevData,
-      amountRemaining: remaining >= 0 ? remaining.toString() : "0"
+    const isPaidInFull = remaining === 0;
+
+    setPaymentError(
+      amountPaid > totalAmount && amountPaid > 0
+        ? "Amount paid cannot be greater than total amount"
+        : ""
+    );
+
+    setIsPaidInFull(isPaidInFull);
+
+    setFormData(prev => ({
+      ...prev,
+      amountRemaining: remaining >= 0 ? remaining.toString() : "0",
+      ...(isPaidInFull && { dueDate: "" }),
     }));
-    
   }, [formData.totalamount, formData.amountPaid]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === "standard") {
-      const currDate = new Date();
-      const currentYear = currDate.getFullYear();
-      const currMonth = currDate.getMonth();
-      let nextYear = currentYear+1;
-      if(currMonth < 4){
-        nextYear = currentYear;
-      }
-      // const currentYear = new Date().getFullYear();
-      // const nextYear = currentYear + 1;
-      
-      if (value === "9th+10th") {
-        setFormData({
-          ...formData,
-          [name]: value,
-          branch: "",
-          previousYear: "8th",
-          examYear: nextYear.toString(), // Next Year for 9th
-          paymentStandard: "9th+10th",
-          totalamount: 6850
-        });
-        setShow9thBranchDropdown(true);
-        setShow10thBranchDropdown(false);
-        setShow11thPlusBranchDropdown(false);
-        setShowBranchDropdown(false);
-      } else if (value === "10th") {
-        setFormData({
-          ...formData,
-          [name]: value,
-          branch: "",
-          previousYear: "9th",
-          examYear: currentYear.toString(), // Current Year for 10th
-          paymentStandard: "10th",
-          totalamount: 6850
-        });
-        setShow10thBranchDropdown(true);
-        setShow9thBranchDropdown(false);
-        setShow11thPlusBranchDropdown(false);
-        setShowBranchDropdown(false);
-      } else if (value === "11th+12th") {
-        setFormData({
-          ...formData,
-          [name]: value,
-          branch: "",
-          previousYear: "10th",
-          examYear: nextYear.toString(), // Next Year for 11th+12th
-          paymentStandard: "11th+12th",
-          totalamount: 9850
-        });
-        setShow11thPlusBranchDropdown(true);
-        setShow9thBranchDropdown(false);
-        setShow10thBranchDropdown(false);
-        setShowBranchDropdown(false);
-      } else if (value === "12th") {
-        setFormData({
-          ...formData,
-          [name]: value,
-          branch: "",
-          previousYear: "11th",
-          examYear: currentYear.toString(), // Current Year for 12th
-          paymentStandard: "12th",
-          totalamount: 7900
-        });
-        setShowBranchDropdown(true);
-        setShow9thBranchDropdown(false);
-        setShow10thBranchDropdown(false);
-        setShow11thPlusBranchDropdown(false);
-      } else {
-        setFormData({
-          ...formData,
-          [name]: value,
-          branch: "",
-          previousYear: "",
-          examYear: "",
-          paymentStandard: "",
-          totalamount: 0
-        });
-        setShowBranchDropdown(false);
-        setShow9thBranchDropdown(false);
-        setShow10thBranchDropdown(false);
-        setShow11thPlusBranchDropdown(false);
-      }
-    } else if (name === "paymentStandard") {
-      let newTotalAmount = 0;
-      
-      if (value === "9th+10th") {
-        newTotalAmount = 6850;
-      } else if (value === "10th") {
-        newTotalAmount = 6850;
-      } else if (value === "12th") {
-        newTotalAmount = 7900;
-      } else if (value === "11th+12th") {
-        newTotalAmount = 9850;
-      }
-      
-      setFormData({ 
-        ...formData, 
-        [name]: value,
-        totalamount: newTotalAmount
-      });
+      const standardFields = applyStandardLogic(value);
+      setFormData({ ...formData, [name]: value, ...standardFields });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -385,19 +277,9 @@ const RegistrationForm = () => {
 
   // Handle file uploads with form data update
   const handleStudentPhotoUpload = async () => {
-    // console.log("Starting student photo upload...");
-    // console.log("Current formData.studentPhoto:", formData.studentPhoto);
-    
     const imageUrl = await studentPhoto.uploadImage();
-    // console.log("Student photo upload returned:", imageUrl);
-    
     if (imageUrl && imageUrl.trim() !== '') {
-      // console.log("Setting student photo URL in formData:", imageUrl);
-      setFormData(prevData => {
-        const newData = { ...prevData, studentPhoto: imageUrl };
-        // console.log("Updated formData with studentPhoto:", newData.studentPhoto);
-        return newData;
-      });
+      setFormData(prevData => ({ ...prevData, studentPhoto: imageUrl }));
     } else {
       console.error("Student photo upload failed - no valid URL returned");
     }
@@ -405,32 +287,36 @@ const RegistrationForm = () => {
 
   const handleReceiptPhotoUpload = async () => {
     const imageUrl = await receiptPhoto.uploadImage();
-    if (imageUrl) {
-      setFormData({ ...formData, receiptPhoto: imageUrl });
+    if (imageUrl && imageUrl.trim() !== '') {
+      setFormData(prev => ({ ...prev, receiptPhoto: imageUrl }));
+    } else {
+      console.error("Receipt photo upload failed - no valid URL returned");
     }
   };
-// console.log(formData)
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitLoader(true);
-    
-    // console.log(formData)
+
     try {
       const response = await api.post("/counsellor/register", formData, {
         headers: { "Content-Type": "application/json" },
       });
-      
+
       if (response.status === 201) {
         clearDraftFromLocalStorage();
-        alert("Student Registered Successfully!!");
+        // alert("Student Registered Successfully!!");
+        successToast("Student Registered Successfully!!")
         navigate("/dashboard/registertable");
       }
     } catch (error) {
       if (error.response?.status === 400) {
-        alert(error.response.data.message);
+        // alert(error.response.data.message);
+        errorToast(error.response.data.message || "Error registering student. Please try again.");
       } else {
         console.error("Error submitting form:", error);
-        alert("Error registering student. Please try again.");
+        // alert("Error registering student. Please try again.");
+        errorToast("Error registering student. Please try again.")
       }
     } finally {
       setSubmitLoader(false);
@@ -444,7 +330,7 @@ const RegistrationForm = () => {
           <div className="bg-primary text-white text-center py-4">
             <h2 className="text-2xl font-bold">Student Registration Form</h2>
           </div>
-          
+
           {/* Draft Recovery Button */}
           {showDraftButton && (
             <div className="p-4 bg-blue-50 border-l-4 border-blue-400 mb-4 rounded-lg">
@@ -483,19 +369,19 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Personal Details</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                <input 
-                  type="text" 
-                  name="studentName" 
+                <input
+                  type="text"
+                  name="studentName"
                   value={formData.studentName}
-                  onChange={handleChange} 
-                  placeholder="Enter Student Name" 
+                  onChange={handleChange}
+                  placeholder="Enter Student Name"
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 />
-                <select 
-                  name="gender" 
+                <select
+                  name="gender"
                   value={formData.gender}
-                  onChange={handleChange} 
+                  onChange={handleChange}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
@@ -505,40 +391,40 @@ const RegistrationForm = () => {
                 </select>
                 <div className="w-full flex flex-row items-center gap-1">
                   <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Date of Birth:</label>
-                  <input 
-                    type="date" 
-                    name="dob" 
+                  <input
+                    type="date"
+                    name="dob"
                     value={formData.dob}
-                    onChange={handleChange} 
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                     required
                   />
                 </div>
-                <input 
-                  type="text" 
-                  name="motherName" 
+                <input
+                  type="text"
+                  name="motherName"
                   value={formData.motherName}
-                  onChange={handleChange} 
-                  placeholder="Enter Mother's Name" 
+                  onChange={handleChange}
+                  placeholder="Enter Mother's Name"
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 />
-                <textarea 
-                  name="address" 
+                <textarea
+                  name="address"
                   value={formData.address}
-                  onChange={handleChange} 
-                  placeholder="Enter Address" 
+                  onChange={handleChange}
+                  placeholder="Enter Address"
                   rows="3"
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base resize-vertical"
                   required
                 />
-                <input 
-                  type="number" 
-                  name="pincode" 
+                <input
+                  type="number"
+                  name="pincode"
                   value={formData.pincode}
                   onWheel={(e) => e.target.blur()}
-                  onChange={handleChange} 
-                  placeholder="Enter Pincode" 
+                  onChange={handleChange}
+                  placeholder="Enter Pincode"
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="\d{6}"
@@ -551,10 +437,10 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Educational Details</h3>
               <div className="flex flex-col gap-3 sm:gap-4 w-full lg:grid lg:grid-cols-2">
-                <select 
-                  name="standard" 
+                <select
+                  name="standard"
                   value={formData.standard}
-                  onChange={handleChange} 
+                  onChange={handleChange}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-1"
                   required
                 >
@@ -564,25 +450,25 @@ const RegistrationForm = () => {
                   <option value="11th+12th">11th+12th</option>
                   <option value="12th">12th</option>
                 </select>
-                
+
                 {/* Auto-filled Previous Year Field */}
                 <div className="w-full flex flex-row items-center gap-1 order-2">
                   <label className="min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Previous Year:</label>
-                  <input 
-                    type="text" 
-                    name="previousYear" 
+                  <input
+                    type="text"
+                    name="previousYear"
                     value={formData.previousYear}
                     className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed text-sm sm:text-base"
                     disabled
                     readOnly
                   />
                 </div>
-                
+
                 {show9thBranchDropdown && (
-                  <select 
-                    name="branch" 
-                    value={formData.branch} 
-                    onChange={handleChange} 
+                  <select
+                    name="branch"
+                    value={formData.branch}
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                     required
                   >
@@ -592,12 +478,12 @@ const RegistrationForm = () => {
                     <option value="English">English</option>
                   </select>
                 )}
-                
+
                 {show10thBranchDropdown && (
-                  <select 
-                    name="branch" 
-                    value={formData.branch} 
-                    onChange={handleChange} 
+                  <select
+                    name="branch"
+                    value={formData.branch}
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                     required
                   >
@@ -607,12 +493,12 @@ const RegistrationForm = () => {
                     <option value="English">English</option>
                   </select>
                 )}
-                
+
                 {show11thPlusBranchDropdown && (
-                  <select 
-                    name="branch" 
-                    value={formData.branch} 
-                    onChange={handleChange} 
+                  <select
+                    name="branch"
+                    value={formData.branch}
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                     required
                   >
@@ -622,12 +508,12 @@ const RegistrationForm = () => {
                     <option value="PCMB">PCMB</option>
                   </select>
                 )}
-                
+
                 {showBranchDropdown && (
-                  <select 
-                    name="branch" 
-                    value={formData.branch} 
-                    onChange={handleChange} 
+                  <select
+                    name="branch"
+                    value={formData.branch}
+                    onChange={handleChange}
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                     required
                   >
@@ -637,25 +523,25 @@ const RegistrationForm = () => {
                     <option value="PCMB">PCMB</option>
                   </select>
                 )}
-                
-                <input 
-                  type="number" 
-                  name="preYearPercent" 
-                  placeholder="Enter Previous Year Percentage" 
+
+                <input
+                  type="number"
+                  name="preYearPercent"
+                  placeholder="Enter Previous Year Percentage"
                   value={formData.preYearPercent}
-                  onWheel={(e) => e.target.blur()} 
-                  onChange={handleChange} 
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-4" 
-                  required 
+                  onWheel={(e) => e.target.blur()}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-4"
+                  required
                   min="0" max="100" step="0.01"
                 />
-                
-                <input 
-                  type="text" 
-                  name="schoolCollege" 
+
+                <input
+                  type="text"
+                  name="schoolCollege"
                   value={formData.schoolCollege}
-                  onChange={handleChange} 
-                  placeholder="Enter School/College Name" 
+                  onChange={handleChange}
+                  placeholder="Enter School/College Name"
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base order-5"
                   required
                 />
@@ -666,42 +552,42 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Contact Details</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                <input 
-                  type="email" 
-                  name="email" 
+                <input
+                  type="email"
+                  name="email"
                   value={formData.email}
-                  onChange={handleChange} 
-                  placeholder="Enter Student Email" 
+                  onChange={handleChange}
+                  placeholder="Enter Student Email"
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                 />
-                <input 
-                  type="tel" 
-                  name="studentNo" 
+                <input
+                  type="tel"
+                  name="studentNo"
                   value={formData.studentNo}
-                  onChange={handleChange} 
-                  placeholder="Enter Student Mobile No." 
+                  onChange={handleChange}
+                  placeholder="Enter Student Mobile No."
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="[0-9]{10}"
                   title="Phone number must be 10 digits"
                 />
-                <input 
-                  type="tel" 
-                  name="parentsNo" 
+                <input
+                  type="tel"
+                  name="parentsNo"
                   value={formData.parentsNo}
-                  onChange={handleChange} 
-                  placeholder="Enter Parents Mobile No." 
+                  onChange={handleChange}
+                  placeholder="Enter Parents Mobile No."
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                   pattern="[0-9]{10}"
                   title="Phone number must be 10 digits"
                 />
-                <select 
-                  name="appNo" 
+                <select
+                  name="appNo"
                   value={formData.appNo}
-                  onChange={handleChange} 
+                  onChange={handleChange}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
@@ -718,10 +604,10 @@ const RegistrationForm = () => {
                   )}
                 </select>
 
-                <select 
-                  name="notificationNo" 
+                <select
+                  name="notificationNo"
                   value={formData.notificationNo}
-                  onChange={handleChange} 
+                  onChange={handleChange}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base"
                   required
                 >
@@ -744,65 +630,21 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Exam Centre and Form Details</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                
-                {/* Searchable Exam Centre Dropdown */}
-                <div className="relative w-full" ref={examCentreDropdownRef}>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search exam centres..."
-                      value={examCentreSearch}
-                      onChange={(e) => {
-                        setExamCentreSearch(e.target.value);
-                        setShowExamCentreDropdown(true);
-                      }}
-                      onFocus={() => setShowExamCentreDropdown(true)}
-                      className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base pr-8"
-                    />
-                    {formData.examCentre && (
-                      <button
-                        type="button"
-                        onClick={clearExamCentreFilter}
-                        className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                  
-                  {showExamCentreDropdown && (
-                    <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
-                      <div
-                        className="p-2 hover:bg-gray-100 cursor-pointer border-b"
-                        onClick={() => {
-                          clearExamCentreFilter();
-                          setShowExamCentreDropdown(false);
-                        }}
-                      >
-                        Select Exam Centre
-                      </div>
-                      {filteredExamCentres.map((centre) => (
-                        <div
-                          key={centre.centerId}
-                          className="p-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleExamCentreSelect(centre)}
-                        >
-                          {centre.centerName}
-                        </div>
-                      ))}
-                      {filteredExamCentres.length === 0 && examCentreSearch && (
-                        <div className="p-2 text-gray-500">No exam centres found</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                
+
+                <CustomSelect
+                  options={examCentres}
+                  value={selectedExamCentre}
+                  onChange={setSelectedExamCentre}
+                  isRequired={true}
+                  placeholder="Select Exam Centre"
+                />
+
                 {/* Auto-filled Exam Year Field */}
                 <div className="w-full flex flex-row items-center gap-1">
                   <label className="min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Exam Year:</label>
-                  <input 
-                    type="text" 
-                    name="examYear" 
+                  <input
+                    type="text"
+                    name="examYear"
                     value={formData.examYear}
                     className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed text-sm sm:text-base"
                     disabled
@@ -816,71 +658,70 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Payment Details</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                
+
                 {/* Payment Standard field is hidden but logic remains */}
-                
+
                 <div className="w-full flex flex-row items-center gap-1">
                   <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Total Amount: </label>
-                <input 
-                  type="number" 
-                  value={formData.totalamount}
-                  name="totalamount"
-                  onWheel={(e) => e.target.blur()}
-                  onChange={handleChange} 
-                  placeholder="Total Amount" 
-                  className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
-                  disabled
-                  readOnly
-                />
+                  <input
+                    type="number"
+                    value={formData.totalamount}
+                    name="totalamount"
+                    onWheel={(e) => e.target.blur()}
+                    onChange={handleChange}
+                    placeholder="Total Amount"
+                    className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
+                    disabled
+                    readOnly
+                  />
                 </div>
-                <input 
-                  type="number" 
-                  name="amountPaid" 
+                <input
+                  type="number"
+                  name="amountPaid"
                   value={formData.amountPaid}
                   onWheel={(e) => e.target.blur()}
-                  onChange={handleChange} 
-                  placeholder="Enter Amount Paid" 
-                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-sm sm:text-base ${
-                    paymentError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-blue-300'
-                  }`}
+                  onChange={handleChange}
+                  placeholder="Enter Amount Paid"
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-sm sm:text-base ${paymentError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-blue-300'
+                    }`}
                   required
                   min="1"
                   max={formData.totalamount}
                 />
                 <div className="w-full flex flex-row items-center gap-1">
                   <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Amount Remaining: </label>
-                  <input 
-                      type="number" 
-                      name="amountRemaining" 
-                      value={formData.amountRemaining}
-                      onWheel={(e) => e.target.blur()}
-                      placeholder="Amount Remaining" 
-                      className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
-                      disabled
-                      readOnly
-                    />
-                  </div>
-                
+                  <input
+                    type="number"
+                    name="amountRemaining"
+                    value={formData.amountRemaining}
+                    onWheel={(e) => e.target.blur()}
+                    placeholder="Amount Remaining"
+                    className="w-full px-3 py-2 border rounded bg-gray-100 focus:outline-none cursor-not-allowed"
+                    disabled
+                    readOnly
+                  />
+                </div>
+
                 {paymentError && (
                   <div className="lg:col-span-2">
                     <p className="text-red-500 text-sm mt-1">{paymentError}</p>
                   </div>
                 )}
-                
-                <input 
-                  type="number" 
-                  name="receiptNo" 
+
+                <input
+                  type="number"
+                  name="receiptNo"
                   value={formData.receiptNo}
                   onWheel={(e) => e.target.blur()}
-                  onChange={handleChange} 
-                  placeholder="Enter Fees Receipt Number" 
+                  onChange={handleChange}
+                  placeholder="Enter Fees Receipt Number"
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 />
-                <select 
-                  name="modeOfPayment" 
+                <select
+                  name="modeOfPayment"
                   value={formData.modeOfPayment}
-                  onChange={handleChange} 
+                  onChange={handleChange}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 >
@@ -889,17 +730,17 @@ const RegistrationForm = () => {
                   <option value="Online">Online</option>
                   <option value="cheque">Cheque</option>
                 </select>
-                
+
                 <div className="w-full flex flex-row items-center gap-1">
                   <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Due Date:</label>
-                  <input 
-                    disabled={handleDue}
-                    type="date" 
-                    name="dueDate" 
+                  <input
+                    disabled={isPaidInFull}
+                    type="date"
+                    name="dueDate"
                     value={formData.dueDate}
-                    onChange={handleChange} 
+                    onChange={handleChange}
+                    min={new Date().toISOString().split("T")[0]}
                     className="w-full px-3 py-2 border disabled:opacity-50 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
-                    required
                   />
                 </div>
               </div>
@@ -909,18 +750,18 @@ const RegistrationForm = () => {
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
               <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Documents</h3>
               <div className="space-y-4">
-              <FileUpload
-                title="Student Photo"
-                imageUrl={studentPhoto.imageUrl}
-                error={studentPhoto.error}
-                loader={studentPhoto.loader}
-                isSaved={studentPhoto.isSaved}
-                imageType="passport"
-                onFileUpload={studentPhoto.handleFileUpload}
-                onUploadImage={handleStudentPhotoUpload}
-                onRemovePhoto={studentPhoto.removePhoto}
-              />
-              <FileUpload
+                <FileUpload
+                  title="Student Photo"
+                  imageUrl={studentPhoto.imageUrl}
+                  error={studentPhoto.error}
+                  loader={studentPhoto.loader}
+                  isSaved={studentPhoto.isSaved}
+                  imageType="passport"
+                  onFileUpload={studentPhoto.handleFileUpload}
+                  onUploadImage={handleStudentPhotoUpload}
+                  onRemovePhoto={studentPhoto.removePhoto}
+                />
+                <FileUpload
                   title="Fees Receipt Photo"
                   imageUrl={receiptPhoto.imageUrl}
                   error={receiptPhoto.error}
@@ -936,8 +777,8 @@ const RegistrationForm = () => {
 
             <div className="grid place-items-center w-full">
               {studentPhoto.isSaved && receiptPhoto.isSaved && formData.examCentre && !paymentError && (
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={submitLoader}
                   className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
                 >
@@ -984,7 +825,7 @@ const RegistrationForm = () => {
                 </div>
               )}
             </div>
-            
+
           </form>
         </div>
       </div>
