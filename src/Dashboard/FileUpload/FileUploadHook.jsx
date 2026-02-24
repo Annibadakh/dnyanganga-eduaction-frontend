@@ -1,7 +1,7 @@
 // FileUploadHook.js
 import { useState } from "react";
 import imageCompression from "browser-image-compression";
-import api from "../Api";
+import api from "../../Api";
 
 export const FileUploadHook = () => {
   const imgUrl = import.meta.env.VITE_IMG_URL;
@@ -12,6 +12,10 @@ export const FileUploadHook = () => {
   const [error, setError] = useState("");
   const [loader, setLoader] = useState(false);
 
+  /**
+   * Called by FileUpload after the user has confirmed the frame in the editor.
+   * The file is already cropped/framed — we just compress it.
+   */
   const handleFileUpload = async (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
@@ -19,13 +23,14 @@ export const FileUploadHook = () => {
     const validTypes = [
       "image/jpeg",
       "image/jpg",
+      "image/png",
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
 
     if (!validTypes.includes(selectedFile.type)) {
-      setError("Only JPG, JPEG, PDF, DOC, DOCX files are supported");
+      setError("Only JPG, PNG, PDF, DOC, DOCX files are supported");
       return;
     }
 
@@ -34,33 +39,20 @@ export const FileUploadHook = () => {
     if (selectedFile.type.startsWith("image/")) {
       try {
         const options = {
-          maxSizeMB: 0.15, // 150KB target
+          maxSizeMB: 0.15,       // 150 KB target
           useWebWorker: true,
         };
 
         const compressedFile = await imageCompression(selectedFile, options);
-
-        // console.log("Original:", (selectedFile.size / 1024).toFixed(2), "KB");
-        // console.log(
-        //   "Compressed:",
-        //   (compressedFile.size / 1024).toFixed(2),
-        //   "KB"
-        // );
-
-        // 🔥 Preserve correct extension
-        const fileExtension = selectedFile.name.split(".").pop();
-
+        const ext = selectedFile.name.split(".").pop() || "jpg";
         const renamedFile = new File(
           [compressedFile],
-          `${Date.now()}.${fileExtension}`,
-          {
-            type: compressedFile.type,
-          }
+          `${Date.now()}.${ext}`,
+          { type: compressedFile.type }
         );
 
         setFile(renamedFile);
         setImageUrl(URL.createObjectURL(renamedFile));
-
       } catch (err) {
         console.error("Compression error:", err);
         setError("Image compression failed");

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
-import { FileUploadHook } from "./FileUploadHook";
-import FileUpload from "./FileUpload";
+import { FileUploadHook } from "./FileUpload/FileUploadHook";
+import FileUpload from "./FileUpload/FileUpload";
 
 const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   const imgUrl = import.meta.env.VITE_IMG_URL;

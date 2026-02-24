@@ -3,15 +3,15 @@ import { useAuth } from "../Context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import logo from "../Images/logo3.png";
-import AlertBox from "../Pages/AlertBox";
-
+import { useToast } from "../useToast";
 function Login() {
   const apiUrl = import.meta.env.VITE_API_URL;
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🔑 get redirected path or fallback
+  const { successToast, errorToast } = useToast();
+
   const from = location.state?.from || "/dashboard";
 
   const [email, setEmail] = useState("");
@@ -19,13 +19,8 @@ function Login() {
   const [role, setRole] = useState("counsellor");
   const [loginLoader, setLoginLoader] = useState(false);
 
-  const [alert, setAlert] = useState({
-    show: false,
-    type: "info",
-    message: "",
-  });
 
-  // already logged in
+
   useEffect(() => {
     if (user) {
       navigate(from, { replace: true });
@@ -43,32 +38,16 @@ function Login() {
         role,
       });
 
-      login(response.data);
+      await login(response.data);
 
       setEmail("");
       setPassword("");
 
-      setAlert({
-        show: true,
-        type: "success",
-        message: "Login successful 🎉",
-      });
-
-      setTimeout(() => {
-        setAlert({ show: false, type: "success", message: "" });
-        navigate(from, { replace: true });
-      }, 1500);
+      successToast("Login successful !!")
 
     } catch (error) {
-      setAlert({
-        show: true,
-        type: "error",
-        message: error.response?.data?.message || "Login failed",
-      });
-
-      setTimeout(() => {
-        setAlert({ show: false, type: "error", message: "" });
-      }, 3000);
+      console.error(error);
+      errorToast(error.response?.data?.message || "Login failed");
     } finally {
       setLoginLoader(false);
     }
@@ -76,13 +55,6 @@ function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <AlertBox
-        show={alert.show}
-        type={alert.type}
-        message={alert.message}
-        onClose={() => setAlert({ ...alert, show: false })}
-      />
-
       <div className="bg-white p-8 shadow-lg rounded-lg w-96">
         <div className="w-full grid place-items-center mb-4">
           <img src={logo} className="h-20 w-auto" alt="Logo" />

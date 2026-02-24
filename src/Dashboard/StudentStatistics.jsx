@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useAuth } from "../Context/AuthContext";
 import api from "../Api";
 import { 
@@ -18,6 +18,7 @@ import {
   Calendar,
   AlertTriangle
 } from "lucide-react";
+import { DashboardContext } from "../Context/DashboardContext";
 
 const StatCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
   const colorClasses = {
@@ -47,6 +48,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
 
 const StudentStatistics = () => {
   const { user } = useAuth();
+  const {counsellor, examCentre} = useContext(DashboardContext)
   const [loading, setLoading] = useState(true);
   const [statistics, setStatistics] = useState(null);
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
@@ -110,21 +112,17 @@ const StudentStatistics = () => {
   }, []);
 
   useEffect(() => {
-    if (user.role === "admin" || user.role === "followUp") {
-      api.get("/admin/getUser")
-        .then((response) => {
-          setUsers(response.data.data);
-          setBranch(response.data.data);
-        })
-        .catch((error) => console.error("Error fetching users", error));
+    if (counsellor && (user.role === "admin" || user.role === "followUp")) {
+     
+          setUsers(counsellor);
+          setBranch(counsellor);
     }
     
-    api.get("/admin/getExamCenters")
-      .then((response) => {
-        setExamCentres(response.data.data);
-      })
-      .catch((error) => console.error("Error fetching exam centers", error));
-  }, [user.role]);
+  }, [user.role, counsellor]);
+
+  useEffect(() => {
+      examCentre && setExamCentres(examCentre)
+  }, [user.role, examCentre])
 
   const fetchStatistics = () => {
     setLoading(true);

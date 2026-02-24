@@ -1,8 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import * as XLSX from "xlsx";
 import api from "../Api";
+import { DashboardContext } from "../Context/DashboardContext";
 
 const Excel = () => {
+  const {counsellor, examCentre} = useContext(DashboardContext)
+  
   const [users, setUsers] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -66,14 +69,8 @@ const Excel = () => {
         setLoading(true);
         setError("");
 
-        const [usersRes, examCentresRes] = await Promise.all([
-          api.get("/admin/getUser"),
-          api.get("/admin/getExamCenters")
-        ]);
-
-        const counsellors = usersRes.data.data.filter((u) => u.role === "counsellor");
-        setUsers(counsellors);
-        setExamCentres(examCentresRes.data.data);
+        counsellor && setUsers(counsellor);
+        examCentre && setExamCentres(examCentre);
 
       } catch (err) {
         setError("Failed to fetch data. Please try again.");
@@ -84,7 +81,7 @@ const Excel = () => {
     };
 
     fetchInitialData();
-  }, []);
+  }, [counsellor, examCentre]);
 
   const handleColumnChange = (column) => {
     setSelectedColumns((prev) => {

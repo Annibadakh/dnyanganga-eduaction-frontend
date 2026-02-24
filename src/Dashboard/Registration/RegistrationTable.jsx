@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useAuth } from "../Context/AuthContext";
-import api from "../Api";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { useAuth } from "../../Context/AuthContext";
+import api from "../../Api";
 import PaymentForm from "./PaymentForm";
-import StudentEditPage from "./StudentEditPage";
-import DeleteStudentDialog from "./DeleteStudentDialog";
+import StudentEditPage from "../StudentEditPage";
+import DeleteStudentDialog from "../DeleteStudentDialog";
+import { DashboardContext } from "../../Context/DashboardContext";
 
 // Mobile-friendly PDF viewer component
 const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) => {
@@ -201,6 +202,9 @@ const RegistrationTable = () => {
   const [loadingDeleteId, setLoadingDeleteId] = useState(null);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
+  const {counsellor, examCentre} = useContext(DashboardContext);
+
+
   const filteredCounsellors = users.filter(user => user.name.toLowerCase().includes(counsellorSearch.toLowerCase()));
 
   const getDistinctBranches = (branchList) => {
@@ -217,6 +221,7 @@ const RegistrationTable = () => {
 
   const filteredBranch = getDistinctBranches(branch).filter(user => user.counsellorBranch.toLowerCase().includes(branchSearch.toLowerCase()));
   const filteredExamCentres = examCentres.filter(centre => centre.centerName.toLowerCase().includes(examCentreSearch.toLowerCase()));
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -243,16 +248,19 @@ const RegistrationTable = () => {
   }, [pdfUrl]);
 
   useEffect(() => {
-    if (user.role === "admin" || user.role === "followUp") {
-      api.get("/admin/getUser").then((response) => {
-        setUsers(response.data.data);
-        setBranch(response.data.data);
-      }).catch((error) => console.error("Error fetching users", error));
+    if (counsellor && (user.role === "admin" || user.role === "followUp")) {
+      setUsers(counsellor);
+      setBranch(counsellor);
     }
-    api.get("/admin/getExamCenters").then((response) => {
-      setExamCentres(response.data.data);
-    }).catch((error) => console.error("Error fetching exam centers", error));
-  }, [user.role]);
+  
+  }, [user.role, counsellor]);
+
+  useEffect(() => {
+   examCentre && setExamCentres(examCentre)
+    // api.get("/admin/getExamCenters").then((response) => {
+    //   setExamCentres(response.data.data);
+    // }).catch((error) => console.error("Error fetching exam centers", error));
+  }, [user.role, examCentre]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

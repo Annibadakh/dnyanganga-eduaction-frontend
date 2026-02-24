@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import api from "../Api";
 import BulkHallTicketGenerator from "./BulkHallTicketGenerator";
 import { FileText, RefreshCw, ArrowRightCircle } from "lucide-react";
+import { DashboardContext } from "../Context/DashboardContext";
 
 export default function AddCenter() {
+  const { getExamCenter} = useContext(DashboardContext)
   const [centers, setCenters] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -29,6 +31,7 @@ export default function AddCenter() {
   }, []);
 
   const fetchCenters = () => {
+    
     api
       .get("/admin/getExamCentersDetails")
       .then((response) => setCenters(response.data.data))
@@ -48,6 +51,7 @@ export default function AddCenter() {
       .then(() => {
         alert("Centre added!");
         fetchCenters();
+        getExamCenter();
         setShowForm(false);
         setFormData({ centerId: "", centerName: "", collegeName: "" });
       })

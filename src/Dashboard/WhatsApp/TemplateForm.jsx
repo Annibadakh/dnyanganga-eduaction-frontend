@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { FileUploadHook } from "../FileUploadHook";
-import FileUpload from "../FileUpload";
+import { FileUploadHook } from "../FileUpload/FileUploadHook";
+import FileUpload from "../FileUpload/FileUpload";
 
 const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
   const headerFile = FileUploadHook();
