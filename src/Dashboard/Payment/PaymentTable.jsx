@@ -1,8 +1,10 @@
-import { Fragment, useState, useEffect, useRef } from "react";
-import api from "../Api";
-import { useAuth } from "../Context/AuthContext";
+import { Fragment, useState, useEffect, useRef, useContext } from "react";
+import api from "../../Api";
+import { useAuth } from "../../Context/AuthContext";
 import { Dialog, Transition } from "@headlessui/react";
 import { RotateCw } from "lucide-react";
+import CustomSelect from "../Generic/CustomSelect";
+import { DashboardContext } from "../../Context/DashboardContext";
 
 // Mobile-friendly PDF viewer component (same as before)
 const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) => {
@@ -275,6 +277,7 @@ const capitalizeFirstLetter = (string) => {
 }
 const PaymentTable = () => {
   const { user } = useAuth();
+  const { counsellor } = useContext(DashboardContext);
   const [paymentsData, setPaymentsData] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -305,33 +308,13 @@ const PaymentTable = () => {
   const [pdfFileName, setPdfFileName] = useState("");
   const [currentPdfStudent, setCurrentPdfStudent] = useState(null);
 
-  // Searchable dropdown states
-  const [counsellorSearch, setCounsellorSearch] = useState("");
-  const [showCounsellorDropdown, setShowCounsellorDropdown] = useState(false);
-  const counsellorDropdownRef = useRef(null);
 
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   const imgUrl = import.meta.env.VITE_IMG_URL;
 
-  // Filter functions for searchable dropdowns
-  const filteredCounsellors = users.filter(user =>
-    user.name.toLowerCase().includes(counsellorSearch.toLowerCase())
-  );
 
-  // Click outside handler
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (counsellorDropdownRef.current && !counsellorDropdownRef.current.contains(event.target)) {
-        setShowCounsellorDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+ 
 
   // Cleanup PDF URL when dialog closes
   useEffect(() => {
@@ -353,19 +336,9 @@ const PaymentTable = () => {
   // Fetch users data
   useEffect(() => {
     if (user.role === "admin") {
-      api
-        .get("/admin/getUser")
-        .then((response) => {
-          const counsellors = response.data.data.filter(
-            (user) => user.role === "counsellor"
-          );
-          setUsers(counsellors);
-        })
-        .catch((error) => {
-          console.error("Error fetching users", error);
-        });
+      counsellor && setUsers(counsellor);
     }
-  }, [user.role]);
+  }, [user.role, counsellor]);
 
   // Fetch payments data with pagination
   const fetchPaymentsData = () => {
@@ -374,7 +347,7 @@ const PaymentTable = () => {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearchTerm,
-      counsellor: selectedCounsellor,
+      counsellor: selectedCounsellor?.value || "",
       startDate: startDate,
       endDate: endDate,
       paymentType
@@ -413,16 +386,6 @@ const PaymentTable = () => {
     setCurrentPage(1);
   }, [debouncedSearchTerm, selectedCounsellor, startDate, endDate, paymentType]);
 
-  const handleCounsellorSelect = (counsellor) => {
-    setSelectedCounsellor(counsellor.uuid);
-    setCounsellorSearch(counsellor.name);
-    setShowCounsellorDropdown(false);
-  };
-
-  const clearCounsellorFilter = () => {
-    setSelectedCounsellor("");
-    setCounsellorSearch("");
-  };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -502,55 +465,13 @@ const PaymentTable = () => {
         />
 
         {user.role === "admin" && (
-          <div className="relative w-full md:w-1/4" ref={counsellorDropdownRef}>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search counsellors..."
-                value={counsellorSearch}
-                onChange={(e) => {
-                  setCounsellorSearch(e.target.value);
-                  setShowCounsellorDropdown(true);
-                }}
-                onFocus={() => setShowCounsellorDropdown(true)}
-                className="p-3 w-full border border-gray-300 rounded-lg pr-8"
-              />
-              {selectedCounsellor && (
-                <button
-                  onClick={clearCounsellorFilter}
-                  className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-            
-            {showCounsellorDropdown && (
-              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
-                <div
-                  className="p-2 hover:bg-gray-100 cursor-pointer border-b"
-                  onClick={() => {
-                    clearCounsellorFilter();
-                    setShowCounsellorDropdown(false);
-                  }}
-                >
-                  All Counsellors
-                </div>
-                {filteredCounsellors.map((counsellor) => (
-                  <div
-                    key={counsellor.uuid}
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleCounsellorSelect(counsellor)}
-                  >
-                    {counsellor.name}
-                  </div>
-                ))}
-                {filteredCounsellors.length === 0 && counsellorSearch && (
-                  <div className="p-2 text-gray-500">No counsellors found</div>
-                )}
-              </div>
-            )}
-          </div>
+          <CustomSelect
+            options={users}
+            value={selectedCounsellor}
+            onChange={setSelectedCounsellor}
+            isRequired={false}
+            placeholder="Select Counsellors"
+          />
         )}
 
         <div className="flex flex-wrap md:flex-row gap-1 w-full md:w-1/3">

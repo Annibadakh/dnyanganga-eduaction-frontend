@@ -1,17 +1,19 @@
-import React, { useState, useEffect, useRef } from "react";
-import api from "../Api";
-import { useAuth } from "../Context/AuthContext";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import api from "../../Api";
+import { useAuth } from "../../Context/AuthContext";
 import VisitingFormView from "./VisitingFormView";
 import VisitingFormEdit from "./VisitingFormEdit";
+import CustomSelect from "../Generic/CustomSelect";
+import { DashboardContext } from "../../Context/DashboardContext";
 
 // Pagination Component
-const Pagination = ({ 
-  currentPage, 
-  totalPages, 
-  onPageChange, 
-  totalItems, 
+const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  totalItems,
   itemsPerPage,
-  onItemsPerPageChange 
+  onItemsPerPageChange,
 }) => {
   const getPageNumbers = () => {
     const delta = 2;
@@ -27,7 +29,7 @@ const Pagination = ({
     }
 
     if (currentPage - delta > 2) {
-      rangeWithDots.push(1, '...');
+      rangeWithDots.push(1, "...");
     } else {
       rangeWithDots.push(1);
     }
@@ -35,7 +37,7 @@ const Pagination = ({
     rangeWithDots.push(...range);
 
     if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push('...', totalPages);
+      rangeWithDots.push("...", totalPages);
     } else {
       rangeWithDots.push(totalPages);
     }
@@ -80,14 +82,14 @@ const Pagination = ({
         {getPageNumbers().map((page, index) => (
           <button
             key={index}
-            onClick={() => typeof page === 'number' && onPageChange(page)}
-            disabled={page === '...'}
+            onClick={() => typeof page === "number" && onPageChange(page)}
+            disabled={page === "..."}
             className={`px-3 py-2 text-sm border rounded ${
               page === currentPage
-                ? 'bg-primary text-white border-primary'
-                : page === '...'
-                ? 'cursor-default'
-                : 'border-gray-300 hover:bg-gray-50'
+                ? "bg-primary text-white border-primary"
+                : page === "..."
+                  ? "cursor-default"
+                  : "border-gray-300 hover:bg-gray-50"
             }`}
           >
             {page}
@@ -108,6 +110,7 @@ const Pagination = ({
 
 const VisitingTable = () => {
   const { user } = useAuth();
+  const { counsellor, counsellorBranch } = useContext(DashboardContext);
   const [visitingData, setVisitingData] = useState([]);
   const [users, setUsers] = useState([]);
   const [branch, setBranch] = useState([]);
@@ -119,7 +122,7 @@ const VisitingTable = () => {
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedStandard, setSelectedStandard] = useState("");
-  
+
   // Date range filter states
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -135,44 +138,11 @@ const VisitingTable = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
 
-  // New state for searchable dropdowns
-  const [counsellorSearch, setCounsellorSearch] = useState("");
-  const [branchSearch, setBranchSearch] = useState("");
-  const [showCounsellorDropdown, setShowCounsellorDropdown] = useState(false);
-  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   
-  // Refs for dropdown containers
-  const counsellorDropdownRef = useRef(null);
-  const branchDropdownRef = useRef(null);
 
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
 
-  // Filter functions for searchable dropdowns
-  const filteredCounsellors = users.filter(user =>
-    user.name.toLowerCase().includes(counsellorSearch.toLowerCase())
-  );
-
-  const filteredBranch = branch.filter(user =>
-    user.counsellorBranch.toLowerCase().includes(branchSearch.toLowerCase())
-  );
-
-  // Click outside handler
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (counsellorDropdownRef.current && !counsellorDropdownRef.current.contains(event.target)) {
-        setShowCounsellorDropdown(false);
-      }
-      if (branchDropdownRef.current && !branchDropdownRef.current.contains(event.target)) {
-        setShowBranchDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -184,18 +154,11 @@ const VisitingTable = () => {
 
   // Fetch users data
   useEffect(() => {
-    if (user.role === "admin" || user.role === "followUp") {
-      api
-        .get("/admin/getUser")
-        .then((response) => {
-          setUsers(response.data.data);
-          setBranch(response.data.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching users", error);
-        });
+    if (counsellor && (user.role === "admin" || user.role === "followUp")) {
+      setUsers(counsellor);
+      setBranch(counsellorBranch);
     }
-  }, [user.role]);
+  }, [user.role, counsellor, counsellorBranch]);
 
   // Fetch visiting data with pagination
   const fetchVisitingData = () => {
@@ -204,11 +167,11 @@ const VisitingTable = () => {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearchQuery,
-      counsellor: selectedCounsellor,
-      branch: selectedBranch,
+      counsellor: selectedCounsellor?.value || "",
+      branch: selectedBranch?.value || "",
       standard: selectedStandard,
       dateFrom: dateFrom,
-      dateTo: dateTo
+      dateTo: dateTo,
     };
 
     api
@@ -230,43 +193,29 @@ const VisitingTable = () => {
   useEffect(() => {
     fetchVisitingData();
   }, [
-    user?.uuid, 
-    currentPage, 
-    itemsPerPage, 
-    debouncedSearchQuery, 
-    selectedCounsellor, 
-    selectedBranch, 
+    user?.uuid,
+    currentPage,
+    itemsPerPage,
+    debouncedSearchQuery,
+    selectedCounsellor,
+    selectedBranch,
     selectedStandard,
     dateFrom,
-    dateTo
+    dateTo,
   ]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchQuery, selectedCounsellor, selectedBranch, selectedStandard, dateFrom, dateTo]);
+  }, [
+    debouncedSearchQuery,
+    selectedCounsellor,
+    selectedBranch,
+    selectedStandard,
+    dateFrom,
+    dateTo,
+  ]);
 
-  const handleCounsellorSelect = (counsellor) => {
-    setSelectedCounsellor(counsellor.uuid);
-    setCounsellorSearch(counsellor.name);
-    setShowCounsellorDropdown(false);
-  };
-
-  const handleBranchSelect = (counsellor) => {
-    setSelectedBranch(counsellor.counsellorBranch);
-    setBranchSearch(counsellor.counsellorBranch);
-    setShowBranchDropdown(false);
-  };
-
-  const clearCounsellorFilter = () => {
-    setSelectedCounsellor("");
-    setCounsellorSearch("");
-  };
-
-  const clearBranchFilter = () => {
-    setSelectedBranch("");
-    setBranchSearch("");
-  };
 
   const clearDateFilters = () => {
     setDateFrom("");
@@ -284,10 +233,10 @@ const VisitingTable = () => {
 
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
-    return date.toLocaleTimeString('en-GB', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+    return date.toLocaleTimeString("en-GB", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -319,30 +268,29 @@ const VisitingTable = () => {
   const handleFollowUpChange = async (visitId, currentFollowUpStatus) => {
     try {
       const newFollowUpStatus = !currentFollowUpStatus;
-      
+
       // Optimistically update the UI
-      setVisitingData(prevData =>
-        prevData.map(visit =>
+      setVisitingData((prevData) =>
+        prevData.map((visit) =>
           visit.id === visitId
             ? { ...visit, followUp: newFollowUpStatus }
-            : visit
-        )
+            : visit,
+        ),
       );
 
       // Make API call to update the follow-up status
       await api.put(`/counsellor/updateVisitingFollowUp/${visitId}`, {
-        followUp: newFollowUpStatus
+        followUp: newFollowUpStatus,
       });
-
     } catch (error) {
       console.error("Error updating follow-up status:", error);
       // Revert the optimistic update on error
-      setVisitingData(prevData =>
-        prevData.map(visit =>
+      setVisitingData((prevData) =>
+        prevData.map((visit) =>
           visit.id === visitId
             ? { ...visit, followUp: currentFollowUpStatus }
-            : visit
-        )
+            : visit,
+        ),
       );
       alert("Failed to update follow-up status. Please try again.");
     }
@@ -350,7 +298,9 @@ const VisitingTable = () => {
 
   return (
     <div className="p-2 container mx-auto">
-      <h1 className="text-3xl text-center font-bold text-primary mb-6">Visiting Table</h1>
+      <h1 className="text-3xl text-center font-bold text-primary mb-6">
+        Visiting Table
+      </h1>
 
       {/* Filters */}
       <div className="flex flex-col gap-4 mb-4">
@@ -358,7 +308,9 @@ const VisitingTable = () => {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-3/4">
             <div className="flex items-center gap-2 w-full md:w-1/3">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">From Date</label>
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                From Date
+              </label>
               <input
                 type="date"
                 value={dateFrom}
@@ -367,7 +319,9 @@ const VisitingTable = () => {
               />
             </div>
             <div className="flex items-center gap-2 w-full md:w-1/3">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">To Date</label>
+              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                To Date
+              </label>
               <input
                 type="date"
                 value={dateTo}
@@ -409,106 +363,22 @@ const VisitingTable = () => {
         </div>
         {(user.role === "admin" || user.role === "followUp") && (
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative w-full md:w-1/2" ref={counsellorDropdownRef}>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search counsellors..."
-                  value={counsellorSearch}
-                  onChange={(e) => {
-                    setCounsellorSearch(e.target.value);
-                    setShowCounsellorDropdown(true);
-                  }}
-                  onFocus={() => setShowCounsellorDropdown(true)}
-                  className="p-2 w-full border border-gray-300 rounded-lg pr-8"
+           <CustomSelect
+                  options={users}
+                  value={selectedCounsellor}
+                  onChange={setSelectedCounsellor}
+                  isRequired={false}
+                  placeholder="Select Counsellors"
                 />
-                {selectedCounsellor && (
-                  <button
-                    onClick={clearCounsellorFilter}
-                    className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-              
-              {showCounsellorDropdown && (
-                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
-                  <div
-                    className="p-2 hover:bg-gray-100 cursor-pointer border-b"
-                    onClick={() => {
-                      clearCounsellorFilter();
-                      setShowCounsellorDropdown(false);
-                    }}
-                  >
-                    All Counsellors
-                  </div>
-                  {filteredCounsellors.map((counsellor) => (
-                    <div
-                      key={counsellor.uuid}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => handleCounsellorSelect(counsellor)}
-                    >
-                      {counsellor.name}
-                    </div>
-                  ))}
-                  {filteredCounsellors.length === 0 && counsellorSearch && (
-                    <div className="p-2 text-gray-500">No counsellors found</div>
-                  )}
-                </div>
-              )}
-              
-            </div>
 
-            <div className="relative w-full md:w-1/2" ref={branchDropdownRef}>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search branch..."
-                  value={branchSearch}
-                  onChange={(e) => {
-                    setBranchSearch(e.target.value);
-                    setShowBranchDropdown(true);
-                  }}
-                  onFocus={() => setShowBranchDropdown(true)}
-                  className="p-2 w-full border border-gray-300 rounded-lg pr-8"
+                <CustomSelect
+                  options={branch}
+                  value={selectedBranch}
+                  onChange={setSelectedBranch}
+                  isRequired={false}
+                  placeholder="Select Branch"
                 />
-                {selectedBranch && (
-                  <button
-                    onClick={clearBranchFilter}
-                    className="absolute right-2 top-1/2 transform text-xl font-bold -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-              
-              {showBranchDropdown && (
-                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
-                  <div
-                    className="p-2 hover:bg-gray-100 cursor-pointer border-b"
-                    onClick={() => {
-                      clearBranchFilter();
-                      setShowBranchDropdown(false);
-                    }}
-                  >
-                    All Branch
-                  </div>
-                  {filteredBranch.map((counsellor) => (
-                    <div
-                      key={counsellor.uuid}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => handleBranchSelect(counsellor)}
-                    >
-                      {counsellor.counsellorBranch}
-                    </div>
-                  ))}
-                  {filteredBranch.length === 0 && branchSearch && (
-                    <div className="p-2 text-gray-500">No Branch found</div>
-                  )}
-                </div>
-              )}
-            </div>
+
           </div>
         )}
       </div>
@@ -524,19 +394,39 @@ const VisitingTable = () => {
               <table className="table-auto w-full border text-center border-customgray overflow-hidden shadow-lg text-sm">
                 <thead className="bg-primary text-customwhite uppercase tracking-wider">
                   <tr>
-                    <th className="p-3 text-left border whitespace-nowrap">Sr. No.</th>
-                    <th className="p-3 border text-left whitespace-nowrap">Visit Date</th>
+                    <th className="p-3 text-left border whitespace-nowrap">
+                      Sr. No.
+                    </th>
+                    <th className="p-3 border text-left whitespace-nowrap">
+                      Visit Date
+                    </th>
                     <th className="p-3 border whitespace-nowrap">Visit Time</th>
-                    <th className="p-3 border whitespace-nowrap">Student Name</th>
+                    <th className="p-3 border whitespace-nowrap">
+                      Student Name
+                    </th>
                     <th className="p-3 border whitespace-nowrap">Standard</th>
                     <th className="p-3 border whitespace-nowrap">Med/Grp</th>
-                    <th className="p-3 border whitespace-nowrap">Student No.</th>
+                    <th className="p-3 border whitespace-nowrap">
+                      Student No.
+                    </th>
                     <th className="p-3 border whitespace-nowrap">Parent No.</th>
                     <th className="p-3 border whitespace-nowrap">Demo</th>
                     <th className="p-3 border whitespace-nowrap">Reason</th>
-                    {user.role === "admin" && <><th className="p-3 border whitespace-nowrap">Counsellor Name</th>
-                    <th className="p-3 border whitespace-nowrap">Counsellor Branch</th></>}
-                    {(user.role === "admin" || user.role === "followUp") && <th className="p-3 border whitespace-nowrap">Follow-up</th>}
+                    {user.role === "admin" && (
+                      <>
+                        <th className="p-3 border whitespace-nowrap">
+                          Counsellor Name
+                        </th>
+                        <th className="p-3 border whitespace-nowrap">
+                          Counsellor Branch
+                        </th>
+                      </>
+                    )}
+                    {(user.role === "admin" || user.role === "followUp") && (
+                      <th className="p-3 border whitespace-nowrap">
+                        Follow-up
+                      </th>
+                    )}
                     <th className="p-3 border whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
@@ -550,28 +440,59 @@ const VisitingTable = () => {
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
                       <td className="p-3 border whitespace-nowrap">
-                        {new Date(visit.createdAt).toLocaleDateString('en-GB')}
+                        {new Date(visit.createdAt).toLocaleDateString("en-GB")}
                       </td>
-                      <td className="p-3 border whitespace-nowrap">{formatTimeTo12Hour(visit.createdAt)}</td>
-                      <td className="p-3 border whitespace-nowrap">{visit.studentName}</td>
-                      <td className="p-3 border whitespace-nowrap">{visit.standard}</td>
-                      <td className="p-3 border whitespace-nowrap">{visit.branch}</td>
-                      <td className="p-3 border whitespace-nowrap">{visit.studentNo}</td>
-                      <td className="p-3 border whitespace-nowrap">{visit.parentsNo}</td>
-                      <td className="p-3 border whitespace-nowrap">{visit.demoGiven}</td>
-                      <td className="p-3 border whitespace-nowrap">{visit.reason}</td>
-                      {user.role === "admin" && <><td className="p-3 border whitespace-nowrap">{visit.User.name}</td>
-                      <td className="p-3 border whitespace-nowrap">{visit.User.counsellorBranch}</td></>}
+                      <td className="p-3 border whitespace-nowrap">
+                        {formatTimeTo12Hour(visit.createdAt)}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {visit.studentName}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {visit.standard}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {visit.branch}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {visit.studentNo}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {visit.parentsNo}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {visit.demoGiven}
+                      </td>
+                      <td className="p-3 border whitespace-nowrap">
+                        {visit.reason}
+                      </td>
+                      {user.role === "admin" && (
+                        <>
+                          <td className="p-3 border whitespace-nowrap">
+                            {visit.User.name}
+                          </td>
+                          <td className="p-3 border whitespace-nowrap">
+                            {visit.User.counsellorBranch}
+                          </td>
+                        </>
+                      )}
                       {(user.role === "admin" || user.role === "followUp") && (
                         <td className="p-3 border whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={visit.followUp || false}
-                          onChange={() => handleFollowUpChange(visit.id, visit.followUp)}
-                          className="w-5 h-5 cursor-pointer accent-primary"
-                          title={visit.followUp ? "Follow-up completed" : "Mark follow-up as done"}
-                        />
-                      </td>)}
+                          <input
+                            type="checkbox"
+                            checked={visit.followUp || false}
+                            onChange={() =>
+                              handleFollowUpChange(visit.id, visit.followUp)
+                            }
+                            className="w-5 h-5 cursor-pointer accent-primary"
+                            title={
+                              visit.followUp
+                                ? "Follow-up completed"
+                                : "Mark follow-up as done"
+                            }
+                          />
+                        </td>
+                      )}
                       <td className="p-3 border whitespace-nowrap">
                         <div className="flex gap-2 justify-center">
                           <button
@@ -606,17 +527,16 @@ const VisitingTable = () => {
           </>
         ) : (
           !loading && (
-            <p className="text-lg text-customgray">No visiting records found.</p>
+            <p className="text-lg text-customgray">
+              No visiting records found.
+            </p>
           )
         )}
       </div>
 
       {/* View Modal */}
       {showViewModal && selectedVisit && (
-        <VisitingFormView
-          visitData={selectedVisit}
-          onClose={handleCloseView}
-        />
+        <VisitingFormView visitData={selectedVisit} onClose={handleCloseView} />
       )}
 
       {/* Edit Modal */}

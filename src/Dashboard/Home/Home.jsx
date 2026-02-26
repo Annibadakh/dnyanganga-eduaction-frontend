@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import api from '../Api';
-import { useAuth } from '../Context/AuthContext';
+import api from '../../Api';
+import { useAuth } from '../../Context/AuthContext';
 import Excel from './Excel';
 import StudentStatistics from './StudentStatistics';
 

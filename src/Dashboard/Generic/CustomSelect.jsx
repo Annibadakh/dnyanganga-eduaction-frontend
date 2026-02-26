@@ -71,7 +71,7 @@ const CustomSelect = ({
                 isSearchable={isSearchable}
                 placeholder={placeholder}
                 styles={customStyles}
-                className="text-sm"
+                className="text-sm min-w-52"
             />
         </div>
     );
