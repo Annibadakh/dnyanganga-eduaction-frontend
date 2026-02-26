@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
 import * as XLSX from "xlsx";
-import api from "../Api";
-import { DashboardContext } from "../Context/DashboardContext";
+import api from "../../Api";
+import { DashboardContext } from "../../Context/DashboardContext";
+import CustomSelect from "../Generic/CustomSelect";
 
 const Excel = () => {
-  const {counsellor, examCentre} = useContext(DashboardContext)
+  const {counsellor, examCenter} = useContext(DashboardContext)
   
   const [users, setUsers] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
@@ -64,24 +65,15 @@ const Excel = () => {
   };
 
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        setLoading(true);
-        setError("");
 
         counsellor && setUsers(counsellor);
-        examCentre && setExamCentres(examCentre);
+        examCenter && setExamCentres(examCenter);
 
-      } catch (err) {
-        setError("Failed to fetch data. Please try again.");
-        console.error("Error fetching data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  }, [counsellor, examCenter]);
 
-    fetchInitialData();
-  }, [counsellor, examCentre]);
+  
+  // console.log("Counsellors from context:", counsellor);
+  // console.log("Exam Centres from context:", examCenter);
 
   const handleColumnChange = (column) => {
     setSelectedColumns((prev) => {
@@ -154,8 +146,8 @@ const Excel = () => {
 
       const body = {
         standard: selectedStandard || null,
-        counsellor: selectedCounsellor || null,
-        examCentre: selectedExamCentre || null,
+        counsellor: selectedCounsellor?.value || null,
+        examCentre: selectedExamCentre?.value || null,
         examYear: selectedExamYear || null,
         fromDate: fromDate || null,
         toDate: toDate || null,
@@ -221,15 +213,22 @@ const Excel = () => {
           <option value="12th">12th</option>
         </select>
 
-        <select value={selectedCounsellor} onChange={(e) => setSelectedCounsellor(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
-          <option value="">All Counsellors</option>
-          {users.map(u => <option key={u.uuid} value={u.uuid}>{u.name}</option>)}
-        </select>
+    
+        <CustomSelect
+            options={users}
+            value={selectedCounsellor}
+            onChange={setSelectedCounsellor}
+            isRequired={false}
+            placeholder="Select Counsellors"
+          />
 
-        <select value={selectedExamCentre} onChange={(e) => setSelectedExamCentre(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
-          <option value="">All Exam Centres</option>
-          {examCentres.map(ec => <option key={ec.centerId} value={ec.centerId}>{ec.centerName}</option>)}
-        </select>
+        <CustomSelect
+            options={examCentres}
+            value={selectedExamCentre}
+            onChange={setSelectedExamCentre}
+            isRequired={false}
+            placeholder="Select Exam Centre"
+          />
 
         <select value={selectedExamYear} onChange={(e) => setSelectedExamYear(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
           <option value="">All Exam Years</option>
