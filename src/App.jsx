@@ -3,51 +3,58 @@ import './App.css';
 import { Navigate } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import axios from "axios";
+import { DashboardProvider } from "./Context/DashboardContext";
 
-import Login from "./Components/Login";
-import HallTicket from "./Components/HallTicket";
-import Result from "./Components/Result";
-
-import Dashboard from "./Dashboard/Dashboard";
-import Home from "./Dashboard/Home/Home";
-import Profile from "./Dashboard/Profile";
-import SubjectManagement from "./Dashboard/SubjectManagement";
-import VisitingForm from "./Dashboard/Visiting/VisitingForm";
-import VisitingTable from "./Dashboard/Visiting/VisitingTable";
-import RegistrationTable from "./Dashboard/Registration/RegistrationTable";
-import RegistrationForm from "./Dashboard/Registration/RegistrationForm";
-import AddUser from "./Dashboard/AddUser";
-import AddCenter from "./Dashboard/AddCenter";
-import PaymentTable from "./Dashboard/Payment/PaymentTable";
-
+import LandingLayout from "./LandingLayout";
 import Main from "./Pages/Main";
 import About from "./Pages/About";
 import Courses from "./Pages/Courses";
 import Achievements from "./Pages/Achievements";
 import ExamCenters from "./Pages/ExamCenters";
-
-import LandingLayout from "./LandingLayout";
-import { ProtectedRoute, ProtectedRoleBasedRoute } from './ProtectedRoute';
 import Gallery from "./Pages/GalleryPage";
-import PageNotFound from "./Pages/PageNotFound";
+import ContactUs from "./Pages/ContactUs";
+
+import Login from "./Components/Login";
+import HallTicket from "./Components/HallTicket";
+import Result from "./Components/Result";
+import SeprateResult from "./Components/SeprateResult";
 import InfoPage from "./Pages/InfoPage";
+
+import Dashboard from "./Dashboard/Layout/Dashboard";
+import Home from "./Dashboard/Home/Home";
+import Profile from "./Dashboard/Layout/Profile";
+
+import SubjectManagement from "./Dashboard/AdminControls/SubjectManagement";
+import AddUser from "./Dashboard/AdminControls/AddUser";
+import AddCenter from "./Dashboard/AdminControls/AddCenter";
+
+import VisitingForm from "./Dashboard/Visiting/VisitingForm";
+import VisitingTable from "./Dashboard/Visiting/VisitingTable";
+
+
+import RegistrationTable from "./Dashboard/Registration/RegistrationTable";
+import RegistrationForm from "./Dashboard/Registration/RegistrationForm";
+
+import PaymentTable from "./Dashboard/Payment/PaymentTable";
+
+import ChallanManagement from "./Dashboard/Books/ChallanManagement";
 import AddBookEntry from "./Dashboard/Books/AddBookEntry";
 import CounsellorBooks from "./Dashboard/Books/CounsellorBooks";
-import AdminCollection from "./Dashboard/AdminCollection";
-import CounsellorCollection from "./Dashboard/CounsellorCollection";
-import ChallanManagement from "./Dashboard/Books/ChallanManagement";
-import ExcelTableUploader from "./Dashboard/ExcelTableUploader";
+
+import AdminCollection from "./Dashboard/Collection/AdminCollection";
+import CounsellorCollection from "./Dashboard/Collection/CounsellorCollection";
+
 import TemplatesManagementPage from "./Dashboard/WhatsApp/TemplatesManagementPage";
 import JobCreation from "./Dashboard/WhatsApp/JobCreation";
 import JobsList from "./Dashboard/WhatsApp/JobsList";
-import BulkGenerateQR from "./BulkGenerateQR";
+
 import MarksContextSelector from "./Dashboard/Result/MarksContextSelector";
-import MarksExcelExport from "./Dashboard/Result/MarksExcelExport";
-import SeprateResult from "./Components/SeprateResult";
-import ContactUs from "./Pages/ContactUs";
+
+import { ProtectedRoute, ProtectedRoleBasedRoute } from './ProtectedRoute';
+import PageNotFound from "./Pages/PageNotFound";
+import BulkGenerateQR from "./BulkGenerateQR";
 
 import { ToastContainer } from 'react-toastify';
-import { DashboardProvider } from "./Context/DashboardContext";
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -84,7 +91,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="login" element={<Login />} />
-          <Route path="bulkqrcode" element={<BulkGenerateQR />} />
+          {/* <Route path="bulkqrcode" element={<BulkGenerateQR />} /> */}
           <Route
             path="hallticket"
             element={hallTicket ? <HallTicket /> : <InfoPage type="hallticket" />}
@@ -141,16 +148,10 @@ function App() {
                 <Route path='subject' element={<SubjectManagement />} />
                 <Route path='examcenter' element={<AddCenter />} />
                 <Route path='collection' element={<AdminCollection />} />
-                <Route path='excelupload' element={<ExcelTableUploader />} />
                 <Route path='template' element={<TemplatesManagementPage />} />
                 <Route path='jobCreation' element={<JobCreation />} />
                 <Route path="jobs" element={<JobsList />} />
-
                 <Route path="marksentry" element={<MarksContextSelector />} />
-                <Route path="marksexport" element={<MarksExcelExport />} />
-
-                {/* <Route path='studentedit' element={<StudentEditPage />} /> */}
-                {/* <Route path='hallticket' element={<BulkHallTicketGenerator />} /> */}
 
 
               </Route>

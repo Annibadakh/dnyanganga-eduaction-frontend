@@ -1,7 +1,6 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../Context/AuthContext";
-import logo from '../Images/logo3.png';
+import { useAuth } from "../../Context/AuthContext";
+import logo from '../../Images/logo3.png';
 
 const Header = () => {
     const { logout } = useAuth();

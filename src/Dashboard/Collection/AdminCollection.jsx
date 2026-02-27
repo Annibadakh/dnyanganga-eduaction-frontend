@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Fragment, useRef } from "react";
-import api from "../Api";
+import api from "../../Api";
 import { Dialog, Transition } from "@headlessui/react";
 
 const AdminCollection = () => {
