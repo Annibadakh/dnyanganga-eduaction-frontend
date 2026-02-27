@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { useAuth } from "../../Context/AuthContext";
 import api from "../../Api";
 import PaymentForm from "./PaymentForm";
-import StudentEditPage from "../StudentEditPage";
-import DeleteStudentDialog from "../DeleteStudentDialog";
+import StudentEditPage from "./StudentEditPage";
+import DeleteStudentDialog from "./DeleteStudentDialog";
 import { DashboardContext } from "../../Context/DashboardContext";
 import CustomSelect from "../Generic/CustomSelect";
 

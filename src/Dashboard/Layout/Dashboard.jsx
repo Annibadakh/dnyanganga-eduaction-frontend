@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../Context/AuthContext";
+import { useAuth } from "../../Context/AuthContext";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Outlet } from "react-router-dom";
-import api from "../Api";
+import api from "../../Api";
 
 function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

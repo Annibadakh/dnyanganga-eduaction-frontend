@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import api from '../Api';
+import api from '../../Api';
+import { useToast } from '../../useToast';
 
 function SubjectManagement() {
+    const { successToast, errorToast, infoToast } = useToast();
+  
   const [subjects, setSubjects] = useState([]);
   const [formData, setFormData] = useState({
     subjectCode: '',
@@ -104,9 +107,10 @@ function SubjectManagement() {
       });
       setFormError(null);
       setShowAddForm(false);
-      Alert("Subject added Success !!")
+      successToast("Subject added Success !!")
     } catch (err) {
       console.error('Error adding subject:', err);
+      errorToast(err.response?.data?.message || 'Failed to add subject')
       setFormError(err.response?.data?.message || 'Failed to add subject');
     }
     finally{
@@ -120,10 +124,10 @@ function SubjectManagement() {
     try {
       await api.delete(`/admin/deleteSubject/${code}`);
       fetchSubjects();
-      alert("Subject deleted")
+      infoToast("Subject deleted")
     } catch (err) {
       console.error('Error deleting subject:', err);
-      alert('Failed to delete subject');
+      errorToast('Failed to delete subject');
     }
     finally{
       setDeleteLoader(null);
@@ -191,10 +195,12 @@ function SubjectManagement() {
     setUpdateLoader(true);
     try {
       await api.put(`/admin/addDates/${selectedSubject.subjectCode}`, updatedExamData);
+      successToast("Exam Details Updated Success !!")
       fetchSubjects();
       closeExamModal();
     } catch (err) {
       console.error('Error updating exam details:', err);
+      errorToastsetModalError(err.response?.data?.message || 'Failed to update exam details')
       setModalError(err.response?.data?.message || 'Failed to update exam details');
     } finally {
       setUpdateLoader(false);

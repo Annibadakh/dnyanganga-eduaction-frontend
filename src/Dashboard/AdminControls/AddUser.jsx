@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
-import api from "../Api";
-import { DashboardContext } from "../Context/DashboardContext";
+import api from "../../Api";
+import { DashboardContext } from "../../Context/DashboardContext";
+import { useToast } from "../../useToast";
 
 const AddUser = () => {
-  const {getCounsellor} = useContext(DashboardContext);
+  const { getCounsellor } = useContext(DashboardContext);
+  const { successToast, errorToast, infoToast } = useToast();
+
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [submitLoader, setSubmitLoader] = useState(false);
@@ -124,7 +127,7 @@ const AddUser = () => {
     setSubmitLoader(true);
     api.post("/auth/register", newUser)
       .then((res) => {
-        alert(res.data.message);
+        successToast(res.data.message);
         fetchUsers();
         getCounsellor();
         setShowForm(false);
@@ -142,7 +145,7 @@ const AddUser = () => {
       })
       .catch((err) => {
         console.error("Error adding user", err);
-        alert(err.response?.data?.message || "Something went wrong");
+        errorToast(err.response?.data?.message || "Something went wrong");
       })
       .finally(() => {
         setSubmitLoader(false);
@@ -171,14 +174,14 @@ const AddUser = () => {
 
     api.put(`/admin/editUser/${selectedUser.uuid}`, updateData)
       .then((res) => {
-        alert(res.data.message);
+        successToast(res.data.message);
         fetchUsers();
         getCounsellor();
         closeEditForm();
       })
       .catch((err) => {
         console.error("Error updating user", err);
-        alert(err.response?.data?.message || "Something went wrong");
+        errorToast(err.response?.data?.message || "Something went wrong");
       })
       .finally(() => {
         setEditLoader(false);
@@ -191,7 +194,7 @@ const AddUser = () => {
       fetchUsers();
       getCounsellor();
       setUpdateLoader(null);
-      alert(res.data.message);
+      infoToast(res.data.message);
     }).catch((err) => {
       console.error("Error deleting user", err);
       setUpdateLoader(null);
@@ -253,74 +256,74 @@ const AddUser = () => {
           <h2 className="text-xl font-semibold mb-4 text-secondary">Add New User</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input 
-                type="text" 
-                name="name" 
-                placeholder="Name" 
-                value={formData.name} 
-                onChange={handleChange} 
-                required 
-                className="p-2 border rounded-md" 
+              <input
+                type="text"
+                name="name"
+                placeholder="Name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="p-2 border rounded-md"
               />
-              <input 
-                type="text" 
-                name="contactNum" 
-                placeholder="Contact Number" 
-                value={formData.contactNum} 
-                onChange={handleChange} 
-                required 
-                className="p-2 border rounded-md" 
+              <input
+                type="text"
+                name="contactNum"
+                placeholder="Contact Number"
+                value={formData.contactNum}
+                onChange={handleChange}
+                required
+                className="p-2 border rounded-md"
               />
-              <input 
-                type="email" 
-                name="email" 
-                placeholder="Email" 
-                value={formData.email} 
-                onChange={handleChange} 
-                required 
-                className="p-2 border rounded-md" 
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="p-2 border rounded-md"
               />
               <div className="relative">
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  name="password" 
-                  placeholder="Password" 
-                  value={formData.password} 
-                  onChange={handleChange} 
-                  required 
-                  className="p-2 pr-10 border rounded-md w-full" 
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="p-2 pr-10 border rounded-md w-full"
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-2 top-2 text-gray-500"
                 >
                   {showPassword ? "👁️" : "👁️‍🗨️"}
                 </button>
               </div>
               <div className="relative">
-                <input 
-                  type={showReenterPassword ? "text" : "password"} 
-                  name="reenterPassword" 
-                  placeholder="Re-enter Password" 
-                  value={formData.reenterPassword} 
-                  onChange={handleChange} 
-                  required 
-                  className={`p-2 pr-10 border rounded-md w-full ${passwordError ? "border-red-500" : ""}`} 
+                <input
+                  type={showReenterPassword ? "text" : "password"}
+                  name="reenterPassword"
+                  placeholder="Re-enter Password"
+                  value={formData.reenterPassword}
+                  onChange={handleChange}
+                  required
+                  className={`p-2 pr-10 border rounded-md w-full ${passwordError ? "border-red-500" : ""}`}
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowReenterPassword(!showReenterPassword)} 
+                <button
+                  type="button"
+                  onClick={() => setShowReenterPassword(!showReenterPassword)}
                   className="absolute right-2 top-2 text-gray-500"
                 >
                   {showReenterPassword ? "👁️" : "👁️‍🗨️"}
                 </button>
                 {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
               </div>
-              <select 
-                name="role" 
-                value={formData.role} 
-                onChange={handleChange} 
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
                 className="p-2 border rounded-md"
               >
                 <option value="counsellor">Counsellor</option>
@@ -328,35 +331,35 @@ const AddUser = () => {
                 <option value="logistics">Logistics</option>
                 <option value="followUp">Follow-up</option>
               </select>
-              
+
               <div className="flex flex-row items-center gap-2">
                 <p>DOB:</p>
-                <input 
-                type="date" 
-                name="dob" 
-                placeholder="Date of Birth" 
-                value={formData.dob} 
-                onChange={handleChange} 
-                required 
-                className="p-2 border w-full rounded-md" 
-              />
+                <input
+                  type="date"
+                  name="dob"
+                  placeholder="Date of Birth"
+                  value={formData.dob}
+                  onChange={handleChange}
+                  required
+                  className="p-2 border w-full rounded-md"
+                />
               </div>
               {formData.role === "counsellor" && (
-                <input 
-                  type="text" 
-                  name="counsellorBranch" 
-                  placeholder="Branch" 
-                  value={formData.counsellorBranch} 
-                  onChange={handleChange} 
-                  required 
-                  className="p-2 border rounded-md" 
+                <input
+                  type="text"
+                  name="counsellorBranch"
+                  placeholder="Branch"
+                  value={formData.counsellorBranch}
+                  onChange={handleChange}
+                  required
+                  className="p-2 border rounded-md"
                 />
               )}
             </div>
             <div className="flex gap-2">
-              <button 
-                type="submit" 
-                disabled={submitLoader} 
+              <button
+                type="submit"
+                disabled={submitLoader}
                 className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:opacity-50"
               >
                 {submitLoader ? (
@@ -365,10 +368,10 @@ const AddUser = () => {
                   "Submit"
                 )}
               </button>
-              <button 
-                type="button" 
-                onClick={() => setShowForm(false)} 
-                disabled={submitLoader} 
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                disabled={submitLoader}
                 className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 disabled:opacity-50"
               >
                 Cancel
@@ -385,74 +388,74 @@ const AddUser = () => {
             <p className="text-sm mb-4 text-gray-700">
               Editing user: <strong className="text-primary">{selectedUser?.name}</strong>
             </p>
-            
+
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input 
-                  type="text" 
-                  name="name" 
-                  placeholder="Name" 
-                  value={editFormData.name} 
-                  onChange={handleEditChange} 
-                  required 
-                  className="p-2 border rounded-md" 
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  value={editFormData.name}
+                  onChange={handleEditChange}
+                  required
+                  className="p-2 border rounded-md"
                 />
-                <input 
-                  type="text" 
-                  name="contactNum" 
-                  placeholder="Contact Number" 
-                  value={editFormData.contactNum} 
-                  onChange={handleEditChange} 
-                  required 
-                  className="p-2 border rounded-md" 
+                <input
+                  type="text"
+                  name="contactNum"
+                  placeholder="Contact Number"
+                  value={editFormData.contactNum}
+                  onChange={handleEditChange}
+                  required
+                  className="p-2 border rounded-md"
                 />
-                <input 
-                  type="email" 
-                  name="email" 
-                  placeholder="Email" 
-                  value={editFormData.email} 
-                  onChange={handleEditChange} 
-                  required 
-                  className="p-2 border rounded-md" 
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={editFormData.email}
+                  onChange={handleEditChange}
+                  required
+                  className="p-2 border rounded-md"
                 />
-                <select 
-                  name="role" 
-                  value={editFormData.role} 
-                  onChange={handleEditChange} 
+                <select
+                  name="role"
+                  value={editFormData.role}
+                  onChange={handleEditChange}
                   className="p-2 border rounded-md"
                 >
                   <option value="counsellor">Counsellor</option>
                   <option value="teacher">Teacher</option>
                 </select>
                 {editFormData.role === "counsellor" && (
-                  <input 
-                    type="text" 
-                    name="counsellorBranch" 
-                    placeholder="Branch" 
-                    value={editFormData.counsellorBranch} 
-                    onChange={handleEditChange} 
-                    required 
-                    className="p-2 border rounded-md" 
+                  <input
+                    type="text"
+                    name="counsellorBranch"
+                    placeholder="Branch"
+                    value={editFormData.counsellorBranch}
+                    onChange={handleEditChange}
+                    required
+                    className="p-2 border rounded-md"
                   />
                 )}
-                <input 
-                  type="date" 
-                  name="dob" 
-                  placeholder="Date of Birth" 
-                  value={editFormData.dob} 
-                  onChange={handleEditChange} 
-                  required 
-                  className="p-2 border rounded-md" 
+                <input
+                  type="date"
+                  name="dob"
+                  placeholder="Date of Birth"
+                  value={editFormData.dob}
+                  onChange={handleEditChange}
+                  required
+                  className="p-2 border rounded-md"
                 />
               </div>
 
               {/* Password Change Section */}
               <div className="border-t pt-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <input 
-                    type="checkbox" 
-                    id="changePassword" 
-                    checked={isEditingPassword} 
+                  <input
+                    type="checkbox"
+                    id="changePassword"
+                    checked={isEditingPassword}
                     onChange={(e) => setIsEditingPassword(e.target.checked)}
                     className="w-4 h-4"
                   />
@@ -460,38 +463,38 @@ const AddUser = () => {
                     Change Password
                   </label>
                 </div>
-                
+
                 {isEditingPassword && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="relative">
-                      <input 
-                        type={showPassword ? "text" : "password"} 
-                        name="password" 
-                        placeholder="New Password" 
-                        value={editFormData.password} 
-                        onChange={handleEditChange} 
-                        className="w-full p-2 pr-10 border rounded-md" 
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        placeholder="New Password"
+                        value={editFormData.password}
+                        onChange={handleEditChange}
+                        className="w-full p-2 pr-10 border rounded-md"
                       />
-                      <button 
-                        type="button" 
-                        onClick={() => setShowPassword(!showPassword)} 
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-2 top-2 text-gray-500"
                       >
                         {showPassword ? "👁️" : "👁️‍🗨️"}
                       </button>
                     </div>
                     <div className="relative">
-                      <input 
-                        type={showReenterPassword ? "text" : "password"} 
-                        name="reenterPassword" 
-                        placeholder="Re-enter New Password" 
-                        value={editFormData.reenterPassword} 
-                        onChange={handleEditChange} 
-                        className={`w-full p-2 pr-10 border rounded-md ${passwordError ? "border-red-500" : ""}`} 
+                      <input
+                        type={showReenterPassword ? "text" : "password"}
+                        name="reenterPassword"
+                        placeholder="Re-enter New Password"
+                        value={editFormData.reenterPassword}
+                        onChange={handleEditChange}
+                        className={`w-full p-2 pr-10 border rounded-md ${passwordError ? "border-red-500" : ""}`}
                       />
-                      <button 
-                        type="button" 
-                        onClick={() => setShowReenterPassword(!showReenterPassword)} 
+                      <button
+                        type="button"
+                        onClick={() => setShowReenterPassword(!showReenterPassword)}
                         className="absolute right-2 top-2 text-gray-500"
                       >
                         {showReenterPassword ? "👁️" : "👁️‍🗨️"}
@@ -505,9 +508,9 @@ const AddUser = () => {
               </div>
 
               <div className="flex gap-2 pt-4">
-                <button 
-                  type="submit" 
-                  disabled={editLoader} 
+                <button
+                  type="submit"
+                  disabled={editLoader}
                   className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50"
                 >
                   {editLoader ? (
@@ -516,9 +519,9 @@ const AddUser = () => {
                     "Update User"
                   )}
                 </button>
-                <button 
-                  type="button" 
-                  onClick={closeEditForm} 
+                <button
+                  type="button"
+                  onClick={closeEditForm}
                   className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
                 >
                   Cancel
@@ -558,9 +561,9 @@ const AddUser = () => {
                   <td className="p-3 whitespace-nowrap border">{user.counsellorBranch}</td>
                   <td className="p-3 whitespace-nowrap border">
                     <div className="flex justify-center gap-2">
-                      <button 
-                        onClick={() => handleDelete(user.uuid)} 
-                        disabled={updateLoader === user.uuid} 
+                      <button
+                        onClick={() => handleDelete(user.uuid)}
+                        disabled={updateLoader === user.uuid}
                         className={`${user.isActive ? "bg-red-500" : "bg-green-500"} text-white px-3 py-1 rounded-md hover:${user.isActive ? "bg-red-600" : "bg-green-600"} disabled:opacity-50`}
                       >
                         {updateLoader === user.uuid ? (
@@ -569,8 +572,8 @@ const AddUser = () => {
                           user.isActive ? "Deactivate" : "Activate"
                         )}
                       </button>
-                      <button 
-                        onClick={() => openEditForm(user)} 
+                      <button
+                        onClick={() => openEditForm(user)}
                         className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600"
                       >
                         Edit

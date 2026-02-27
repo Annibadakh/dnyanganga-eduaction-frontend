@@ -1,11 +1,13 @@
 import { useState, useEffect, useContext } from "react";
-import api from "../Api";
+import api from "../../Api";
 import BulkHallTicketGenerator from "./BulkHallTicketGenerator";
 import { FileText, RefreshCw, ArrowRightCircle } from "lucide-react";
-import { DashboardContext } from "../Context/DashboardContext";
+import { DashboardContext } from "../../Context/DashboardContext";
+import {useToast} from "../../useToast"
 
 export default function AddCenter() {
-  const { getExamCenter} = useContext(DashboardContext)
+  const { getExamCenter} = useContext(DashboardContext);
+  const { successToast, errorToast, infoToast } = useToast();
   const [centers, setCenters] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,7 +23,6 @@ export default function AddCenter() {
   const [submitLoader, setSubmitLoader] = useState(false);
   const [updateLoader, setUpdateLoader] = useState(null);
 
-  // Bulk Ticket Generator Modal
   const [showBulkGenerator, setShowBulkGenerator] = useState(false);
   const [selectedCenterId, setSelectedCenterId] = useState("");
   const [algoLoader, setAlgoLoader] = useState(null);
@@ -31,7 +32,6 @@ export default function AddCenter() {
   }, []);
 
   const fetchCenters = () => {
-    
     api
       .get("/admin/getExamCentersDetails")
       .then((response) => setCenters(response.data.data))
@@ -49,7 +49,7 @@ export default function AddCenter() {
     api
       .post("/admin/addCenter", formData)
       .then(() => {
-        alert("Centre added!");
+        successToast("Centre added!");
         fetchCenters();
         getExamCenter();
         setShowForm(false);
@@ -57,7 +57,7 @@ export default function AddCenter() {
       })
       .catch((error) => {
         console.error("Error adding centre", error);
-        alert(error.response?.data?.message || "Error adding centre");
+        errorToast(error.response?.data?.message || "Error adding centre");
       })
       .finally(() => setSubmitLoader(false));
   };
@@ -75,7 +75,7 @@ export default function AddCenter() {
     api
       .put(`/admin/editcapicity/${centerId}`, editData)
       .then(() => {
-        alert("Centre details updated!");
+        successToast("Centre details updated!");
         setEditId(null);
         fetchCenters();
       })
@@ -94,10 +94,10 @@ export default function AddCenter() {
     try {
       setAlgoLoader(centerId);
       const res = await api.post("/admin/generateSeatNumbers/reset", { centerId });
-      alert(res.data.message || "Seat numbers regenerated successfully!");
+      infoToast(res.data.message || "Seat numbers regenerated successfully!");
     } catch (error) {
       console.error("Error in reset seat numbers", error);
-      alert(error.response?.data?.message || "Error resetting seat numbers");
+      errorToast(error.response?.data?.message || "Error resetting seat numbers");
     } finally {
       setAlgoLoader(null);
     }
@@ -115,10 +115,10 @@ export default function AddCenter() {
     try {
       setAlgoLoader(centerId);
       const res = await api.post("/admin/generateSeatNumbers/continue", { centerId });
-      alert(res.data.message || "Seat numbers continued successfully!");
+      infoToast(res.data.message || "Seat numbers continued successfully!");
     } catch (error) {
       console.error("Error in continue seat numbers", error);
-      alert(error.response?.data?.message || "Error continuing seat numbers");
+      errorToast(error.response?.data?.message || "Error continuing seat numbers");
     } finally {
       setAlgoLoader(null);
     }

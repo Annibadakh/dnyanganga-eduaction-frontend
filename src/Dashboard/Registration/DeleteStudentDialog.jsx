@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../Api";
+import api from "../../Api";
 
 const DeleteStudentDialog = ({ student, onClose, onConfirm }) => {
   const [refundedAmount, setRefundedAmount] = useState("");

@@ -10,7 +10,7 @@ api.interceptors.request.use(
   (config) => {
     const userString = getAuthToken();
     const user = JSON.parse(userString);
-
+    console.log(user);
     if (user.token) {
       config.headers.Authorization = `Bearer ${user.token}`;
     }
@@ -19,18 +19,19 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// axiosInstance.interceptors.response.use(
-//   (response) => {
-//     return response;
-//   },
-//   (error) => {
-//     if (error.response && error.response.status === 401) {
-//       localStorage.removeItem("user");
-//       window.location.href = '/login'
-//     } else {
-//       return Promise.reject(error);
-//     }
-//   }
-// );
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    console.log(error);
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      localStorage.removeItem("user");
+      window.location.href = '/login'
+    } else {
+      return Promise.reject(error);
+    }
+  }
+);
 
 export default api;

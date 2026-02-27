@@ -1,6 +1,6 @@
 import React, { useEffect, useState, Fragment } from "react";
-import api from "../Api";
-import { useAuth } from "../Context/AuthContext";
+import api from "../../Api";
+import { useAuth } from "../../Context/AuthContext";
 import { FileUploadHook } from "./FileUploadHook";
 import FileUpload from "./FileUpload";
 import { Dialog, Transition } from "@headlessui/react";

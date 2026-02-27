@@ -1,8 +1,8 @@
 import React, { useEffect, useState, Fragment, useMemo } from "react";
-import api from "../Api";
-import { useAuth } from "../Context/AuthContext";
-import { FileUploadHook } from "./FileUpload/FileUploadHook";
-import FileUpload from "./FileUpload/FileUpload";
+import api from "../../Api";
+import { useAuth } from "../../Context/AuthContext";
+import { FileUploadHook } from "../FileUpload/FileUploadHook";
+import FileUpload from "../FileUpload/FileUpload";
 import { Dialog, Transition } from "@headlessui/react";
 
 const CounsellorCollection = () => {
