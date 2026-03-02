@@ -1,5 +1,6 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import api from "../Api";
+import { useAuth } from "./AuthContext";
 
 export const DashboardContext = createContext();
 
@@ -7,7 +8,7 @@ export const DashboardProvider = ({ children }) => {
   const [examCenter, setExamCenter] = useState([]);
   const [counsellor, setCounsellor] = useState([]);
   const [counsellorBranch, setCounsellorBranch] = useState([]);
-
+  const { user } = useAuth();
   const getDistinctBranches = (branchList) => {
     const distinctBranches = [];
     const seenBranches = new Set();
@@ -23,7 +24,6 @@ export const DashboardProvider = ({ children }) => {
   const getExamCenter = async () => {
     try {
       const response = await api.get("/admin/getExamCenters");
-      // console.log(response.data.data);
 
       const formattedExamCenters = response.data.data.map((centre) => ({
         value: centre.centerId,
@@ -39,7 +39,7 @@ export const DashboardProvider = ({ children }) => {
   const getCounsellor = async () => {
     try {
       const response = await api.get("/admin/getUser");
-    
+
       const formattedCounsellors = response.data.data.map((user) => ({
         value: user.uuid,
         label: user.name,
@@ -56,8 +56,10 @@ export const DashboardProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    getExamCenter();
-    getCounsellor();
+    if (user) {
+      if (user.role !== "counsellor") getCounsellor();
+      getExamCenter();
+    }
   }, []);
 
   return (
