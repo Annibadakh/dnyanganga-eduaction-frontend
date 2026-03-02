@@ -10,8 +10,7 @@ api.interceptors.request.use(
   (config) => {
     const userString = getAuthToken();
     const user = JSON.parse(userString);
-    console.log(user);
-    if (user.token) {
+    if (user && user.token) {
       config.headers.Authorization = `Bearer ${user.token}`;
     }
     return config;
@@ -25,7 +24,7 @@ api.interceptors.response.use(
   },
   (error) => {
     console.log(error);
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    if (error.response && error.response.status === 401) {
       localStorage.removeItem("user");
       window.location.href = '/login'
     } else {
