@@ -17,7 +17,9 @@ import {
   FaMoneyCheckAlt,
   FaBalanceScale,
   FaFileInvoice,
-  FaClipboardCheck
+  FaClipboardCheck,
+  FaPaperPlane,
+  FaListAlt
 } from "react-icons/fa";
 
 const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
@@ -40,6 +42,8 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     { path: "collection", label: "Collection Entries", role: ["admin"], icon: <FaMoneyCheckAlt className="text-lg" /> },
     { path: "settlement", label: "Collection Details", role: ["counsellor"], icon: <FaBalanceScale className="text-lg" /> },
     { path: "marksentry", label: "Marks Entry", role: ["admin"], icon: <FaClipboardCheck className="text-lg" /> },
+    { path: "template", label: "Template", role: ["admin"], icon: <FaListAlt   className="text-lg" /> },
+    { path: "jobs", label: "Message Jobs", role: ["admin"], icon: <FaPaperPlane className="text-lg" /> },
    ];
 
   const isActive = (path) => location.pathname === `/dashboard/${path}`;
