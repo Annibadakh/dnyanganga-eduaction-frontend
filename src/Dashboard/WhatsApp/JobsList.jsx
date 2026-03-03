@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../Api';
+import JobCreation from './JobCreation';
 
 const JobsList = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -15,9 +17,9 @@ const JobsList = () => {
     try {
       setLoading(true);
       setError('');
-      
+
       const response = await api.get('/jobs');
-      
+
       if (response.data.success) {
         setJobs(response.data.data);
         console.log('Fetched jobs:', response.data.data);
@@ -33,9 +35,9 @@ const JobsList = () => {
   const handleDelete = async (jobId) => {
     try {
       setLoading(true);
-      
+
       const response = await api.delete(`/jobs/${jobId}`);
-      
+
       if (response.data.success) {
         alert('Job deleted successfully!');
         setDeleteConfirm(null);
@@ -66,6 +68,24 @@ const JobsList = () => {
     });
   };
 
+  if (showCreate) {
+    return (
+      <div>
+        <div className="mb-4">
+          <button
+            onClick={() => setShowCreate(false)}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            ← Back to Jobs
+          </button>
+        </div>
+
+        <JobCreation />
+      </div>
+    );
+  }
+
+
   if (loading && jobs.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -76,9 +96,21 @@ const JobsList = () => {
 
   return (
     <div className="p-6 bg-white shadow-custom max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-secondary">WhatsApp Jobs</h1>
-        <p className="text-gray-600 text-sm mt-1">View all scheduled messaging jobs</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-secondary">WhatsApp Jobs</h1>
+          <p className="text-gray-600 text-sm mt-1">
+            View all scheduled messaging jobs
+          </p>
+        </div>
+
+        {/* ✅ Create Job Button */}
+        <button
+          onClick={() => setShowCreate(true)}
+          className="px-6 py-2 bg-primary text-white rounded hover:bg-primary/90"
+        >
+          + Create Job
+        </button>
       </div>
 
       {error && (
@@ -165,7 +197,7 @@ const JobsList = () => {
                       </button>
                     </td>
                   </tr>
-                  
+
                   {/* Delete Confirmation Row */}
                   {deleteConfirm === job.id && (
                     <tr>
