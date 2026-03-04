@@ -118,8 +118,8 @@ const CounsellorCollection = () => {
     fetchTransactions();
   }, []);
 
-  const handleProofUpload = async () => {
-    const imageUrl = await paymentProof.uploadImage();
+  const handleProofUpload = async (type) => {
+    const imageUrl = await paymentProof.uploadImage(type);
     if (imageUrl) {
       setFormData({ ...formData, proofUrl: imageUrl });
     }
@@ -304,7 +304,7 @@ const CounsellorCollection = () => {
                     error={paymentProof.error}
                     loader={paymentProof.loader}
                     isSaved={paymentProof.isSaved}
-                    imageType="proof"
+                    imageType="collection"
                     onFileUpload={paymentProof.handleFileUpload}
                     onUploadImage={handleProofUpload}
                     onRemovePhoto={paymentProof.removePhoto}

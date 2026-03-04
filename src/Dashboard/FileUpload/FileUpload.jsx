@@ -8,7 +8,7 @@ const FileUpload = ({
   error,
   loader,
   isSaved,
-  imageType = "passport",
+  imageType = "photo",
   onFileUpload,
   onUploadImage,
   onRemovePhoto,
@@ -148,8 +148,8 @@ const FileUpload = ({
             <>
               {!isDocument && (
                 <img src={imageUrl} alt={title}
-                  className={`rounded-md mb-4 ${imageType === 'passport' ? 'w-48 h-auto' : 'w-full max-w-xs h-auto'}`}
-                  style={{ aspectRatio: imageType === 'passport' ? '3/4' : 'auto' }}
+                  className={`rounded-md mb-4 ${imageType === 'students' ? 'w-48 h-auto' : 'w-full max-w-xs h-auto'}`}
+                  style={{ aspectRatio: imageType === 'students' ? '3/4' : 'auto' }}
                 />
               )}
               <div className="flex space-x-4 w-full justify-center">
@@ -159,7 +159,7 @@ const FileUpload = ({
                     Remove {title}
                   </button>
                 )}
-                <button type="button" onClick={onUploadImage} disabled={isSaved || loader}
+                <button type="button" onClick={() => onUploadImage(imageType)} disabled={isSaved || loader}
                   className="px-4 py-2 min-w-28 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50">
                   {isSaved ? `${title} Saved`
                     : loader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block" />

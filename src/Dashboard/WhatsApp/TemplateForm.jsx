@@ -116,8 +116,8 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
   // =========================
   // Upload Header File
   // =========================
-  const handleHeaderFileUpload = async () => {
-    const uploadedUrl = await headerFile.uploadImage();
+  const handleHeaderFileUpload = async (type) => {
+    const uploadedUrl = await headerFile.uploadImage(type);
 
     if (uploadedUrl) {
       setFormData((prev) => ({ ...prev, headerFileUrl: uploadedUrl }));
@@ -269,7 +269,7 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
               error={headerFile.error}
               loader={headerFile.loader}
               isSaved={headerFile.isSaved || !!formData.headerFileUrl}
-              imageType={formData.header_type}
+              imageType={formData.header_type === "image" ? "template" : "document"}
               onFileUpload={headerFile.handleFileUpload}
               onUploadImage={handleHeaderFileUpload}
               onRemovePhoto={() => {

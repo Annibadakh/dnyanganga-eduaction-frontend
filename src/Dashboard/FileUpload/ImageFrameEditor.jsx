@@ -3,7 +3,7 @@ import { RotateCcw, RotateCw, Check, X, CropIcon } from 'lucide-react';
 
 // Default aspect ratios per image type
 const ASPECT_RATIOS = {
-  passport: { w: 3, h: 4, label: '3:4' },
+  students: { w: 3, h: 4, label: '3:4' },
   receipt:  { w: 4, h: 3, label: '4:3' },
   document: { w: 210, h: 297, label: 'A4' },
   photo:    { w: 4, h: 3, label: '4:3' },
@@ -12,7 +12,7 @@ const ASPECT_RATIOS = {
 
 const HANDLE_RADIUS = 14; // large enough for mobile touch
 
-export default function ImageFrameEditor({ imageSrc, imageType = 'passport', onConfirm, onCancel }) {
+export default function ImageFrameEditor({ imageSrc, imageType = 'photo', onConfirm, onCancel }) {
   const canvasRef     = useRef(null);
   const containerRef  = useRef(null);
   const imgRef        = useRef(null);

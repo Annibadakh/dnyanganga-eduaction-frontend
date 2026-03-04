@@ -63,8 +63,8 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
     };
 
     // Handle receipt photo upload same as RegistrationForm pattern
-    const handleReceiptPhotoUpload = async () => {
-        const imageUrl = await receiptPhoto.uploadImage();
+    const handleReceiptPhotoUpload = async (type) => {
+        const imageUrl = await receiptPhoto.uploadImage(type);
         if (imageUrl) {
             setFormData({ ...formData, receiptPhoto: imageUrl });
         }

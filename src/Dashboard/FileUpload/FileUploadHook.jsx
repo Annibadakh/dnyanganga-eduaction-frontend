@@ -39,17 +39,15 @@ export const FileUploadHook = () => {
     if (selectedFile.type.startsWith("image/")) {
       try {
         const options = {
-          maxSizeMB: 0.15,       // 150 KB target
+          maxSizeMB: 0.3, // 300 KB target
           useWebWorker: true,
         };
 
         const compressedFile = await imageCompression(selectedFile, options);
         const ext = selectedFile.name.split(".").pop() || "jpg";
-        const renamedFile = new File(
-          [compressedFile],
-          `${Date.now()}.${ext}`,
-          { type: compressedFile.type }
-        );
+        const renamedFile = new File([compressedFile], `${Date.now()}.${ext}`, {
+          type: compressedFile.type,
+        });
 
         setFile(renamedFile);
         setImageUrl(URL.createObjectURL(renamedFile));
@@ -63,12 +61,13 @@ export const FileUploadHook = () => {
     }
   };
 
-  const uploadImage = async () => {
+  const uploadImage = async (type) => {
     if (!file) return null;
 
     setLoader(true);
 
     const imageData = new FormData();
+    imageData.append("type", type);
     imageData.append("file", file);
 
     try {
