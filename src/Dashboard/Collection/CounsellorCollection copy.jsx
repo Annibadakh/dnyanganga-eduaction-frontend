@@ -254,7 +254,7 @@ const CounsellorCollection = () => {
                 error={paymentProof.error}
                 loader={paymentProof.loader}
                 isSaved={paymentProof.isSaved}
-                imageType="proof"
+                imageType="collection"
                 onFileUpload={paymentProof.handleFileUpload}
                 onUploadImage={handleProofUpload}
                 onRemovePhoto={paymentProof.removePhoto}
