@@ -170,8 +170,8 @@ const FileUpload = ({
 
           ) : (
             <div className="w-full space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
+              <div className="flex flex-col flex-wrap sm:flex-row gap-4">
+                <div className="flex-1 min-w-40">
                   <input type="file" onChange={handleFileChange}
                     accept={isDocument ? '.pdf,.doc,.docx' : '.jpg,.jpeg,.png'}
                     className="w-full px-3 py-2 border rounded" />
