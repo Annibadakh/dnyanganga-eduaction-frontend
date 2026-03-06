@@ -501,12 +501,12 @@ const VisitingTable = () => {
                           >
                             View
                           </button>
-                          <button
+                          {user.role === "admin" && <button
                             onClick={() => handleEditVisit(visit)}
                             className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700 text-xs"
                           >
                             Edit
-                          </button>
+                          </button>}
                         </div>
                       </td>
                     </tr>
