@@ -1,40 +1,46 @@
 import React, { useState } from 'react';
 import { X, ZoomIn } from 'lucide-react';
+import img1 from "../Images/gallery/img5.jpg";
+import img2 from "../Images/gallery/img2.jpg";
+import img6 from "../Images/gallery/img6.jpg";
+
+import img7 from "../Images/gallery/img7.jpg";
+import img8 from "../Images/gallery/img8.jpg";
+import img9 from "../Images/gallery/img9.jpg";
 
 const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   const galleryImages = [
     {
-      src: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg',
+      src: img7,
       alt: 'Students during mock exam',
       category: 'Exams'
     },
     {
-      src: 'https://images.pexels.com/photos/5427674/pexels-photo-5427674.jpeg',
+      src: img8,
+      alt: 'Students during mock exam',
+      category: 'Exams'
+    },
+    {
+      src: img9,
+      alt: 'Students during mock exam',
+      category: 'Exams'
+    },
+    {
+      src: img1,
       alt: 'Expert lecture session',
       category: 'Seminars'
     },
     {
-      src: 'https://images.pexels.com/photos/5212700/pexels-photo-5212700.jpeg',
-      alt: 'Modern exam center',
-      category: 'Facilities'
+      src: img2,
+      alt: 'Expert lecture session',
+      category: 'Seminars'
+    },{
+      src: img6,
+      alt: 'Expert lecture session',
+      category: 'Seminars'
     },
-    {
-      src: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg',
-      alt: 'Award ceremony',
-      category: 'Events'
-    },
-    {
-      src: 'https://images.pexels.com/photos/5427659/pexels-photo-5427659.jpeg',
-      alt: 'Study material distribution',
-      category: 'Activities'
-    },
-    {
-      src: 'https://images.pexels.com/photos/4145190/pexels-photo-4145190.jpeg',
-      alt: 'Group study session',
-      category: 'Activities'
-    }
   ];
 
   return (
