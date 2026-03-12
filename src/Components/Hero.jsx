@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, BookOpen, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import img7 from "../Images/gallery/img7.jpg";
+import img15 from "../Images/gallery/img15.jpg";
+import img16 from "../Images/gallery/img16.jpg";
+
 
 const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -13,6 +17,14 @@ const Hero = () => {
         "Join thousands of students who have achieved their academic goals through our comprehensive mock board exam programs.",
       image:
         "https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg",
+    },
+    {
+      title: "Expert Career Guidance Seminars",
+      subtitle: "Choose the Right Career Path After 10th & 12th",
+      description:
+        "Attend seminars conducted by experienced educators and industry experts to explore career opportunities, streams, and future paths after your board exams.",
+      image:
+        img15,
     },
     {
       title: "Comprehensive Study Materials",
@@ -28,8 +40,17 @@ const Hero = () => {
       description:
         "Take your mock exams at our strategically located centers with state-of-the-art facilities.",
       image:
-        "https://images.pexels.com/photos/5212700/pexels-photo-5212700.jpeg",
+        img7,
     },
+    {
+      title: "Scholarships for Top Performers",
+      subtitle: "Rewards for Overall & Center Toppers",
+      description:
+        "We recognize academic excellence by awarding scholarships to overall toppers and center toppers in our mock board examinations, motivating students to achieve their best.",
+      image:
+        img16,
+    },
+
   ];
 
   useEffect(() => {
@@ -57,9 +78,8 @@ const Hero = () => {
       {slides.map((slide, index) => (
         <div
           key={index}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === currentSlide ? "opacity-100" : "opacity-0"
-          }`}
+          className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"
+            }`}
         >
           <div
             className="w-full h-full bg-cover bg-center bg-no-repeat"
@@ -114,11 +134,10 @@ const Hero = () => {
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === currentSlide
-                ? "bg-secondary"
-                : "bg-white bg-opacity-50"
-            }`}
+            className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentSlide
+              ? "bg-secondary"
+              : "bg-white bg-opacity-50"
+              }`}
           />
         ))}
       </div>
