@@ -276,8 +276,8 @@ const RegistrationForm = () => {
   };
 
   // Handle file uploads with form data update
-  const handleStudentPhotoUpload = async () => {
-    const imageUrl = await studentPhoto.uploadImage();
+  const handleStudentPhotoUpload = async (type) => {
+    const imageUrl = await studentPhoto.uploadImage(type);
     if (imageUrl && imageUrl.trim() !== '') {
       setFormData(prevData => ({ ...prevData, studentPhoto: imageUrl }));
     } else {
@@ -285,8 +285,8 @@ const RegistrationForm = () => {
     }
   };
 
-  const handleReceiptPhotoUpload = async () => {
-    const imageUrl = await receiptPhoto.uploadImage();
+  const handleReceiptPhotoUpload = async (type) => {
+    const imageUrl = await receiptPhoto.uploadImage(type);
     if (imageUrl && imageUrl.trim() !== '') {
       setFormData(prev => ({ ...prev, receiptPhoto: imageUrl }));
     } else {
@@ -756,7 +756,7 @@ const RegistrationForm = () => {
                   error={studentPhoto.error}
                   loader={studentPhoto.loader}
                   isSaved={studentPhoto.isSaved}
-                  imageType="passport"
+                  imageType="students"
                   onFileUpload={studentPhoto.handleFileUpload}
                   onUploadImage={handleStudentPhotoUpload}
                   onRemovePhoto={studentPhoto.removePhoto}

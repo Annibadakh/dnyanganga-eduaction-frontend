@@ -1,8 +1,13 @@
 import React, { useEffect, useState, Fragment, useRef } from "react";
 import api from "../../Api";
 import { Dialog, Transition } from "@headlessui/react";
+import EditTransactionModal from "./EditTransactionModal";
+import { useToast } from "../../useToast";
+import { Pencil, Trash2 } from "lucide-react";
 
 const AdminCollection = () => {
+  const { successToast, errorToast, infoToast } = useToast();
+
   const imgUrl = import.meta.env.VITE_IMG_URL;
   const [users, setUsers] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -14,7 +19,7 @@ const AdminCollection = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [remarkFilter, setRemarkFilter] = useState(""); // New remark filter
+  const [remarkFilter, setRemarkFilter] = useState("");
 
   // User dropdown states
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -24,6 +29,10 @@ const AdminCollection = () => {
   // Proof modal state
   const [showProofModal, setShowProofModal] = useState(false);
   const [selectedProofUrl, setSelectedProofUrl] = useState("");
+
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -37,7 +46,6 @@ const AdminCollection = () => {
   const fetchTransactions = async () => {
     try {
       const res = await api.get(`/counsellor/collection/AllTransactions`);
-      // console.log(res.data);
       setTransactions(res.data || []);
       setFilteredTransactions(res.data || []);
     } catch (err) {
@@ -76,21 +84,19 @@ const AdminCollection = () => {
     setStartDate("");
     setEndDate("");
     setStatusFilter("");
-    setRemarkFilter(""); // Clear remark filter
+    setRemarkFilter("");
     setFilteredTransactions(transactions);
   };
 
   const applyFilters = () => {
     let filtered = [...transactions];
 
-    // Filter by user
     if (selectedUser) {
-      filtered = filtered.filter(txn => txn.counsellorId === selectedUser);
+      filtered = filtered.filter((txn) => txn.counsellorId === selectedUser);
     }
 
-    // Filter by date range
     if (startDate) {
-      filtered = filtered.filter(txn => {
+      filtered = filtered.filter((txn) => {
         const txnDate = new Date(txn.paymentDate);
         const start = new Date(startDate);
         return txnDate >= start;
@@ -98,26 +104,22 @@ const AdminCollection = () => {
     }
 
     if (endDate) {
-      filtered = filtered.filter(txn => {
+      filtered = filtered.filter((txn) => {
         const txnDate = new Date(txn.paymentDate);
         const end = new Date(endDate);
         return txnDate <= end;
       });
     }
 
-    // Filter by status
     if (statusFilter) {
-      filtered = filtered.filter(txn => txn.verifyStatus === statusFilter);
+      filtered = filtered.filter((txn) => txn.verifyStatus === statusFilter);
     }
 
-    // Filter by remark
     if (remarkFilter) {
-      filtered = filtered.filter(txn => {
+      filtered = filtered.filter((txn) => {
         if (remarkFilter === "Other") {
-          // For "Other", check if remark starts with "Other:"
           return txn.remark && txn.remark.startsWith("Other:");
         } else {
-          // For specific options, match exactly
           return txn.remark === remarkFilter;
         }
       });
@@ -127,9 +129,9 @@ const AdminCollection = () => {
   };
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -140,62 +142,90 @@ const AdminCollection = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [selectedUser, startDate, endDate, statusFilter, remarkFilter, transactions]); // Added remarkFilter dependency
+  }, [
+    selectedUser,
+    startDate,
+    endDate,
+    statusFilter,
+    remarkFilter,
+    transactions,
+  ]);
 
   const handleViewProof = (url) => {
     if (url) {
       setSelectedProofUrl(`${imgUrl}${url}`);
       setShowProofModal(true);
     } else {
-      alert("No proof image available.");
+      infoToast("No proof image available.");
     }
+  };
+
+  const handleEditTransaction = (txn) => {
+    setSelectedTransaction(txn);
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = () => {
+    fetchTransactions();
   };
 
   const changeStatus = async (id, status) => {
-    // console.log(id, status);
     try {
-      const res = await api.put(`/counsellor/collection/verifyPayment/${id}`, { status });
-      alert(res.data.message);
+      const res = await api.put(`/counsellor/collection/verifyPayment/${id}`, {
+        status,
+      });
+      successToast(res.data.message);
       fetchTransactions();
     } catch (err) {
       console.error("Error changing status", err);
-      alert("Error changing status");
+      errorToast("Error changing status");
     }
   };
 
-  // Calculate statistics based on filtered transactions
   const calculateStats = () => {
-    const stats = filteredTransactions.reduce((acc, txn) => {
-      const amount = parseFloat(txn.amountPaid) || 0;
-      acc.totalAmount += amount;
-      
-      if (txn.verifyStatus === 'verified') {
-        acc.approvedAmount += amount;
-      } else if (txn.verifyStatus === 'rejected') {
-        acc.rejectedAmount += amount;
-      } else {
-        acc.pendingAmount += amount;
-      }
-      
-      return acc;
-    }, {
-      totalAmount: 0,
-      pendingAmount: 0,
-      approvedAmount: 0,
-      rejectedAmount: 0
-    });
+    const stats = filteredTransactions.reduce(
+      (acc, txn) => {
+        const amount = parseFloat(txn.amountPaid) || 0;
+        acc.totalAmount += amount;
+
+        if (txn.verifyStatus === "verified") {
+          acc.approvedAmount += amount;
+        } else if (txn.verifyStatus === "rejected") {
+          acc.rejectedAmount += amount;
+        } else {
+          acc.pendingAmount += amount;
+        }
+
+        return acc;
+      },
+      {
+        totalAmount: 0,
+        pendingAmount: 0,
+        approvedAmount: 0,
+        rejectedAmount: 0,
+      },
+    );
 
     return stats;
   };
 
   const stats = calculateStats();
 
-  // Filter users by search within dropdown
   const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(userSearch.toLowerCase())
+    u.name.toLowerCase().includes(userSearch.toLowerCase()),
   );
 
-  
+  const handleDelete = async (id) => {
+    console.log("Delete transaction with ID:", id);
+    try {
+      await api.delete(`/counsellor/collection/deleteTransaction/${id}`);
+      successToast("Transaction deleted successfully");
+      fetchTransactions();
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      errorToast("Error deleting transaction");
+    }
+  };
 
   return (
     <div className="p-4 container mx-auto">
@@ -205,30 +235,33 @@ const AdminCollection = () => {
 
       {/* Filters Section */}
       <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
-        <h2 className="text-xl font-semibold text-secondary mb-4">
-          Filters
-        </h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4"> {/* Changed to 5 columns */}
+        <h2 className="text-xl font-semibold text-secondary mb-4">Filters</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
           {/* User Selection Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Select Counsellor
             </label>
-            <div 
+            <div
               onClick={toggleDropdown}
               className="w-full p-2 border rounded-md cursor-pointer bg-white flex justify-between items-center hover:border-gray-400"
             >
               <span className={selectedUser ? "text-black" : "text-gray-500"}>
                 {selectedUserName || "-- Select Counsellor --"}
               </span>
-              <svg 
-                className={`w-5 h-5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className={`w-5 h-5 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </div>
 
@@ -244,9 +277,9 @@ const AdminCollection = () => {
                     autoFocus
                   />
                 </div>
-                
+
                 <div className="max-h-40 overflow-y-auto">
-                  <div 
+                  <div
                     onClick={() => handleSelectUser("", "")}
                     className="p-2 hover:bg-gray-100 cursor-pointer text-gray-500"
                   >
@@ -258,7 +291,9 @@ const AdminCollection = () => {
                         key={user.uuid}
                         onClick={() => handleSelectUser(user.uuid, user.name)}
                         className={`p-2 hover:bg-gray-100 cursor-pointer ${
-                          selectedUser === user.uuid ? 'bg-blue-50 text-blue-600' : ''
+                          selectedUser === user.uuid
+                            ? "bg-blue-50 text-blue-600"
+                            : ""
                         }`}
                       >
                         {user.name}
@@ -317,7 +352,7 @@ const AdminCollection = () => {
             </select>
           </div>
 
-          {/* Remark Filter - NEW */}
+          {/* Remark Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Remark
@@ -358,12 +393,27 @@ const AdminCollection = () => {
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium">Total Amount</p>
-                <p className="text-2xl font-bold">₹{stats.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+                <p className="text-blue-100 text-sm font-medium">
+                  Total Amount
+                </p>
+                <p className="text-2xl font-bold">
+                  ₹
+                  {stats.totalAmount.toLocaleString("en-IN", {
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
               </div>
               <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
             </div>
@@ -373,12 +423,27 @@ const AdminCollection = () => {
           <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-4 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-yellow-100 text-sm font-medium">Pending Amount</p>
-                <p className="text-2xl font-bold">₹{stats.pendingAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+                <p className="text-yellow-100 text-sm font-medium">
+                  Pending Amount
+                </p>
+                <p className="text-2xl font-bold">
+                  ₹
+                  {stats.pendingAmount.toLocaleString("en-IN", {
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
               </div>
               <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
             </div>
@@ -388,12 +453,27 @@ const AdminCollection = () => {
           <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm font-medium">Approved Amount</p>
-                <p className="text-2xl font-bold">₹{stats.approvedAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+                <p className="text-green-100 text-sm font-medium">
+                  Approved Amount
+                </p>
+                <p className="text-2xl font-bold">
+                  ₹
+                  {stats.approvedAmount.toLocaleString("en-IN", {
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
               </div>
               <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
             </div>
@@ -403,12 +483,27 @@ const AdminCollection = () => {
           <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-lg shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-red-100 text-sm font-medium">Rejected Amount</p>
-                <p className="text-2xl font-bold">₹{stats.rejectedAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+                <p className="text-red-100 text-sm font-medium">
+                  Rejected Amount
+                </p>
+                <p className="text-2xl font-bold">
+                  ₹
+                  {stats.rejectedAmount.toLocaleString("en-IN", {
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
               </div>
               <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
             </div>
@@ -428,21 +523,32 @@ const AdminCollection = () => {
                 <tr>
                   <th className="p-2 border whitespace-nowrap">Sr. No.</th>
                   <th className="p-2 border whitespace-nowrap">Date</th>
-                  <th className="p-2 border whitespace-nowrap">Counsellor Name</th>
+                  <th className="p-2 border whitespace-nowrap">
+                    Counsellor Name
+                  </th>
                   <th className="p-2 border whitespace-nowrap">Amount Paid</th>
                   <th className="p-2 border whitespace-nowrap">Remark</th>
                   <th className="p-2 border whitespace-nowrap">Proof</th>
                   <th className="p-2 border whitespace-nowrap">Status</th>
+                  <th className="p-2 border whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTransactions.map((txn, idx) => (
                   <tr key={idx} className="hover:bg-gray-100">
-                    <td className="p-2 border whitespace-nowrap">{idx+1}</td>
-                    <td className="p-2 border whitespace-nowrap">{new Date(txn.paymentDate).toLocaleDateString('en-GB')}</td>
-                    <td className="p-2 border whitespace-nowrap">{txn.User.name}</td>
-                    <td className="p-2 border whitespace-nowrap">₹{txn.amountPaid.toLocaleString('en-IN')}</td>
-                    <td className="p-2 border whitespace-nowrap">{txn.remark}</td>
+                    <td className="p-2 border whitespace-nowrap">{idx + 1}</td>
+                    <td className="p-2 border whitespace-nowrap">
+                      {new Date(txn.paymentDate).toLocaleDateString("en-GB")}
+                    </td>
+                    <td className="p-2 border whitespace-nowrap">
+                      {txn.User.name}
+                    </td>
+                    <td className="p-2 border whitespace-nowrap">
+                      ₹{txn.amountPaid.toLocaleString("en-IN")}
+                    </td>
+                    <td className="p-2 border whitespace-nowrap">
+                      {txn.remark}
+                    </td>
                     <td className="p-2 border whitespace-nowrap">
                       {txn.proofUrl ? (
                         <button
@@ -456,26 +562,47 @@ const AdminCollection = () => {
                       )}
                     </td>
                     <td className="p-2 border whitespace-nowrap">
-                      {txn.verifyStatus == 'verified' ? (
-                        <span className="text-green-600 font-semibold">Approved</span>
-                      ) : (txn.verifyStatus == "rejected" ? (
-                        <span className="text-red-600 font-semibold">Rejected</span>
+                      {txn.verifyStatus == "verified" ? (
+                        <span className="text-green-600 font-semibold">
+                          Approved
+                        </span>
+                      ) : txn.verifyStatus == "rejected" ? (
+                        <span className="text-red-600 font-semibold">
+                          Rejected
+                        </span>
                       ) : (
                         <div className="space-x-2">
-                          <button 
+                          <button
                             onClick={() => changeStatus(txn.id, "verified")}
                             className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
                           >
                             Approve
                           </button>
-                          <button 
+                          <button
                             onClick={() => changeStatus(txn.id, "rejected")}
                             className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
                           >
                             Reject
                           </button>
                         </div>
-                      ))}
+                      )}
+                    </td>
+                    <td className="p-2 border flex gap-2 whitespace-nowrap">
+                      <button
+                        onClick={() => handleEditTransaction(txn)}
+                        className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center gap-1 mx-auto"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(txn.id)}
+                        className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center gap-1 mx-auto"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -485,7 +612,9 @@ const AdminCollection = () => {
         </div>
       ) : (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6 text-center">
-          <p className="text-gray-600">No transactions found matching the selected filters!</p>
+          <p className="text-gray-600">
+            No transactions found matching the selected filters!
+          </p>
         </div>
       )}
 
@@ -548,6 +677,14 @@ const AdminCollection = () => {
           </div>
         </Dialog>
       </Transition>
+
+      {/* Edit Transaction Modal */}
+      <EditTransactionModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        transaction={selectedTransaction}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 };

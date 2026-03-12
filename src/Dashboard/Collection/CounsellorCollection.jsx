@@ -4,9 +4,11 @@ import { useAuth } from "../../Context/AuthContext";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
 import { Dialog, Transition } from "@headlessui/react";
+import {useToast} from "../../useToast";
 
 const CounsellorCollection = () => {
   const { user } = useAuth();
+  const {successToast, errorToast, infoToast} = useToast();
   const [collection, setCollection] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -118,8 +120,8 @@ const CounsellorCollection = () => {
     fetchTransactions();
   }, []);
 
-  const handleProofUpload = async () => {
-    const imageUrl = await paymentProof.uploadImage();
+  const handleProofUpload = async (type) => {
+    const imageUrl = await paymentProof.uploadImage(type);
     if (imageUrl) {
       setFormData({ ...formData, proofUrl: imageUrl });
     }
@@ -133,7 +135,7 @@ const CounsellorCollection = () => {
 
   const handleSettle = async (e) => {
     e.preventDefault();
-    console.log("sending collection");
+    // console.log("sending collection");
     // if (collection) return;
 
     const value = parseFloat(settleAmount);
@@ -159,7 +161,7 @@ const CounsellorCollection = () => {
         paymentDate,
       };
       await api.post("/counsellor/myCollection/settle", payload);
-      alert("Collection submitted successfully!");
+      successToast("Collection submitted successfully!");
       setSettleAmount("");
       setRemark("");
       setPaymentDate("");
@@ -182,7 +184,8 @@ const CounsellorCollection = () => {
       setSelectedReceiptUrl(`${imgUrl}${url}`);
       setShowReceiptModal(true);
     } else {
-      alert("No proof available.");
+      infoToast("No proof available.");
+
     }
   };
 
@@ -304,7 +307,7 @@ const CounsellorCollection = () => {
                     error={paymentProof.error}
                     loader={paymentProof.loader}
                     isSaved={paymentProof.isSaved}
-                    imageType="proof"
+                    imageType="collection"
                     onFileUpload={paymentProof.handleFileUpload}
                     onUploadImage={handleProofUpload}
                     onRemovePhoto={paymentProof.removePhoto}

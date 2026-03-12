@@ -376,7 +376,7 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                           error={studentPhoto.error}
                           loader={studentPhoto.loader}
                           isSaved={studentPhoto.isSaved}
-                          imageType="passport"
+                          imageType="students"
                           onFileUpload={studentPhoto.handleFileUpload}
                           onUploadImage={handleStudentPhotoUpload}
                           onRemovePhoto={studentPhoto.removePhoto}
