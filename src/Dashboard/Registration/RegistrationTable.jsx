@@ -326,9 +326,11 @@ const RegistrationTable = () => {
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [loadingDeleteId, setLoadingDeleteId] = useState(null);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
+  const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
 
-  const { counsellor, examCenter, counsellorBranch } = useContext(DashboardContext);
-
+  const { counsellor, examCenter, counsellorBranch } =
+    useContext(DashboardContext);
 
   useEffect(() => {
     return () => {
@@ -370,6 +372,8 @@ const RegistrationTable = () => {
       status: selectedStatus,
       dateFrom: dateFrom,
       dateTo: dateTo,
+      onlyZeroRemaining,
+      onlyNonZeroRemaining,
     };
 
     api
@@ -403,6 +407,8 @@ const RegistrationTable = () => {
     dateTo,
     showPayment,
     showEditStudent,
+    onlyZeroRemaining,
+  onlyNonZeroRemaining,
   ]);
 
   useEffect(() => {
@@ -416,6 +422,8 @@ const RegistrationTable = () => {
     selectedStatus,
     dateFrom,
     dateTo,
+    onlyZeroRemaining,
+  onlyNonZeroRemaining
   ]);
 
   const handlePageChange = (page) => {
@@ -692,6 +700,31 @@ const RegistrationTable = () => {
               <option value="inactive">Inactive</option>
             </select>
           </div>
+          <div className="flex flex-wrap gap-4 mb-5">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={onlyZeroRemaining}
+                  onChange={(e) => {
+                    setOnlyZeroRemaining(e.target.checked);
+                    if (e.target.checked) setOnlyNonZeroRemaining(false);
+                  }}
+                />
+                Amount Remaining = 0
+              </label>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={onlyNonZeroRemaining}
+                  onChange={(e) => {
+                    setOnlyNonZeroRemaining(e.target.checked);
+                    if (e.target.checked) setOnlyZeroRemaining(false);
+                  }}
+                />
+                Amount Remaining ≠ 0
+              </label>
+            </div>
 
           <div className="bg-white p-2 md:p-6 shadow-custom">
             {loading && <p className="text-customgray text-lg">Loading...</p>}

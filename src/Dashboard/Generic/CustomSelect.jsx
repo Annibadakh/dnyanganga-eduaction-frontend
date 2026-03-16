@@ -53,9 +53,9 @@ const CustomSelect = ({
     };
 
     return (
-        <div className="mb-3">
+        <div>
             {label && (
-                <label className="block mb-1">
+                <label className="block">
                     {label}
                 </label>
             )}
