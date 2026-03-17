@@ -1,12 +1,13 @@
 import { useState, useEffect, useContext } from "react";
 import api from "../../Api";
 import BulkHallTicketGenerator from "./BulkHallTicketGenerator";
-import { FileText, RefreshCw, ArrowRightCircle } from "lucide-react";
+import { FileText, RefreshCw, ArrowRightCircle, Plus, Save, X, SaveAll, Edit } from "lucide-react";
 import { DashboardContext } from "../../Context/DashboardContext";
-import {useToast} from "../../useToast"
+import { useToast } from "../../useToast"
+import Button from "../Generic/Button";
 
 export default function AddCenter() {
-  const { getExamCenter} = useContext(DashboardContext);
+  const { getExamCenter } = useContext(DashboardContext);
   const { successToast, errorToast, infoToast } = useToast();
   const [centers, setCenters] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -131,12 +132,13 @@ export default function AddCenter() {
       </h1>
 
       {!showForm && (
-        <button
+
+        <Button
           onClick={() => setShowForm(true)}
-          className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          startIcon={<Plus size={16} />}
         >
           Add Centre
-        </button>
+        </Button>
       )}
 
       {showForm && (
@@ -180,19 +182,23 @@ export default function AddCenter() {
               />
             </div>
             <div className="flex space-x-2">
-              <button
+
+              <Button
                 type="submit"
                 disabled={submitLoader}
-                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:opacity-50"
+                loading={submitLoader}
+                startIcon={<Save size={16} />}
               >
-                {submitLoader ? "Submitting..." : "Submit"}
-              </button>
-              <button
+                Submit
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => setShowForm(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                disabled={submitLoader}
+                startIcon={<X size={16} />}
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -252,50 +258,55 @@ export default function AddCenter() {
                     <td className="p-3 border whitespace-nowrap">
                       <div className="flex justify-center gap-2">
                         {editId === center.centerId ? (
-                          <button
+
+                          <Button
                             onClick={() => handleSaveEdit(center.centerId)}
                             disabled={updateLoader === center.centerId}
-                            className="bg-green-500 text-white px-3 py-1 rounded-md"
+                            loading={updateLoader === center.centerId}
+                            variant="success"
+                            startIcon={<SaveAll size={16} />}
                           >
                             Save
-                          </button>
+                          </Button>
                         ) : (
                           <>
-                            <button
+                            <Button
+                              variant="warning"
                               onClick={() => handleEdit(center)}
-                              className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600"
+                              startIcon={<Edit size={16} />}
                             >
                               Edit
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button
                               onClick={() => {
                                 setSelectedCenterId(center.centerId);
                                 setShowBulkGenerator(true);
                               }}
-                              className="bg-primary text-white px-3 py-1 rounded-md hover:bg-blue-800 flex items-center gap-1"
+                              startIcon={<FileText size={16} />}
                             >
-                              <FileText className="w-4 h-4" /> Tickets
-                            </button>
+                              Tickets
+                            </Button>
 
-                            {/* 🔹 New Buttons for Seat Number Generation */}
-                            <button
-                              onClick={() => handleResetSeatNumbers(center.centerId)}
+                            <Button
+                            variant="danger"
+                            onClick={() => handleResetSeatNumbers(center.centerId)}
                               disabled={algoLoader === center.centerId}
-                              className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 flex items-center gap-1"
-                            >
-                              <RefreshCw className="w-4 h-4" />
-                              {algoLoader === center.centerId ? "Processing..." : "Reset Algo"}
-                            </button>
+                              loading={algoLoader === center.centerId}
+                              startIcon={<RefreshCw size={16} />}
+                              >
+                              Reset Algo
+                            </Button>
 
-                            <button
-                              onClick={() => handleContinueSeatNumbers(center.centerId)}
+                            <Button
+                            variant="success"
+                            onClick={() => handleContinueSeatNumbers(center.centerId)}
                               disabled={algoLoader === center.centerId}
-                              className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 flex items-center gap-1"
+                              loading={algoLoader === center.centerId}
+                              startIcon={<ArrowRightCircle size={16} />}
                             >
-                              <ArrowRightCircle className="w-4 h-4" />
-                              {algoLoader === center.centerId ? "Processing..." : "Continue Algo"}
-                            </button>
+                              Continue Algo
+                            </Button>
                           </>
                         )}
                       </div>

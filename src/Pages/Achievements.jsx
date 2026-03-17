@@ -1,56 +1,57 @@
 import React from 'react';
-import { Trophy, Award, Star, Users, TrendingUp, Medal } from 'lucide-react';
+import { Trophy, Star, Users, TrendingUp, Award, BookOpen, Target, MessageCircle, Compass, CheckCircle } from 'lucide-react';
 
 const Achievements = () => {
+
   const achievements = [
     {
       icon: Trophy,
-      title: 'State Board Toppers',
-      description: 'Our students consistently rank among the top performers in Maharashtra State Board examinations.',
-      stats: '150+ State Toppers',
-      image: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg'
+      title: 'State Topper Recognition',
+      description: 'Our students consistently rank among state toppers',
+      stat: '150+ Toppers'
     },
     {
-      icon: Medal,
-      title: 'District Level Recognition',
-      description: 'Multiple students achieving district-level rankings in their respective board examinations.',
-      stats: '300+ District Toppers',
-      image: 'https://images.pexels.com/photos/5427674/pexels-photo-5427674.jpeg'
+      icon: Award,
+      title: 'Student Success',
+      description: 'Celebrating the achievements and success of our students',
+      stat: '5000+ Successful Students'
     },
     {
       icon: Star,
-      title: 'Perfect Scores',
-      description: 'Students achieving 100% marks in individual subjects across various examinations.',
-      stats: '80+ Perfect Scores',
-      image: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg'
+      title: 'Success Rate',
+      description: 'Students achieving distinction in board exams',
+      stat: '92% Success'
     }
   ];
-
-  const awards = [
+  const highlights = [
     {
-      year: '2024',
-      title: 'Excellence in Education Award',
-      organization: 'Maharashtra Education Board',
-      description: 'Recognized for outstanding contribution to student preparation and academic excellence.'
+      icon: Trophy,
+      text: 'Outstanding board examination results, with students securing top ranks at the district and state levels.',
     },
     {
-      year: '2023',
-      title: 'Best Mock Exam Center',
-      organization: 'Educational Excellence Forum',
-      description: 'Awarded for maintaining highest standards in mock examination conduct.'
+      icon: Star,
+      text: 'State-level Top 10 rank holders, awarded prestigious scholarships for academic excellence.',
     },
     {
-      year: '2022',
-      title: 'Innovation in Teaching',
-      organization: 'State Educational Council',
-      description: 'Recognition for innovative teaching methodologies and student engagement techniques.'
+      icon: TrendingUp,
+      text: 'High success rate in HSC examinations, reflecting systematic preparation and quality teaching.',
     },
     {
-      year: '2021',
-      title: 'Student Success Champion',
-      organization: 'Academic Achievement Society',
-      description: 'Honored for exceptional student success rates and academic performance.'
-    }
+      icon: BookOpen,
+      text: 'Successful implementation of state-level Pre-Board and Mock Board Examinations, helping students perform confidently in final exams.',
+    },
+    {
+      icon: Target,
+      text: 'Strong participation and performance in foundation and competitive exam-oriented test series, building a solid base for future careers.',
+    },
+    {
+      icon: MessageCircle,
+      text: 'Positive feedback from students and parents, highlighting improved conceptual clarity, discipline, and exam confidence.',
+    },
+    {
+      icon: Compass,
+      text: 'Proven track record of career guidance, helping students make informed academic and career choices.',
+    },
   ];
 
   const toppers = [
@@ -88,7 +89,7 @@ const Achievements = () => {
     }
   ];
 
-  const statistics = [
+  const stats = [
     { label: 'Overall Success Rate', value: '92%', icon: TrendingUp },
     { label: 'Students Scored 90+', value: '68%', icon: Star },
     { label: 'Perfect Attendees', value: '85%', icon: Users },
@@ -97,7 +98,8 @@ const Achievements = () => {
 
   return (
     <div className="">
-      {/* Hero Section */}
+
+      {/* ── Hero ── */}
       <section className="hero-gradient py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-customwhite">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 font-custom">Our Achievements</h1>
@@ -107,85 +109,54 @@ const Achievements = () => {
         </div>
       </section>
 
-      {/* Main Achievements */}
+      {/* ── Intro + Highlights ── */}
       <section className="py-16 bg-customwhite">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
-              Major Achievements
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Our commitment to excellence has resulted in remarkable student achievements
+
+          {/* Intro paragraph */}
+          <div className="max-w-3xl mx-auto text-center mb-14">
+            <p className="text-lg text-gray-600 leading-relaxed">
+              Over the years, we have consistently delivered strong academic results and meaningful
+              student success through structured learning, expert guidance, and a student-centric
+              approach.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {achievements.map((achievement, index) => (
-              <div key={index} className="bg-customwhite rounded-xl shadow-custom overflow-hidden">
-                <div className="relative h-48">
-                  <img
-                    src={achievement.image}
-                    alt={achievement.title}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* <div className="absolute inset-0 bg-primary bg-opacity-20"></div> */}
-                  <div className="absolute top-4 right-4">
-                    <achievement.icon className="w-8 h-8 text-customwhite" />
+          {/* Stats strip */}
+          <div className="bg-gradient-to-br from-tertiary to-fourthcolor rounded-2xl p-8 mb-14">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              {achievements.map((achievement, index) => (
+                <div
+                  key={index}
+                  className="bg-customwhite bg-opacity-10 backdrop-blur-sm rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-300"
+                >
+                  <div className="flex justify-center mb-4">
+                    <achievement.icon className="w-12 h-12 text-primary" />
                   </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-customblack mb-3">{achievement.title}</h3>
-                  <p className="text-gray-600 mb-4">{achievement.description}</p>
-                  <div className="text-2xl font-bold text-secondary">{achievement.stats}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Statistics */}
-          <div className="bg-gradient-to-br from-tertiary to-fourthcolor rounded-2xl p-8 mb-16">
-            <h3 className="text-2xl md:text-3xl font-bold text-customwhite text-center mb-8 font-custom">
-              Performance Statistics
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {statistics.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="flex justify-center mb-2">
-                    <stat.icon className="w-8 h-8 text-secondary" />
-                  </div>
-                  <div className="text-3xl font-bold text-customwhite mb-1">{stat.value}</div>
-                  <div className="text-sm text-customwhite opacity-90">{stat.label}</div>
+                  <h3 className="text-xl font-bold text-secondary mb-2">{achievement.title}</h3>
+                  <p className="text-primary opacity-90 mb-4">{achievement.description}</p>
+                  <div className="text-2xl font-bold text-secondary">{achievement.stat}</div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Awards & Recognition */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
-              Awards & Recognition
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Recognition from prestigious educational organizations
-            </p>
-          </div>
+          {/* Highlights grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {highlights.map((item, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-4 bg-customwhite rounded-xl shadow-custom p-6 hover:shadow-lg transition-shadow duration-200"
+              >
+                {/* Numbered badge */}
+                <div className="flex-shrink-0 w-11 h-11 rounded-full bg-gradient-to-br from-tertiary to-fourthcolor flex items-center justify-center text-customwhite font-bold text-sm">
+                  {String(i + 1).padStart(2, '0')}
+                </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {awards.map((award, index) => (
-              <div key={index} className="bg-customwhite rounded-xl shadow-custom p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-secondary text-customwhite rounded-full w-12 h-12 flex items-center justify-center font-bold">
-                    {award.year}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-customblack mb-2">{award.title}</h3>
-                    <p className="text-secondary font-medium mb-2">{award.organization}</p>
-                    <p className="text-gray-600">{award.description}</p>
-                  </div>
+                {/* Icon + Text */}
+                <div className="flex items-start gap-3">
+                  <item.icon className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
+                  <p className="text-gray-700 leading-relaxed">{item.text}</p>
                 </div>
               </div>
             ))}
@@ -193,8 +164,8 @@ const Achievements = () => {
         </div>
       </section>
 
-      {/* Top Performers */}
-      <section className="py-16 bg-customwhite">
+      {/* ── Top Performers (unchanged) ── */}
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
@@ -229,6 +200,7 @@ const Achievements = () => {
           </div>
         </div>
       </section>
+
     </div>
   );
 };

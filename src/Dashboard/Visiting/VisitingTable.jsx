@@ -6,107 +6,12 @@ import VisitingFormEdit from "./VisitingFormEdit";
 import CustomSelect from "../Generic/CustomSelect";
 import { DashboardContext } from "../../Context/DashboardContext";
 
-// Pagination Component
-const Pagination = ({
-  currentPage,
-  totalPages,
-  onPageChange,
-  totalItems,
-  itemsPerPage,
-  onItemsPerPageChange,
-}) => {
-  const getPageNumbers = () => {
-    const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
+import DataTable from "../Generic/DataTable";
+import Pagination from "../Generic/Pagination";
+import Button from "../Generic/Button";
+import { Eye, Edit } from "lucide-react";
 
-    for (
-      let i = Math.max(2, currentPage - delta);
-      i <= Math.min(totalPages - 1, currentPage + delta);
-      i++
-    ) {
-      range.push(i);
-    }
 
-    if (currentPage - delta > 2) {
-      rangeWithDots.push(1, "...");
-    } else {
-      rangeWithDots.push(1);
-    }
-
-    rangeWithDots.push(...range);
-
-    if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push("...", totalPages);
-    } else {
-      rangeWithDots.push(totalPages);
-    }
-
-    return rangeWithDots;
-  };
-
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-
-  return (
-    <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Show:</span>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-            className="border border-gray-300 rounded px-3 py-1 text-sm"
-          >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-          <span className="text-sm text-gray-600">per page</span>
-        </div>
-        <div className="text-sm text-gray-600">
-          Showing {startItem} to {endItem} of {totalItems} entries
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-
-        {getPageNumbers().map((page, index) => (
-          <button
-            key={index}
-            onClick={() => typeof page === "number" && onPageChange(page)}
-            disabled={page === "..."}
-            className={`px-3 py-2 text-sm border rounded ${
-              page === currentPage
-                ? "bg-primary text-white border-primary"
-                : page === "..."
-                  ? "cursor-default"
-                  : "border-gray-300 hover:bg-gray-50"
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const VisitingTable = () => {
   const { user } = useAuth();
@@ -137,11 +42,109 @@ const VisitingTable = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
-
-  
-
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
+  const columns = [
+    {
+      header: "Sr. No.",
+      render: (_, index) =>
+        (currentPage - 1) * itemsPerPage + index + 1,
+    },
+    {
+      header: "Visit Date",
+      render: (row) =>
+        new Date(row.createdAt).toLocaleDateString("en-GB"),
+    },
+    {
+      header: "Visit Time",
+      render: (row) => formatTimeTo12Hour(row.createdAt),
+    },
+    {
+      header: "Student Name",
+      accessor: "studentName",
+    },
+    {
+      header: "Standard",
+      accessor: "standard",
+    },
+    {
+      header: "Med/Grp",
+      accessor: "branch",
+    },
+    {
+      header: "Student No.",
+      accessor: "studentNo",
+    },
+    {
+      header: "Parent No.",
+      accessor: "parentsNo",
+    },
+    {
+      header: "Demo",
+      accessor: "demoGiven",
+    },
+    {
+      header: "Reason",
+      accessor: "reason",
+    },
+
+    ...(user.role === "admin"
+      ? [
+        {
+          header: "Counsellor Name",
+          render: (row) => row.User?.name,
+        },
+        {
+          header: "Counsellor Branch",
+          render: (row) => row.User?.counsellorBranch,
+        },
+      ]
+      : []),
+
+    ...(user.role === "admin" || user.role === "followUp"
+      ? [
+        {
+          header: "Follow-up",
+          render: (row) => (
+            <input
+              type="checkbox"
+              checked={row.followUp || false}
+              onChange={() =>
+                handleFollowUpChange(row.id, row.followUp)
+              }
+              className="w-5 h-5 cursor-pointer accent-primary"
+            />
+          ),
+        },
+      ]
+      : []),
+
+    {
+      header: "Actions",
+      render: (row) => (
+        <div className="flex gap-2 justify-center flex-nowrap">
+
+          <Button
+            variant="info"
+            startIcon={<Eye size={16} />}
+            onClick={() => handleViewVisit(row)}
+          >
+            View
+          </Button>
+
+          {user.role === "admin" && (
+            <Button
+              variant="success"
+              startIcon={<Edit size={16} />}
+              onClick={() => handleEditVisit(row)}
+            >
+              Edit
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
 
   useEffect(() => {
@@ -363,176 +366,46 @@ const VisitingTable = () => {
         </div>
         {(user.role === "admin" || user.role === "followUp") && (
           <div className="flex flex-col md:flex-row gap-4">
-           <CustomSelect
-                  options={users}
-                  value={selectedCounsellor}
-                  onChange={setSelectedCounsellor}
-                  isRequired={false}
-                  placeholder="Select Counsellors"
-                />
+            <CustomSelect
+              options={users}
+              value={selectedCounsellor}
+              onChange={setSelectedCounsellor}
+              isRequired={false}
+              placeholder="Select Counsellors"
+            />
 
-                <CustomSelect
-                  options={branch}
-                  value={selectedBranch}
-                  onChange={setSelectedBranch}
-                  isRequired={false}
-                  placeholder="Select Branch"
-                />
+            <CustomSelect
+              options={branch}
+              value={selectedBranch}
+              onChange={setSelectedBranch}
+              isRequired={false}
+              placeholder="Select Branch"
+            />
 
           </div>
         )}
       </div>
 
-      {/* Table */}
-      <div className="bg-white md:p-6 p-2 shadow-custom">
-        {loading && <p className="text-customgray text-lg">Loading...</p>}
-        {error && <p className="text-red-500 text-lg">{error}</p>}
 
-        {!loading && !error && visitingData.length > 0 ? (
-          <>
-            <div className="overflow-x-auto">
-              <table className="table-auto w-full border text-center border-customgray overflow-hidden shadow-lg text-sm">
-                <thead className="bg-primary text-customwhite uppercase tracking-wider">
-                  <tr>
-                    <th className="p-3 text-left border whitespace-nowrap">
-                      Sr. No.
-                    </th>
-                    <th className="p-3 border text-left whitespace-nowrap">
-                      Visit Date
-                    </th>
-                    <th className="p-3 border whitespace-nowrap">Visit Time</th>
-                    <th className="p-3 border whitespace-nowrap">
-                      Student Name
-                    </th>
-                    <th className="p-3 border whitespace-nowrap">Standard</th>
-                    <th className="p-3 border whitespace-nowrap">Med/Grp</th>
-                    <th className="p-3 border whitespace-nowrap">
-                      Student No.
-                    </th>
-                    <th className="p-3 border whitespace-nowrap">Parent No.</th>
-                    <th className="p-3 border whitespace-nowrap">Demo</th>
-                    <th className="p-3 border whitespace-nowrap">Reason</th>
-                    {user.role === "admin" && (
-                      <>
-                        <th className="p-3 border whitespace-nowrap">
-                          Counsellor Name
-                        </th>
-                        <th className="p-3 border whitespace-nowrap">
-                          Counsellor Branch
-                        </th>
-                      </>
-                    )}
-                    {(user.role === "admin" || user.role === "followUp") && (
-                      <th className="p-3 border whitespace-nowrap">
-                        Follow-up
-                      </th>
-                    )}
-                    <th className="p-3 border whitespace-nowrap">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="text-customblack">
-                  {visitingData.map((visit, index) => (
-                    <tr
-                      key={visit.id}
-                      className="border-b border-gray-200 hover:bg-gray-100 transition"
-                    >
-                      <td className="p-3 border whitespace-nowrap">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {new Date(visit.createdAt).toLocaleDateString("en-GB")}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {formatTimeTo12Hour(visit.createdAt)}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {visit.studentName}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {visit.standard}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {visit.branch}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {visit.studentNo}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {visit.parentsNo}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {visit.demoGiven}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {visit.reason}
-                      </td>
-                      {user.role === "admin" && (
-                        <>
-                          <td className="p-3 border whitespace-nowrap">
-                            {visit.User.name}
-                          </td>
-                          <td className="p-3 border whitespace-nowrap">
-                            {visit.User.counsellorBranch}
-                          </td>
-                        </>
-                      )}
-                      {(user.role === "admin" || user.role === "followUp") && (
-                        <td className="p-3 border whitespace-nowrap">
-                          <input
-                            type="checkbox"
-                            checked={visit.followUp || false}
-                            onChange={() =>
-                              handleFollowUpChange(visit.id, visit.followUp)
-                            }
-                            className="w-5 h-5 cursor-pointer accent-primary"
-                            title={
-                              visit.followUp
-                                ? "Follow-up completed"
-                                : "Mark follow-up as done"
-                            }
-                          />
-                        </td>
-                      )}
-                      <td className="p-3 border whitespace-nowrap">
-                        <div className="flex gap-2 justify-center">
-                          <button
-                            onClick={() => handleViewVisit(visit)}
-                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs"
-                          >
-                            View
-                          </button>
-                          {user.role === "admin" && <button
-                            onClick={() => handleEditVisit(visit)}
-                            className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700 text-xs"
-                          >
-                            Edit
-                          </button>}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
 
-            {/* Pagination Component */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              totalItems={totalCount}
-              itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={handleItemsPerPageChange}
-            />
-          </>
-        ) : (
-          !loading && (
-            <p className="text-lg text-customgray">
-              No visiting records found.
-            </p>
-          )
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        data={visitingData}
+        loading={loading}
+        error={error}
+        rowKey="id"
+        emptyMessage="No visiting records found."
+      />
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalCount}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+      />
+
 
       {/* View Modal */}
       {showViewModal && selectedVisit && (

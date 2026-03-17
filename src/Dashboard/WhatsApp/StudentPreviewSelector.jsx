@@ -144,7 +144,7 @@ const StudentPreviewSelector = ({ onDataReady, onCancel }) => {
         {/* ── Filters Section ── */}
         <div className="mb-5 border border-blue-200 rounded-lg p-4 bg-blue-50">
           <h3 className=" text-primary mb-3 flex items-center gap-2">
-            <Filter size={18} />
+            <Filter size={16} />
             Apply Filters
           </h3>
 
@@ -256,7 +256,7 @@ const StudentPreviewSelector = ({ onDataReady, onCancel }) => {
           <>
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 flex flex-col flex-1 min-h-0 overflow-scroll">
               <h3 className=" text-customblack mb-3 flex items-center gap-2 shrink-0">
-                <Users size={18} />
+                <Users size={16} />
                 Student Preview
                 <span className="ml-auto bg-customwhite border border-blue-200 text-tertiary text-sm px-3 py-1 rounded-full font-normal">
                   <span className=" text-primary">{rows.length}</span> Students

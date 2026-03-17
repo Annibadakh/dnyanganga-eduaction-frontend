@@ -3,6 +3,10 @@ import api from "../../Api";
 import { useAuth } from "../../Context/AuthContext";
 import { DashboardContext } from "../../Context/DashboardContext";
 import CustomSelect from "../Generic/CustomSelect";
+import DataTable from "../Generic/DataTable";
+import Pagination from "../Generic/Pagination";
+import Button from "../Generic/Button";
+import { Eye } from "lucide-react";
 
 const ChallanManagement = () => {
   const { user } = useAuth();
@@ -37,6 +41,83 @@ const ChallanManagement = () => {
     totalCounsellors: 0,
   });
 
+  const columns = [
+    {
+      header: "Sr. No.",
+      render: (_, index) => indexOfFirstChallan + index + 1,
+    },
+    {
+      header: "Challan No",
+      render: (row) => row.chalanNo || "N/A",
+    },
+    {
+      header: "Date",
+      render: (row) => formatDate(row.date),
+    },
+
+    ...(user.role === "admin" || user.role === "logistics"
+      ? [
+        {
+          header: "Counsellor",
+          render: (row) => row.User?.name,
+        },
+      ]
+      : []),
+
+    {
+      header: "Books",
+      render: (row) => {
+        const items = row.ChalanItems || [];
+        return items
+          .filter(
+            (item) =>
+              item.Book &&
+              !["pamphlet", "receiptBook"].includes(item.Book.standard)
+          )
+          .reduce((sum, item) => sum + (item.countSent || 0), 0);
+      },
+    },
+    {
+      header: "Pamphlets",
+      render: (row) => {
+        const items = row.ChalanItems || [];
+        return items
+          .filter(
+            (item) => item.Book?.standard === "pamphlet"
+          )
+          .reduce((sum, item) => sum + (item.countSent || 0), 0);
+      },
+    },
+    {
+      header: "Receipt Count",
+      render: (row) => {
+        const items = row.ChalanItems || [];
+        return items
+          .filter(
+            (item) => item.Book?.standard === "receiptBook"
+          )
+          .reduce((sum, item) => sum + (item.countSent || 0), 0);
+      },
+    },
+    {
+      header: "Total Items",
+      render: (row) => (row.ChalanItems || []).length,
+    },
+
+    // 🔥 ACTION
+    {
+      header: "Actions",
+      render: (row) => (
+        <Button
+          variant="info"
+          startIcon={<Eye size={16} />}
+          onClick={() => viewChallanDetails(row)}
+        >
+          View
+        </Button>
+      ),
+    },
+  ];
   useEffect(() => {
     fetchAllChallans();
     if (user.role === "admin" || user.role === "logistics") {
@@ -150,7 +231,7 @@ const ChallanManagement = () => {
     let filtered = [...challans];
 
     console.log(filterCounsellor);
-    
+
     // Filter by counsellor
     if (filterCounsellor) {
       filtered = filtered.filter((challan) => {
@@ -543,30 +624,30 @@ const ChallanManagement = () => {
 
             {(!selectedChallan.ChalanItems ||
               selectedChallan.ChalanItems.length === 0) && (
-              <div className="text-center py-12">
-                <div className="bg-gray-100 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                    />
-                  </svg>
+                <div className="text-center py-12">
+                  <div className="bg-gray-100 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                    <svg
+                      className="w-8 h-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    No Items Found
+                  </h3>
+                  <p className="text-gray-500">
+                    This challan doesn't contain any items yet.
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No Items Found
-                </h3>
-                <p className="text-gray-500">
-                  This challan doesn't contain any items yet.
-                </p>
-              </div>
-            )}
+              )}
           </div>
 
           {/* Footer */}
@@ -691,11 +772,10 @@ const ChallanManagement = () => {
 
       {/* Enhanced Statistics Cards */}
       <div
-        className={`grid gap-4 mb-6 ${
-          user.role === "admin" || user.role === "logistics"
-            ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6"
-            : "grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
-        }`}
+        className={`grid gap-4 mb-6 ${user.role === "admin" || user.role === "logistics"
+          ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6"
+          : "grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
+          }`}
       >
         {getStatsCards().map((card, index) => (
           <div
@@ -722,11 +802,10 @@ const ChallanManagement = () => {
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Filters</h2>
 
         <div
-          className={`grid gap-4 ${
-            user.role === "admin" || user.role === "logistics"
-              ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
-              : "grid-cols-1 md:grid-cols-3"
-          }`}
+          className={`grid gap-4 ${user.role === "admin" || user.role === "logistics"
+            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+            : "grid-cols-1 md:grid-cols-3"
+            }`}
         >
           {(user.role === "admin" || user.role === "logistics") && (
             <div>
@@ -796,169 +875,23 @@ const ChallanManagement = () => {
           </h2>
         </div>
 
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <span className="text-gray-500 mt-2 block">
-              Loading challans...
-            </span>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-primary text-white">
-                  <tr>
-                    <th className="p-3 text-center border">Sr. No.</th>
-                    <th className="p-3 text-center border">Challan No</th>
-                    <th className="p-3 text-center border">Date</th>
-                    {(user.role === "admin" || user.role === "logistics") && (
-                      <th className="p-3 text-center border">Counsellor</th>
-                    )}
-                    <th className="p-3 text-center border">Books</th>
-                    <th className="p-3 text-center border">Pamphlets</th>
-                    <th className="p-3 text-center border">Receipt Count</th>
-                    <th className="p-3 text-center border">Total Items</th>
-                    <th className="p-3 text-center border">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentChallans.map((challan, idx) => {
-                    const items = challan.ChalanItems || [];
+        
+        <DataTable
+          columns={columns}
+          data={currentChallans}
+          loading={loading}
+          error={null}
+          rowKey="uuid"
+        />
 
-                    const bookCount = items
-                      .filter(
-                        (item) =>
-                          item.Book &&
-                          !["pamphlet", "receiptBook"].includes(
-                            item.Book.standard,
-                          ),
-                      )
-                      .reduce((sum, item) => sum + (item.countSent || 0), 0);
-
-                    const pamphletCount = items
-                      .filter(
-                        (item) =>
-                          item.Book && item.Book.standard === "pamphlet",
-                      )
-                      .reduce((sum, item) => sum + (item.countSent || 0), 0);
-
-                    const receiptCount = items
-                      .filter(
-                        (item) =>
-                          item.Book && item.Book.standard === "receiptBook",
-                      )
-                      .reduce((sum, item) => sum + (item.countSent || 0), 0);
-
-                    return (
-                      <tr
-                        key={challan.uuid || idx}
-                        className="border-b hover:bg-gray-50"
-                      >
-                        <td className="p-3 text-center font-semibold text-primary border">
-                          {indexOfFirstChallan + idx + 1}
-                        </td>
-                        <td className="p-3 text-center font-semibold text-primary border">
-                          {challan.chalanNo || "N/A"}
-                        </td>
-                        <td className="p-3 text-center border">
-                          {formatDate(challan.date)}
-                        </td>
-                        {(user.role === "admin" ||
-                          user.role === "logistics") && (
-                          <td className="p-3 text-center border">
-                            {challan.User?.name}
-                          </td>
-                        )}
-                        <td className="p-3 text-center border">{bookCount}</td>
-                        <td className="p-3 text-center border">
-                          {pamphletCount}
-                        </td>
-                        <td className="p-3 text-center border">
-                          {receiptCount}
-                        </td>
-                        <td className="p-3 text-center border">
-                          {items.length}
-                        </td>
-                        <td className="p-3 text-center border">
-                          <button
-                            onClick={() => viewChallanDetails(challan)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition"
-                          >
-                            View Details
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {filteredChallans.length === 0 && !loading && (
-              <div className="text-center py-8 text-gray-500">
-                <div className="mb-4">
-                  <svg
-                    className="w-16 h-16 mx-auto text-gray-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No challans found
-                </h3>
-                <p className="text-gray-500">
-                  No challans match your current filters. Try adjusting your
-                  search criteria.
-                </p>
-              </div>
-            )}
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="p-4 border-t flex justify-between items-center">
-                <div className="text-sm text-gray-600">
-                  Showing {indexOfFirstChallan + 1} to{" "}
-                  {Math.min(indexOfLastChallan, filteredChallans.length)} of{" "}
-                  {filteredChallans.length} entries
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  <span className="px-3 py-1 bg-primary text-white rounded text-sm">
-                    {currentPage} / {totalPages}
-                  </span>
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredChallans.length}
+            itemsPerPage={challansPerPage}
+            onPageChange={setCurrentPage}
+          />
         )}
       </div>
 

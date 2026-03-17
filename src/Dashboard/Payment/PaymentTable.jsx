@@ -1,273 +1,16 @@
-import { Fragment, useState, useEffect, useRef, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import api from "../../Api";
 import { useAuth } from "../../Context/AuthContext";
-import { Dialog, Transition } from "@headlessui/react";
-import { RotateCw } from "lucide-react";
 import CustomSelect from "../Generic/CustomSelect";
 import { DashboardContext } from "../../Context/DashboardContext";
+import DataTable from "../Generic/DataTable";
+import Pagination from "../Generic/Pagination";
+import ImageViewerModal from "../Generic/ImageViewerModal";
+import PdfViewerModal from "../Generic/PdfViewerModal";
+import Button from "../Generic/Button";
+import { FileText } from "lucide-react";
 
-// Mobile-friendly PDF viewer component (same as before)
-const MobilePDFViewer = ({ pdfUrl, onClose, fileName, studentName, studentId }) => {
-  const [viewMode, setViewMode] = useState('options');
-  
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 
-  const handleDirectDownload = () => {
-    const link = document.createElement("a");
-    link.href = pdfUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    onClose();
-  };
-
-  const handleOpenInNewTab = () => {
-    const newWindow = window.open(pdfUrl, '_blank');
-    if (!newWindow) {
-      window.location.href = pdfUrl;
-    }
-  };
-  
-  if (isMobile && viewMode === 'options') {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg max-w-sm w-full p-6">
-          <div className="text-center mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">View Receipt PDF</h2>
-            <p className="text-gray-600 mb-1 text-sm">{studentName}</p>
-            <p className="text-xs text-gray-500">ID: {studentId}</p>
-          </div>
-
-          <div className="space-y-3">
-            <button
-              onClick={handleDirectDownload}
-              className="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Download PDF
-            </button>
-
-            <button
-              onClick={handleOpenInNewTab}
-              className="w-full p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              Open in Browser
-            </button>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="w-full mt-4 p-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[95vh] flex flex-col">
-        <div className="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg md:text-xl font-semibold text-gray-800 truncate">
-              Receipt PDF Preview - {studentName}
-            </h2>
-            <p className="text-sm text-gray-600 truncate">Student ID: {studentId}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {isMobile && (
-              <button
-                onClick={() => setViewMode('options')}
-                className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
-              >
-                Options
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="ml-2 text-gray-400 hover:text-gray-600 text-2xl font-bold flex-shrink-0"
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 p-2 md:p-4 overflow-hidden">
-          {isMobile ? (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 rounded border-2 border-dashed border-gray-300">
-              <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p className="text-gray-600 text-center mb-4 px-4">
-                PDF preview may not work well on mobile devices.
-                <br />
-                Please use the download or "Open in Browser" options below.
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleDirectDownload}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Download
-                </button>
-                <button
-                  onClick={handleOpenInNewTab}
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                >
-                  Open in Browser
-                </button>
-              </div>
-            </div>
-          ) : (
-            <iframe
-              src={pdfUrl}
-              className="w-full h-full border border-gray-300 rounded"
-              title="Receipt PDF Preview"
-              style={{ minHeight: '400px' }}
-            />
-          )}
-        </div>
-
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 md:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-          <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
-            File: {fileName}
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button
-              onClick={handleOpenInNewTab}
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mr-2"
-            >
-              Open in New Tab
-            </button>
-            <button
-              onClick={handleDirectDownload}
-              className="flex-1 sm:flex-none bg-primary text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-            >
-              Download PDF
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 sm:flex-none bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Pagination Component
-const Pagination = ({ 
-  currentPage, 
-  totalPages, 
-  onPageChange, 
-  totalItems, 
-  itemsPerPage,
-  onItemsPerPageChange 
-}) => {
-  const getPageNumbers = () => {
-    const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
-
-    for (
-      let i = Math.max(2, currentPage - delta);
-      i <= Math.min(totalPages - 1, currentPage + delta);
-      i++
-    ) {
-      range.push(i);
-    }
-
-    if (currentPage - delta > 2) {
-      rangeWithDots.push(1, '...');
-    } else {
-      rangeWithDots.push(1);
-    }
-
-    rangeWithDots.push(...range);
-
-    if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push('...', totalPages);
-    } else {
-      rangeWithDots.push(totalPages);
-    }
-
-    return rangeWithDots;
-  };
-
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-
-  return (
-    <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Show:</span>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-            className="border border-gray-300 rounded px-3 py-1 text-sm"
-          >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-          <span className="text-sm text-gray-600">per page</span>
-        </div>
-        <div className="text-sm text-gray-600">
-          Showing {startItem} to {endItem} of {totalItems} entries
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-
-        {getPageNumbers().map((page, index) => (
-          <button
-            key={index}
-            onClick={() => typeof page === 'number' && onPageChange(page)}
-            disabled={page === '...'}
-            className={`px-3 py-2 text-sm border rounded ${
-              page === currentPage
-                ? 'bg-primary text-white border-primary'
-                : page === '...'
-                ? 'cursor-default'
-                : 'border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const capitalizeFirstLetter = (string) => {
   if (!string || typeof string !== 'string') {
@@ -302,7 +45,6 @@ const PaymentTable = () => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState("");
   const [showPdfPreview, setShowPdfPreview] = useState(false);
-  const [rotation, setRotation] = useState(0);
 
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfFileName, setPdfFileName] = useState("");
@@ -314,7 +56,85 @@ const PaymentTable = () => {
   const imgUrl = import.meta.env.VITE_IMG_URL;
 
 
- 
+  const columns = [
+    {
+      header: "Sr. No.",
+      render: (_, index) =>
+        (currentPage - 1) * itemsPerPage + index + 1,
+    },
+    {
+      header: "Payment Date",
+      render: (row) =>
+        new Date(row.createdAt).toLocaleDateString("en-GB"),
+    },
+    ...(user.role === "admin"
+      ? [
+        {
+          header: "Counsellor",
+          render: (row) => row.Student?.User?.name || "-",
+        },
+      ]
+      : []),
+    {
+      header: "Student ID",
+      accessor: "Student.studentId",
+      render: (row) => row.Student?.studentId,
+    },
+    {
+      header: "Student Name",
+      render: (row) => row.Student?.studentName,
+    },
+    {
+      header: "Payment ID",
+      accessor: "paymentId",
+    },
+    {
+      header: "Receipt No",
+      accessor: "receiptNo",
+    },
+    {
+      header: "Amount Paid",
+      render: (row) => (
+        <span className="text-green-500 font-bold">
+          {row.amountPaid.toLocaleString("en-IN")}
+        </span>
+      ),
+    },
+    {
+      header: "Payment Mode",
+      accessor: "paymentMode",
+    },
+    {
+      header: "Payment Type",
+      render: (row) =>
+        capitalizeFirstLetter(row.paymentType),
+    },
+    {
+      header: "Receipt",
+      render: (row) => (
+        <button
+          onClick={() => handleViewReceipt(row.receiptPhoto)}
+          className="text-blue-600 hover:underline"
+        >
+          View
+        </button>
+      ),
+    },
+    {
+      header: "Action",
+      render: (row) => (
+        <Button
+          onClick={() => handleViewReceiptPDF(row)}
+          loading={loadingPdfId === row.paymentId}
+          variant="success"
+          startIcon={<FileText size={16} />}
+        >
+          PDF
+        </Button>
+      ),
+    },
+  ];
+
 
   // Cleanup PDF URL when dialog closes
   useEffect(() => {
@@ -473,6 +293,17 @@ const PaymentTable = () => {
             placeholder="Select Counsellors"
           />
         )}
+        <div className="w-full md:w-1/4">
+          <select
+            value={paymentType}
+            onChange={(e) => setPaymentType(e.target.value)}
+            className="p-3 w-full border border-gray-300 rounded-lg"
+          >
+            <option value="">All Payment Types</option>
+            <option value="INITIAL">INITIAL</option>
+            <option value="RECOLLECTION">RECOLLECTION</option>
+          </select>
+        </div>
 
         <div className="flex flex-wrap md:flex-row gap-1 w-full md:w-1/3">
           <div className="relative flex-1 min-w-[120px]">
@@ -502,195 +333,49 @@ const PaymentTable = () => {
             </button>
           )}
         </div>
-        <div className="w-full md:w-1/4">
-          <select
-            value={paymentType}
-            onChange={(e) => setPaymentType(e.target.value)}
-            className="p-3 w-full border border-gray-300 rounded-lg"
-          >
-            <option value="">All Payment Types</option>
-            <option value="INITIAL">INITIAL</option>
-            <option value="RECOLLECTION">RECOLLECTION</option>
-          </select>
-        </div>
+        
 
 
       </div>
 
       {/* Table */}
-      <div className="bg-white shadow-custom md:p-6 p-2">
-        {loading && <p className="text-customgray text-lg">Loading...</p>}
-        {error && <p className="text-red-500 text-lg">{error}</p>}
+      <DataTable
+        columns={columns}
+        data={paymentsData}
+        loading={loading}
+        error={error}
+        rowKey="paymentId"
+      />
 
-        {!loading && !error && paymentsData.length > 0 ? (
-          <>
-            <div className="overflow-auto">
-              <table className="table-auto w-full border text-center border-customgray overflow-hidden shadow-lg text-sm">
-                <thead className="bg-primary text-customwhite uppercase tracking-wider">
-                  <tr>
-                    <th className="p-3 text-left border whitespace-nowrap">Sr. No.</th>
-                    <th className="p-3 border text-left whitespace-nowrap">Payment Date</th>
-                    {user.role === 'admin' && <th className="p-3 border whitespace-nowrap">Counsellor</th>}
-                    <th className="p-3 border whitespace-nowrap">Student ID</th>
-                    <th className="p-3 border whitespace-nowrap">Student Name</th>
-                    <th className="p-3 border whitespace-nowrap">Payment ID</th>
-                    <th className="p-3 border whitespace-nowrap">Receipt No</th>
-                    <th className="p-3 border whitespace-nowrap">Amount Paid</th>
-                    <th className="p-3 border whitespace-nowrap">Payment Mode</th>
-                    <th className="p-3 border whitespace-nowrap">Payment Type</th>
-                    <th className="p-3 border whitespace-nowrap">Receipt</th>
-                    <th className="p-3 border whitespace-nowrap">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="text-customblack">
-                  {paymentsData.map((payment, index) => (
-                    <tr key={payment.paymentId} className="border-b border-gray-200 hover:bg-gray-100 transition">
-                      <td className="p-3 border whitespace-nowrap">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        {new Date(payment.createdAt).toLocaleDateString('en-GB')}
-                      </td>
-                      {user.role === 'admin' && (
-                        <td className="p-3 border whitespace-nowrap">
-                          {payment.Student?.User?.name || '-'}
-                        </td>
-                      )}
-                      <td className="p-3 border whitespace-nowrap">{payment.Student?.studentId}</td>
-                      <td className="p-3 border whitespace-nowrap">{payment.Student?.studentName}</td>
-                      <td className="p-3 border whitespace-nowrap">{payment.paymentId}</td>
-                      <td className="p-3 border whitespace-nowrap">{payment.receiptNo}</td>
-                      <td className="p-3 text-green-500 font-bold border whitespace-nowrap">
-                        {payment.amountPaid.toLocaleString('en-IN')}
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">{payment.paymentMode}</td>
-                      <td className="p-3 border whitespace-nowrap">{capitalizeFirstLetter(payment.paymentType)}</td>
-                      <td className="p-3 border whitespace-nowrap">
-                        <button
-                          onClick={() => handleViewReceipt(payment.receiptPhoto)}
-                          className="text-blue-600 hover:underline"
-                        >
-                          View
-                        </button>
-                      </td>
-                      <td className="p-3 border whitespace-nowrap">
-                        <button
-                          onClick={() => handleViewReceiptPDF(payment)}
-                          disabled={loadingPdfId === payment.paymentId}
-                          className={`bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded grid place-items-center ${
-                            loadingPdfId === payment.paymentId ? "opacity-60 cursor-not-allowed" : ""
-                          }`}
-                        >
-                          {loadingPdfId === payment.paymentId ? (
-                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                          ) : (
-                            "PDF"
-                          )}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Component */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              totalItems={totalCount}
-              itemsPerPage={itemsPerPage}
-              onItemsPerPageChange={handleItemsPerPageChange}
-            />
-          </>
-        ) : (
-          !loading && (
-            <p className="text-lg text-customgray">No payment records found.</p>
-          )
-        )}
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalCount}
+        itemsPerPage={itemsPerPage}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+      />
 
       {/* Receipt Image Modal */}
-      <Transition appear show={showReceiptModal} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={() => setShowReceiptModal(false)}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black bg-opacity-50" />
-        </Transition.Child>
+      <ImageViewerModal
+        isOpen={showReceiptModal}
+        onClose={() => setShowReceiptModal(false)}
+        imageUrl={selectedReceiptUrl}
+        title="Receipt Image"
+      />
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-full p-2 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="relative w-full max-w-2xl transform overflow-hidden rounded-xl bg-white md:p-6 p-2 text-left align-middle shadow-xl transition-all">
-                {/* Title */}
-                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
-                  Receipt Image
-                </Dialog.Title>
-
-                {/* Rotate button */}
-                <button
-                  onClick={handleRotate}
-                  className="absolute top-5 right-6 rounded-full bg-gray-100 hover:bg-gray-200 p-2"
-                  title="Rotate Image"
-                >
-                  <RotateCw className="w-5 h-5 text-gray-700" />
-                </button>
-
-                {/* Close button (top right corner) */}
-
-                {/* Image */}
-                <div className="mt-6 flex justify-center overflow-hidden">
-                  <img
-                    src={selectedReceiptUrl}
-                    alt="Receipt"
-                    className="min-h-[600px] w-auto object-contain rounded border transition-transform duration-300"
-                    style={{ transform: `rotate(${rotation}deg)` }}
-                  />
-                </div>
-
-                {/* Footer Close button (optional, can remove if top one is enough) */}
-                <div className="mt-4 flex justify-end">
-                  <button
-                    type="button"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
-                    onClick={() => setShowReceiptModal(false)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
-
-      {/* Mobile-Optimized PDF Preview */}
-      {showPdfPreview && (
-        <MobilePDFViewer
-          pdfUrl={pdfUrl}
-          onClose={handleClosePdfPreview}
-          fileName={pdfFileName}
-          studentName={currentPdfStudent?.studentName}
-          studentId={currentPdfStudent?.studentId}
-        />
-      )}
+      <PdfViewerModal
+        isOpen={showPdfPreview}
+        onClose={handleClosePdfPreview}
+        pdfUrl={pdfUrl}
+        fileName={pdfFileName}
+        title="Receipt PDF Preview"
+        subTitle={
+          currentPdfStudent
+            ? `${currentPdfStudent.studentName} (ID: ${currentPdfStudent.studentId})`
+            : ""
+        }
+      />
     </div>
   );
 };
