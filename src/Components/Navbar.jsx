@@ -41,10 +41,7 @@ const Navbar = () => {
             <Link to="/about">About</Link>
           </li>
 
-          {/* <li className={getLinkClasses("/gallery")}>
-            <Link to="/gallery">Gallery</Link>
-          </li> */}
-
+  
           <li className={getLinkClasses("/courses")}>
             <Link to="/courses">Courses</Link>
           </li>
@@ -56,6 +53,11 @@ const Navbar = () => {
           <li className={getLinkClasses("/exam-centers")}>
             <Link to="/exam-centers">Exam Centre</Link>
           </li>
+
+          <li className={getLinkClasses("/gallery")}>
+            <Link to="/gallery">Gallery</Link>
+          </li>
+
 
           {/* <li>
             <button

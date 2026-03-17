@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { GraduationCap, Phone, Mail, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
+import { GraduationCap, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -14,13 +14,12 @@ const Footer = () => {
               <span className="text-xl font-bold font-custom">Dnyanganga Education</span>
             </div>
             <p className="text-base opacity-90">
-              Empowering students with quality education and comprehensive mock board exams 
-              for 10th & 12th standards.
+              Empowering students with quality education and comprehensive Mock Board Examinations for 10th and 12th standards, helping them achieve academic excellence and confidence for their final board exams.
             </p>
             <div className="flex space-x-4">
-              <Facebook className="w-5 h-5 hover:text-secondary cursor-pointer transition-colors" />
-              <Twitter className="w-5 h-5 hover:text-secondary cursor-pointer transition-colors" />
-              <Instagram className="w-5 h-5 hover:text-secondary cursor-pointer transition-colors" />
+              <a href="https://www.facebook.com/DnyangangaEducation/" target='blank'><Facebook size={25} className="hover:text-secondary cursor-pointer transition-colors" /></a>
+              <a href="https://youtube.com/@dnyangangaeducationpvtltd?si=mrvswtxlqkXYU8o4" target='blank'><Youtube size={25} className="hover:text-secondary cursor-pointer transition-colors" /></a>
+              <a href="https://www.instagram.com/dnyangangaeducation?igsh=MXNoaGgzc214ZXQ2cw==" target='blank'><Instagram size={25} className="hover:text-secondary cursor-pointer transition-colors" /></a>
             </div>
           </div>
 
@@ -34,6 +33,7 @@ const Footer = () => {
                 { path: '/courses', label: 'Courses' },
                 { path: '/achievements', label: 'Achievements' },
                 { path: '/exam-centers', label: 'Exam Centers' },
+                { path: '/gallery', label: 'Gallery' },
               ].map((link) => (
                 <li key={link.path}>
                   <Link 
@@ -51,12 +51,13 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-secondary">Our Services</h3>
             <ul className="space-y-2 text-base opacity-90">
-              <li>Mock Board Exams</li>
-              <li>Study Material</li>
+              <li>Mock Board Examinations</li>
+              <li>Study Materials</li>
               <li>Expert Lectures</li>
-              <li>Student Registration</li>
+              <li>Student Counselling</li>
               <li>Performance Analysis</li>
-              <li>Career Guidance</li>
+              <li>Career Guidance Seminars</li>
+              <li>Crash Course</li>
             </ul>
           </div>
 
@@ -66,15 +67,24 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2 text-sm">
                 <Phone className="w-4 h-4 text-secondary" />
+                <span>+91 9860849016</span>
                 <span>+91 7030830520</span>
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <Mail className="w-4 h-4 text-secondary" />
                 <span>connect.dnyangangaeducation@gmail.com</span>
               </div>
-              <div className="flex items-start space-x-2 text-sm">
-                <MapPin className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
-                <span>Shop No.10, Ground Floor, Shree Prestige, Shirur, Pin-412210</span>
+              <div className="flex flex-col items-start space-x-2 text-sm">
+                <div className='flex flex-nowrap gap-2 mb-2'>
+                  <MapPin className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
+                <h5>Registered office: </h5>
+                </div>
+                <span>Shop No. 10, Ground Floor, Shree Prestige, Bagwan Nagar, Shirur, Pune - 412210, Maharashtra, India</span>
+                <div className='flex flex-nowrap gap-2 m-2'>
+                  <MapPin className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
+                <h5>Corporate Office: </h5>
+                </div>
+                <span>204, First Floor, Kulswamini Heights, Subhadranagar, Takli Road, Kopargaon, Ahilyanagar - 423601, Maharashtra, India</span>
               </div>
             </div>
           </div>

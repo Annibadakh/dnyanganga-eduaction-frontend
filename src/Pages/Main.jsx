@@ -16,7 +16,7 @@ const Home = () => {
       <AboutPreview />
       <CoursesSection />
       <AchievementsPreview />
-      <StatisticsSection />
+      {/* <StatisticsSection /> */}
       <TestimonialsSection />
       <ExamCentersPreview />
       <Gallery />

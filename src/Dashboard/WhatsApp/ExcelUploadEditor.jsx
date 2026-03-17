@@ -114,7 +114,7 @@ const ExcelUploadEditor = ({ onDataReady, onCancel }) => {
         {/* ── Upload Section ── */}
         <div className="mb-5 border border-blue-200 rounded-lg p-4 bg-blue-50">
           <h3 className=" text-primary mb-3 flex items-center gap-2">
-            <FileSpreadsheet size={18} />
+            <FileSpreadsheet size={16} />
             Select or Drop Your File *
           </h3>
 
@@ -171,7 +171,7 @@ const ExcelUploadEditor = ({ onDataReady, onCancel }) => {
         {rows.length > 0 && (
           <div className="mb-5 border border-gray-200 rounded-lg p-4 bg-gray-50">
             <h3 className=" text-customblack mb-3 flex items-center gap-2">
-              <Table2 size={18} />
+              <Table2 size={16} />
               Preview &amp; Edit Data
             </h3>
 

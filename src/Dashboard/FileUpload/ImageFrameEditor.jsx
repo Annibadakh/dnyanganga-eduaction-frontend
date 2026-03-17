@@ -344,7 +344,7 @@ export default function ImageFrameEditor({ imageSrc, imageType = 'photo', onConf
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <CropIcon size={18} color="#fff" />
+            <CropIcon size={16} color="#fff" />
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.2 }}>Frame Photo</div>
@@ -513,7 +513,7 @@ export default function ImageFrameEditor({ imageSrc, imageType = 'photo', onConf
           onTouchStart={e => e.currentTarget.style.opacity = '0.82'}
           onTouchEnd={e => e.currentTarget.style.opacity = '1'}
         >
-          <Check size={18} /> Apply Frame
+          <Check size={16} /> Apply Frame
         </button>
       </div>
     </div>

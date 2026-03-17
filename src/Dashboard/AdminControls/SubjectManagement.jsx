@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import api from '../../Api';
 import { useToast } from '../../useToast';
+import Button from '../Generic/Button';
+import { Edit, Plus, RefreshCcw, RotateCw, Save, SaveAllIcon, Trash, X } from 'lucide-react';
 
 function SubjectManagement() {
-    const { successToast, errorToast, infoToast } = useToast();
-  
+  const { successToast, errorToast, infoToast } = useToast();
+
   const [subjects, setSubjects] = useState([]);
   const [formData, setFormData] = useState({
     subjectCode: '',
@@ -18,7 +20,7 @@ function SubjectManagement() {
   const [showModal, setShowModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
-  
+
   const [examData, setExamData] = useState({
     examDate: '',
     fromHour: '',
@@ -54,16 +56,16 @@ function SubjectManagement() {
   // Sort subjects by standard first, then alphabetically by subject name
   const getSortedSubjects = () => {
     const standardOrder = ['10th', '12th'];
-    
+
     return [...subjects].sort((a, b) => {
       // First, sort by standard
       const standardIndexA = standardOrder.indexOf(a.standard);
       const standardIndexB = standardOrder.indexOf(b.standard);
-      
+
       if (standardIndexA !== standardIndexB) {
         return standardIndexA - standardIndexB;
       }
-      
+
       // If same standard, sort alphabetically by subject name
       // return a.subjectName.localeCompare(b.subjectName);
       return Number(a.subjectCode) - Number(b.subjectCode);
@@ -113,7 +115,7 @@ function SubjectManagement() {
       errorToast(err.response?.data?.message || 'Failed to add subject')
       setFormError(err.response?.data?.message || 'Failed to add subject');
     }
-    finally{
+    finally {
       setSubmitLoader(false);
     }
   };
@@ -129,7 +131,7 @@ function SubjectManagement() {
       console.error('Error deleting subject:', err);
       errorToast('Failed to delete subject');
     }
-    finally{
+    finally {
       setDeleteLoader(null);
     }
   };
@@ -186,7 +188,7 @@ function SubjectManagement() {
 
     const examTimeFrom = `${fromHour}:${fromMinute} ${fromPeriod}`;
     const examTimeTo = `${toHour}:${toMinute} ${toPeriod}`;
-    
+
     const updatedExamData = {
       examDate,
       examTime: `${examTimeFrom}-${examTimeTo}`,
@@ -235,12 +237,13 @@ function SubjectManagement() {
 
       {!showAddForm && (
         <div className="mb-6">
-          <button
+          <Button
+            startIcon={<Plus size={16} />}
+            variant='primary'
             onClick={() => setShowAddForm(true)}
-            className="bg-primary hover:bg-secondary text-white font-bold py-2 px-4 rounded shadow-custom"
           >
             Add Subject
-          </button>
+          </Button>
         </div>
       )}
 
@@ -334,36 +337,36 @@ function SubjectManagement() {
                   <option value="GENERAL">General</option>
 
                   {formData.standard === '12th' && (<>
-                  <option value="PCM">PCM</option>
-                  <option value="PCB">PCB</option></>)}
+                    <option value="PCM">PCM</option>
+                    <option value="PCB">PCB</option></>)}
                   {formData.standard === '10th' && (<>
-                  <option value="ENGLISH">ENGLISH</option>
-                  <option value="SEMI-ENGLISH">SEMI-ENGLISH</option>
-                  <option value="MARATHI">MARATHI</option> </>)}
+                    <option value="ENGLISH">ENGLISH</option>
+                    <option value="SEMI-ENGLISH">SEMI-ENGLISH</option>
+                    <option value="MARATHI">MARATHI</option> </>)}
                 </select>
               </div>
             </div>
 
             <div className="flex justify-end space-x-2 mt-4">
-              <button
-                type="button"
+
+              <Button
+                variant='outline'
                 onClick={() => setShowAddForm(false)}
                 disabled={submitLoader}
-                className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 text-black font-bold py-2 px-4 rounded"
+                startIcon={<X size={16} />}
               >
                 Cancel
-              </button>
-              <button
-                type="submit"
+              </Button>
+
+              <Button
+                variant='primary'
+                type='submit'
                 disabled={submitLoader}
-                className="bg-primary min-w-24 hover:bg-secondary disabled:opacity-50 text-white font-bold py-2 px-4 rounded grid place-items-center"
+                loading={submitLoader}
+                startIcon={<Save size={16} />}
               >
-                {submitLoader ? (
-                  <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
-                ) : (
-                  "Submit"
-                )}
-              </button>
+                Submit
+              </Button>
             </div>
           </form>
         </div>
@@ -415,22 +418,24 @@ function SubjectManagement() {
                               <td className="p-2 border">{formatTime(subject.examTime)}</td>
                               <td className="p-2 border">
                                 <div className="flex gap-2 justify-center">
-                                  <button
+
+                                  <Button
+                                    variant='success'
                                     onClick={() => openExamModal(subject)}
-                                    className="bg-green-500 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
+                                    startIcon={subject.examDate ? <Edit size={16} /> : <Plus size={16}/>}
                                   >
                                     {subject.examDate ? 'Update' : 'Add'}
-                                  </button>
-                                  <button
+                                  </Button>
+                                  <Button
+                                    variant='danger'
+                                    loading={deleteLoader == subject.subjectCode}
                                     onClick={() => deleteSubject(subject.subjectCode)}
                                     disabled={deleteLoader == subject.subjectCode}
-                                    className="bg-red-500 hover:bg-red-700 disabled:opacity-50 text-white px-2 py-1 rounded text-sm min-w-12 flex items-center justify-center"
+                                    startIcon={<Trash size={16} />}
                                   >
-                                    {deleteLoader == subject.subjectCode ? 
-                                      <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></span> : 
-                                      "Delete"
-                                    }
-                                  </button>
+                                    Delete
+                                  </Button>
+
                                 </div>
                               </td>
                             </tr>
@@ -477,7 +482,7 @@ function SubjectManagement() {
                   <div className="flex gap-2">
                     <select name="fromHour" value={examData.fromHour} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
                       {[...Array(12)].map((_, i) => (
-                        <option key={i+1} value={String(i+1).padStart(2, '0')}>{i+1}</option>
+                        <option key={i + 1} value={String(i + 1).padStart(2, '0')}>{i + 1}</option>
                       ))}
                     </select>
                     <select name="fromMinute" value={examData.fromMinute} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
@@ -497,7 +502,7 @@ function SubjectManagement() {
                   <div className="flex gap-2">
                     <select name="toHour" value={examData.toHour} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
                       {[...Array(12)].map((_, i) => (
-                        <option key={i+1} value={String(i+1).padStart(2, '0')}>{i+1}</option>
+                        <option key={i + 1} value={String(i + 1).padStart(2, '0')}>{i + 1}</option>
                       ))}
                     </select>
                     <select name="toMinute" value={examData.toMinute} onChange={handleExamFormChange} className="w-1/3 p-2 border rounded" required>
@@ -514,21 +519,24 @@ function SubjectManagement() {
               </div>
 
               <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={closeExamModal}
-                  disabled={updateLoader}
-                  className="bg-gray-300 hover:bg-gray-400 disabled:opacity-50 text-black font-bold py-2 px-4 rounded"
+                <Button
+                variant='outline'
+                onClick={closeExamModal}
+                disabled={updateLoader}
+                startIcon={<X size={16} />}
                 >
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateLoader}
-                  className="bg-primary min-w-20 hover:bg-secondary disabled:opacity-50 text-white font-bold py-2 px-4 rounded grid place-items-center"
+                </Button>
+                
+                <Button
+                variant='primary'
+                type="submit"
+                disabled={updateLoader}
+                loading={updateLoader}
+                startIcon={<Save size={16} />}
                 >
-                  {updateLoader ? <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span> : "Save"}
-                </button>
+                  Save
+                </Button>
               </div>
             </form>
           </div>

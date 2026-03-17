@@ -12,9 +12,9 @@ const AchievementsPreview = () => {
     },
     {
       icon: Award,
-      title: 'Excellence Awards',
-      description: 'Recognized for outstanding contribution to education',
-      stat: '25+ Awards'
+      title: 'Student Success',
+      description: 'Celebrating the achievements and success of our students',
+      stat: '5000+ Successful Students'
     },
     {
       icon: Star,
@@ -50,7 +50,7 @@ const AchievementsPreview = () => {
                 <achievement.icon className="w-12 h-12 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-secondary mb-2">{achievement.title}</h3>
-              <p className="text-fourthcolor opacity-90 mb-4">{achievement.description}</p>
+              <p className="text-primary opacity-90 mb-4">{achievement.description}</p>
               <div className="text-2xl font-bold text-secondary">{achievement.stat}</div>
             </div>
           ))}
