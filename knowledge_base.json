@@ -1,0 +1,182 @@
+[
+  {
+    "id": "org_intro",
+    "category": "about",
+    "text": "Dnyanganga Education provides academic guidance and mock board exam preparation for students to help them achieve success in their studies."
+  },
+  {
+    "id": "org_focus",
+    "category": "about",
+    "text": "The institute focuses on helping students prepare for board exams through structured mock tests and expert guidance."
+  },
+  {
+    "id": "org_target_students",
+    "category": "students",
+    "text": "The programs are designed for students of 10th and 12th standards preparing for board examinations."
+  },
+  {
+    "id": "org_vision",
+    "category": "vision",
+    "text": "The vision is to transform lives through innovative and high-quality education and to become a leader in the education sector."
+  },
+  {
+    "id": "org_mission",
+    "category": "mission",
+    "text": "The mission is to inspire students to learn continuously and develop intellectually, physically, and emotionally to succeed in a changing world."
+  },
+  {
+    "id": "org_objective",
+    "category": "objective",
+    "text": "The objective is to spread education, support society, and contribute to overall student development."
+  },
+  {
+    "id": "courses_general",
+    "category": "courses",
+    "text": "The institute offers academic programs and mock board exam preparation courses designed to improve student performance."
+  },
+  {
+    "id": "courses_personalized",
+    "category": "courses",
+    "text": "Courses are designed and structured scientifically to match different student levels and maximize learning outcomes."
+  },
+  {
+    "id": "mock_exam_info",
+    "category": "exam",
+    "text": "Mock board exams are conducted to help students practice, evaluate performance, and improve before actual board exams."
+  },
+  {
+    "id": "achievements_general",
+    "category": "achievements",
+    "text": "The institute celebrates student achievements and academic excellence through its programs and results."
+  },
+  {
+    "id": "student_success",
+    "category": "results",
+    "text": "Thousands of students have achieved their academic goals through the institute's training and mock exam programs."
+  },
+  {
+    "id": "learning_environment",
+    "category": "environment",
+    "text": "The institute provides a structured and supportive learning environment focused on improving student performance."
+  },
+  {
+    "id": "teaching_approach",
+    "category": "teaching",
+    "text": "The teaching approach focuses on practical learning, regular assessments, and continuous improvement."
+  },
+  {
+    "id": "why_choose",
+    "category": "about",
+    "text": "Students can join the institute to improve their exam performance through expert guidance, structured courses, and practice exams."
+  },
+  {
+    "id": "events_info",
+    "category": "events",
+    "text": "The institute regularly conducts academic events, mock exams, and activities to support student learning."
+  },
+  {
+    "id": "contact_general",
+    "category": "contact",
+    "text": "Students and parents can contact the institute for course details, admissions, and support."
+  },
+  {
+    "id": "course_10th_overview",
+    "category": "course",
+    "text": "For 10th standard students, Dnyanganga Education offers two packages: 9th+10th combined package and only 10th package."
+  },
+  {
+    "id": "course_10th_9_10_fee",
+    "category": "fee",
+    "text": "The fee for the 9th+10th package is ₹6850. Students receive book sets for both 9th and 10th standards."
+  },
+  {
+    "id": "course_10th_only_fee",
+    "category": "fee",
+    "text": "The fee for the 10th-only package is ₹6850. Students receive book sets for 10th standard."
+  },
+  {
+    "id": "course_12th_overview",
+    "category": "course",
+    "text": "For 12th standard students, Dnyanganga Education offers two packages: 11th+12th combined package and only 12th package."
+  },
+  {
+    "id": "course_12th_11_12_fee",
+    "category": "fee",
+    "text": "The fee for the 11th+12th package is ₹9850. Students receive book sets for both 11th and 12th standards."
+  },
+  {
+    "id": "course_12th_only_fee",
+    "category": "fee",
+    "text": "The fee for the 12th-only package is ₹7900. Students receive book sets for 12th standard."
+  },
+  {
+    "id": "mock_exam_description",
+    "category": "exam",
+    "text": "Proctored mock board exams are conducted for 10th and 12th students following state board guidelines at physical exam centers."
+  },
+  {
+    "id": "subjects_10th",
+    "category": "subjects",
+    "text": "Subjects for 10th standard exams include Mathematics, Science, and English."
+  },
+  {
+    "id": "subjects_12th",
+    "category": "subjects",
+    "text": "Subjects for 12th standard exams include Physics, Chemistry, Mathematics, Biology, and MHT-CET preparation."
+  },
+  {
+    "id": "exam_schedule",
+    "category": "exam",
+    "text": "Mock board exams are conducted in December and January. Hall tickets with timetable are provided before the exam."
+  },
+  {
+    "id": "registration_process",
+    "category": "process",
+    "text": "Registration is done through a counsellor by visiting students directly. Initial fees are collected during registration."
+  },
+  {
+    "id": "registration_details",
+    "category": "process",
+    "text": "During registration, students must provide their educational and personal details."
+  },
+  {
+    "id": "exam_center_selection",
+    "category": "process",
+    "text": "Students can choose their preferred exam center during the registration process."
+  },
+  {
+    "id": "book_distribution",
+    "category": "process",
+    "text": "Students receive their book set from the counsellor after clearing the remaining fees."
+  },
+  {
+    "id": "student_updates",
+    "category": "process",
+    "text": "Students receive regular updates and notifications via messages after registration."
+  },
+  {
+    "id": "hallticket_download",
+    "category": "process",
+    "text": "Students can download their hall ticket from the official website: https://dnyangangaeducation.com/hallticket"
+  },
+  {
+    "id": "pre_exam_activities",
+    "category": "process",
+    "text": "Guest lectures and career guidance seminars are conducted before the exams to help students prepare."
+  },
+  {
+    "id": "exam_participation",
+    "category": "process",
+    "text": "Students must visit their selected exam center and appear for the exam as per the provided timetable."
+  },
+  {
+    "id": "result_download",
+    "category": "process",
+    "text": "Students can download their exam results from the official website: https://dnyangangaeducation.com/result"
+  },
+  {
+    "id": "scholarship_info",
+    "category": "scholarship",
+    "text": "Top-performing and eligible students receive updates regarding scholarship opportunities after results."
+  }
+]

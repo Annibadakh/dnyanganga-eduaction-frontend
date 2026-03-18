@@ -1,0 +1,118 @@
+const express = require("express");
+const dotenv = require("dotenv");
+const fs = require("fs");
+const { GoogleGenAI } = require("@google/genai");
+
+dotenv.config();
+
+const app = express();
+app.use(express.json());
+
+// 📁 Load knowledge base
+const knowledgeBase = JSON.parse(
+  fs.readFileSync("./knowledgeBase.json", "utf-8")
+);
+
+// 🤖 Gemini Setup (NEW SDK)
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+// 🔍 Simple search function
+function searchKnowledgeBase(query) {
+  const q = query.toLowerCase();
+
+  const scored = knowledgeBase.map((item) => {
+    let score = 0;
+    const text = item.text.toLowerCase();
+
+    q.split(" ").forEach((word) => {
+      if (text.includes(word)) score += 1;
+    });
+
+    return { ...item, score };
+  });
+
+  const sorted = scored.sort((a, b) => b.score - a.score);
+
+  return sorted.slice(0, 5);
+}
+
+// 🤖 AI Response Generator
+async function generateResponse(question, contextItems) {
+  const contextText = contextItems.map((c) => c.text).join("\n");
+
+  const prompt = `
+You are a helpful education institute assistant for Dnyanganga Education.
+
+STRICT RULES:
+- Answer ONLY using the provided information
+- Do NOT guess anything
+- If answer is not found, say:
+  "Please contact our counsellor for accurate information."
+- Keep answers short and WhatsApp-friendly
+- If multiple options exist, explain all clearly
+
+Information:
+${contextText}
+
+User Question:
+${question}
+`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.0-flash",
+    contents: prompt,
+  });
+
+  return response.text;
+}
+
+// 🧪 Health Check
+app.get("/", async (req, res) => {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: "Hello",
+    });
+
+    res.json({
+      message: "Server running",
+      ai: response.text,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Gemini not working" });
+  }
+});
+
+// 🧪 Ask API
+app.post("/ask", async (req, res) => {
+  try {
+    const { question } = req.body;
+
+    if (!question) {
+      return res.status(400).json({ error: "Question is required" });
+    }
+
+    // Step 1: Search
+    const contextItems = searchKnowledgeBase(question);
+
+    // Step 2: Generate response
+    const answer = await generateResponse(question, contextItems);
+
+    res.json({
+      question,
+      contextUsed: contextItems,
+      answer,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+// 🚀 Start server
+app.listen(process.env.PORT, () => {
+  console.log(`Server running on port ${process.env.PORT}`);
+});
