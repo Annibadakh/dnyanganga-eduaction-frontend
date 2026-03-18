@@ -1,54 +1,49 @@
-import React from 'react';
-import { MapPin, Users, TrendingUp, Phone, Clock, Award } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { MapPin, Users, Award, School2 } from 'lucide-react';
+import api from "../Api";
+
+import img7 from "../Images/gallery/img7.jpg";
+import img8 from "../Images/gallery/img8.jpg";
+import img9 from "../Images/gallery/img9.jpg";
+import img10 from "../Images/gallery/img10.jpg";
+import img11 from "../Images/gallery/img11.jpg";
+import img12 from "../Images/gallery/img12.jpg";
+import img13 from "../Images/gallery/img13.jpg";
+import img14 from "../Images/gallery/img14.jpg";
+
 
 const ExamCenters = () => {
-  const centers = [
-    {
-      name: 'Mumbai Central Campus',
-      location: 'Dadar, Mumbai - 400014',
-      address: '123 Education Street, Near Railway Station',
-      capacity: '500 Students',
-      successRate: '94%',
-      toppers: '25 State/District Toppers',
-      contact: '+91 98765 43210',
-      timings: '8:00 AM - 6:00 PM',
-      facilities: ['Air Conditioned Halls', 'CCTV Surveillance', 'Separate Washrooms', 'Cafeteria'],
-      image: 'https://images.pexels.com/photos/5427659/pexels-photo-5427659.jpeg',
-      mapEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3773.2043553445436!2d72.8448119148717!3d19.018532587111896!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7ce7b8e1e6c0b%3A0x7e4b8e0b8e1e6c0b!2sDadar%2C%20Mumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1234567890123"
-    },
-    {
-      name: 'Pune Education Hub',
-      location: 'Shivajinagar, Pune - 411005',
-      address: '456 Knowledge Park, FC Road',
-      capacity: '400 Students',
-      successRate: '91%',
-      toppers: '18 State/District Toppers',
-      contact: '+91 98765 43211',
-      timings: '8:30 AM - 5:30 PM',
-      facilities: ['Modern Infrastructure', 'Library Access', 'Parking Facility', 'Medical Room'],
-      image: 'https://images.pexels.com/photos/5212700/pexels-photo-5212700.jpeg',
-      mapEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3783.2043553445436!2d73.8448119148717!3d18.518532587111896!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2bf7b8e1e6c0b%3A0x7e4b8e0b8e1e6c0b!2sShivajinagar%2C%20Pune%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1234567890123"
-    },
-    {
-      name: 'Nashik Learning Center',
-      location: 'College Road, Nashik - 422005',
-      address: '789 Academic Avenue, Near Bus Stand',
-      capacity: '300 Students',
-      successRate: '89%',
-      toppers: '12 State/District Toppers',
-      contact: '+91 98765 43212',
-      timings: '9:00 AM - 5:00 PM',
-      facilities: ['Digital Classrooms', 'Computer Lab', 'Sports Ground', 'Canteen'],
-      image: 'https://images.pexels.com/photos/5212329/pexels-photo-5212329.jpeg',
-      mapEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3793.2043553445436!2d73.8448119148717!3d20.018532587111896!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2bf7b8e1e6c0b%3A0x7e4b8e0b8e1e6c0b!2sCollege%20Road%2C%20Nashik%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1234567890123"
-    }
-  ];
+  const [centers, setCenters] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
+  const fetchCenters = async (pageNumber = 1) => {
+    try {
+      const res = await api.get(`/simple/examCenter?limit=6&page=${pageNumber}`);
+
+      if (pageNumber === 1) {
+        setCenters(res.data.data);
+      } else {
+        setCenters(prev => [...prev, ...res.data.data]); // 🔥 append
+      }
+
+      setHasMore(res.data.pagination.hasMore);
+    } catch (err) {
+      console.error("Error fetching centers", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCenters(1);
+  }, []);
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchCenters(nextPage);
+  };
   const galleryImages = [
-    'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg',
-    'https://images.pexels.com/photos/5427674/pexels-photo-5427674.jpeg',
-    'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg',
-    'https://images.pexels.com/photos/5212700/pexels-photo-5212700.jpeg'
+    img7, img8, img9, img10, img11, img12, img13, img14
   ];
 
   const testimonials = [
@@ -83,8 +78,8 @@ const ExamCenters = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <div className='mb-10'>
-                <h1 className='md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Our Exam Centers</h1>
-                <div className='md:w-48 w-40 h-2 bg-secondary'></div>
+              <h1 className='md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Our Exam Centers</h1>
+              <div className='md:w-48 w-40 h-2 bg-secondary'></div>
             </div>
             {/* <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
               Our Exam Centers
@@ -94,89 +89,96 @@ const ExamCenters = () => {
             </p>
           </div>
 
-          <div className="space-y-16">
-            {centers.map((center, index) => (
-              <div key={index} className="bg-customwhite rounded-2xl shadow-custom overflow-hidden">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-                  {/* Center Info */}
-                  <div className="p-8 lg:p-12">
-                    <h3 className="text-2xl md:text-3xl font-bold text-customblack mb-4 font-custom">
-                      {center.name}
-                    </h3>
-                    <div className="space-y-4 mb-6">
-                      <div className="flex items-start space-x-3">
-                        <MapPin className="w-5 h-5 text-secondary mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-medium text-customblack">{center.location}</p>
-                          <p className="text-gray-600 text-sm">{center.address}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Phone className="w-5 h-5 text-secondary" />
-                        <span className="text-gray-600">{center.contact}</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Clock className="w-5 h-5 text-secondary" />
-                        <span className="text-gray-600">{center.timings}</span>
-                      </div>
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {centers.map((center, index) => {
+              const remaining = (center.capicity || 0) - center.studentCount;
 
-                    {/* Statistics */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <Users className="w-6 h-6 text-primary mx-auto mb-1" />
-                        <div className="font-bold text-customblack">{center.capacity}</div>
-                        <div className="text-xs text-gray-600">Capacity</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <TrendingUp className="w-6 h-6 text-primary mx-auto mb-1" />
-                        <div className="font-bold text-customblack">{center.successRate}</div>
-                        <div className="text-xs text-gray-600">Success Rate</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <Award className="w-6 h-6 text-primary mx-auto mb-1" />
-                        <div className="font-bold text-customblack">{center.toppers}</div>
-                        <div className="text-xs text-gray-600">Toppers</div>
-                      </div>
+              return (
+                <div
+                  key={center.centerId}
+                  className="relative bg-customwhite rounded-xl shadow-custom overflow-hidden transform hover:scale-105 transition-all duration-300"
+                >
+                  {index === 0 && (
+                    <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded">
+                      Top Centre
                     </div>
+                  )}
 
-                    {/* Facilities */}
-                    <div className="mb-6">
-                      <h4 className="font-bold text-customblack mb-3">Facilities Available:</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {center.facilities.map((facility, facilityIndex) => (
-                          <div key={facilityIndex} className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-secondary rounded-full"></div>
-                            <span className="text-sm text-gray-600">{facility}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button className="bg-primary hover:bg-opacity-90 text-customwhite px-6 py-3 rounded-lg font-semibold transition-all duration-300">
-                      Contact This Center
-                    </button>
+                  <div className="flex items-center justify-center h-28 bg-primary/10">
+                    <School2 size={70} className="text-primary" />
                   </div>
+                  {/* <div className="relative h-44">
+                            <img
+                              src="https://images.unsplash.com/photo-1562774053-701939374585"
+                              alt="Exam Center"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/20"></div>
+          
+                            {index === 0 && (
+                              <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded">
+                                Top Center
+                              </div>
+                            )}
+                          </div> */}
 
-                  {/* Map & Image */}
-                  <div className="relative">
-                    <div className="h-64 lg:h-full min-h-[300px]">
-                      <iframe
-                        src={center.mapEmbed}
-                        width="100%"
-                        height="100%"
-                        style={{ border: 0 }}
-                        allowFullScreen
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        className="rounded-b-2xl lg:rounded-r-2xl lg:rounded-bl-none"
-                      ></iframe>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-customblack mb-2 text-center">
+                      {center.centerName}
+                    </h3>
+
+                    <div className="space-y-3 mt-4">
+
+                      {/* Location */}
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <MapPin className="w-4 h-4 text-primary" />
+                        <span className="text-sm">
+                          {center.collegeName || "N/A"}
+                        </span>
+                      </div>
+
+                      {/* Students */}
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Users className="w-4 h-4 text-green-600" />
+                        <span className="text-sm">
+                          {center.studentCount} Students
+                        </span>
+                      </div>
+
+                      {/* Capacity */}
+                      {/* <div className="flex items-center gap-2 text-gray-600">
+                                <TrendingUp className="w-4 h-4 text-blue-600" />
+                                <span className="text-sm">
+                                  Capacity: {center.capicity || "N/A"}
+                                </span>
+                              </div> */}
+
+                      {/* Remaining */}
+                      {/* <div className="flex items-center gap-2 text-gray-600">
+                                <Users className="w-4 h-4 text-red-500" />
+                                <span className="text-sm">
+                                  Remaining: {remaining >= 0 ? remaining : 0}
+                                </span>
+                              </div> */}
+
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+          {hasMore && (
+            <div className="text-center mt-8">
+              <button
+                onClick={handleLoadMore}
+                className="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition"
+              >
+                View More Centres
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -184,9 +186,9 @@ const ExamCenters = () => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-             <div className='mb-10'>
-                <h1 className='md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Exam Center Gallery</h1>
-                <div className='md:w-48 w-40 h-2 bg-secondary'></div>
+            <div className='mb-10'>
+              <h1 className='md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Exam Center Gallery</h1>
+              <div className='md:w-48 w-40 h-2 bg-secondary'></div>
             </div>
             {/* <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
               Exam Center Gallery
@@ -215,9 +217,9 @@ const ExamCenters = () => {
       <section className="py-16 bg-customwhite">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-             <div className='mb-10'>
-                <h1 className='md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Student Feedback</h1>
-                <div className='md:w-48 w-40 h-2 bg-secondary'></div>
+            <div className='mb-10'>
+              <h1 className='md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Student Feedback</h1>
+              <div className='md:w-48 w-40 h-2 bg-secondary'></div>
             </div>
             {/* <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
               Student Feedback
