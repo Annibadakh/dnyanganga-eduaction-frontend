@@ -1,111 +1,171 @@
 # PrepPortal: Exam Admin Software
 
-A complete **PrepPortal: Exam Admin Software for Dnyangnaga Education Pvt Ltd** built for a client to streamline **subject management, student registration, payments, halltickets, results, notifications, and book distribution**.  
-This project is designed to handle **Admin, Counsellor, and Teacher roles** with dashboards and automated communication (Email, WhatsApp Business API, DLT-compliant SMS).
+A complete **PrepPortal: Exam Admin Software for Dnyanganga Education Pvt Ltd** built to streamline **student lifecycle management, payments, communication, and automation workflows**.
+The system supports **Admin, Counsellor, and Teacher roles**, with real-time operations and automated communication via **Email, WhatsApp Business API, and DLT-compliant SMS**.
 
 ---
 
 ## 🚀 Features
 
 ### 🔑 User & Role Management
-- Admin can create and manage roles (Admin, Counsellor, Teacher).
-- Counsellors manage student registrations and payments.
-- Teachers can manage paper checking and result upload tasks.
+
+* Admin can create and manage roles (Admin, Counsellor, Teacher).
+* Counsellors handle student registration and payment workflows.
+* Teachers manage paper checking and result uploads.
+
+---
 
 ### 📚 Subject & Exam Management
-- Add/update/delete subjects.
-- Hallticket generation and result declaration.
+
+* Add/update/delete subjects.
+* Hall ticket generation and result declaration.
+
+---
 
 ### 👨‍🎓 Student Management
-- Student registration with profile photo upload.
-- Payment collection and tracking.
-- Automatic PDF generation for **Registration Form** & **Payment Receipt**.
-- Edit student details (using Student ID).
 
-### 💰 Payment & Reminders
-- Payment collection with receipts.
-- Automatic due-date reminders (4 days & 1 day before).
-- Counsellors retain percentage of collection, with settlement tracking.
-- Recollection option for pending payments.
+* Student registration with profile photo upload.
+* Payment tracking with receipt generation.
+* Automatic PDF generation for:
 
-### 📩 Communication System
-- Integrated **Email, WhatsApp Business API, and DLT-compliant SMS**.
-- Instant notifications on:
-  - Successful registration
-  - Payment confirmation
-  - Due reminders
-- WhatsApp webhook integration:
-  - Students can request **PDF documents** by messaging the institute’s business number.
-- Automatic **birthday wishes** for students, counsellors, and visiting students.
+  * Registration forms
+  * Payment receipts
+* Editable student profiles using Student ID.
+
+---
+
+### 💰 Payment & Reminder System
+
+* Payment collection with automated receipts.
+* Due reminders (4 days & 1 day before deadlines).
+* Counsellor commission tracking and settlement management.
+* Recollection handling for pending payments.
+
+---
+
+### 🤖 Chatbot & Smart Automation (NEW 🚀)
+
+* Integrated **AI-driven chatbot** available on:
+
+  * WhatsApp (via webhook)
+  * Web platform
+* Automatically resolves common institute queries (fees, registration, documents).
+* Optimized API usage using:
+
+  * Rate limiting
+  * Token usage optimization
+* Reduces manual support workload significantly.
+
+---
+
+### 📩 Advanced Communication System
+
+* Integrated **Email, WhatsApp Business API, and DLT-compliant SMS**.
+* Instant notifications for:
+
+  * Registration confirmation
+  * Payment success
+  * Due reminders
+* WhatsApp webhook features:
+
+  * Students can request and receive **PDF documents** instantly.
+* Automated **birthday wishes** for students and staff.
+
+---
+
+### 📨 Bulk Messaging System (AWS-Based) (NEW 🚀)
+
+* Designed asynchronous bulk messaging system using:
+
+  * **AWS SQS (Queue)**
+  * **AWS Lambda (Worker Processing)**
+* Handles high-volume WhatsApp message delivery reliably.
+* Ensures fault-tolerant and scalable notification processing.
+
+---
 
 ### 📖 Book Distribution
-- When a student clears all dues (`amountRemaining == 0`), counsellor receives notification.
-- Counsellor can mark book distribution status.
-- Admin can monitor overall distribution reports.
 
-### 📑 Document Management
-- PDF creation for:
-  - Registration forms
-  - Payment receipts
-- Auto-download and sending via messages.
+* Counsellors are notified when student dues are cleared (`amountRemaining == 0`).
+* Book distribution tracking and updates.
+* Admin dashboard for monitoring distribution reports.
+
+---
+
+### 📑 Document & Media Optimization (NEW 🚀)
+
+* Automatic **image and PDF compression** to:
+
+  * Reduce storage usage
+  * Improve upload/download performance
+* Efficient document handling across communication channels.
 
 ---
 
 ## ⚙️ Workflow
 
-1. **Admin**  
-   - Manages subjects.  
-   - Adds counsellors & teachers.  
-   - Views institute-wide data in dashboard.  
+### 1. Admin
 
-2. **Counsellor**  
-   - Registers students & collects payments.  
-   - Views student details in their dashboard.  
-   - Sends notifications & receipts automatically.  
-   - Distributes books once dues are cleared.  
+* Manages subjects and users.
+* Monitors dashboards and reports.
 
-3. **System Automation**  
-   - Sends payment/registration notifications.  
-   - Generates and sends PDF documents.  
-   - Sends birthday wishes automatically.  
-   - Triggers reminders for due payments.  
+### 2. Counsellor
+
+* Registers students and collects payments.
+* Sends automated notifications and receipts.
+* Distributes books after payment clearance.
+
+### 3. System Automation
+
+* Sends notifications via Email, WhatsApp, and SMS.
+* Generates and delivers PDF documents.
+* Runs chatbot for query resolution.
+* Triggers scheduled reminders and birthday messages.
+* Processes bulk messaging via AWS queue system.
 
 ---
 
-
 ## 🛠️ Tech Stack
 
-**Frontend**  
-- React.js  
-- Tailwind CSS  
+### Frontend
 
-**Backend**  
-- Node.js  
-- Express.js  
+* React.js
+* Tailwind CSS
 
-**Database**  
-- MySQL  
-- Sequelize ORM  
-- mysql2  
+### Backend
 
-**APIs & Libraries**  
-- WhatsApp Business API  
-- Fast2Sms API  
-- Nodemailer (Email integration)  
-- pdf-lib (PDF generation)  
-- jsonwebtoken (JWT Authentication)  
+* Node.js
+* Express.js
+
+### Database
+
+* MySQL
+* Sequelize ORM
+* mysql2
+
+### Cloud & Architecture
+
+* AWS SQS (Queue System)
+* AWS Lambda (Serverless Processing)
+
+### APIs & Libraries
+
+* WhatsApp Business API
+* Fast2Sms API
+* Nodemailer (Email integration)
+* pdf-lib (PDF generation)
+* jsonwebtoken (JWT Authentication)
 
 ---
 
 ## 🔗 Links
 
-👉 [Backend Repository Link](https://github.com/Annibadakh/dnyanganga-education-backend)
-👉 [Deployed Link](https://dnyangangaeducation.com/)
+👉 Backend Repository: https://github.com/Annibadakh/dnyanganga-education-backend
+👉 Live Application: https://dnyangangaeducation.com/
 
 ---
-
-
 
 ## 👨‍💻 Author
 
 Developed by **Aniket Ramesh Badakh**
+
