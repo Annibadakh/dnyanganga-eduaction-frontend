@@ -12,6 +12,7 @@ import LandingLayout from "./LandingLayout";
 import Main from "./Pages/Main";
 import Login from "./Components/Login";
 import Quizz from "./Dashboard/QuestionBank";
+import CounsellorReport from "./Dashboard/CounsellorReport";
 
 // Landing
 const About = lazy(() => import("./Pages/About"));
@@ -164,6 +165,7 @@ function App() {
                   }
                 >
                   <Route path="paymenttable" element={<PaymentTable />} />
+                  <Route path="report" element={<CounsellorReport />} />
                 </Route>
 
                 <Route

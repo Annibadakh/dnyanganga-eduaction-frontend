@@ -793,6 +793,7 @@ const RegistrationForm = () => {
                     Due Date:
                   </label>
                   <input
+                    required={!isPaidInFull}
                     disabled={isPaidInFull}
                     type="date"
                     name="dueDate"
