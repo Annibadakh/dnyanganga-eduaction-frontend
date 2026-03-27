@@ -16,14 +16,15 @@ const RegistrationForm = () => {
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [show9thBranchDropdown, setShow9thBranchDropdown] = useState(false);
   const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
-  const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] = useState(false);
+  const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] =
+    useState(false);
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
   const [isPaidInFull, setIsPaidInFull] = useState(false);
   const [selectedExamCentre, setSelectedExamCentre] = useState(null);
   const [showDraftButton, setShowDraftButton] = useState(false);
 
-  const DRAFT_STORAGE_KEY = 'studentRegistrationDraft';
+  const DRAFT_STORAGE_KEY = "studentRegistrationDraft";
 
   const [formData, setFormData] = useState({
     studentName: "",
@@ -69,7 +70,12 @@ const RegistrationForm = () => {
         examYear: nextYear.toString(),
         paymentStandard: "9th+10th",
         totalamount: 6850,
-        dropdowns: { show9th: true, show10th: false, show11th: false, show12th: false },
+        dropdowns: {
+          show9th: true,
+          show10th: false,
+          show11th: false,
+          show12th: false,
+        },
       },
       "10th": {
         branch: "",
@@ -77,7 +83,12 @@ const RegistrationForm = () => {
         examYear: currentYear.toString(),
         paymentStandard: "10th",
         totalamount: 6850,
-        dropdowns: { show9th: false, show10th: true, show11th: false, show12th: false },
+        dropdowns: {
+          show9th: false,
+          show10th: true,
+          show11th: false,
+          show12th: false,
+        },
       },
       "11th+12th": {
         branch: "",
@@ -85,7 +96,12 @@ const RegistrationForm = () => {
         examYear: nextYear.toString(),
         paymentStandard: "11th+12th",
         totalamount: 9850,
-        dropdowns: { show9th: false, show10th: false, show11th: true, show12th: false },
+        dropdowns: {
+          show9th: false,
+          show10th: false,
+          show11th: true,
+          show12th: false,
+        },
       },
       "12th": {
         branch: "",
@@ -93,7 +109,12 @@ const RegistrationForm = () => {
         examYear: currentYear.toString(),
         paymentStandard: "12th",
         totalamount: 7900,
-        dropdowns: { show9th: false, show10th: false, show11th: false, show12th: true },
+        dropdowns: {
+          show9th: false,
+          show10th: false,
+          show11th: false,
+          show12th: true,
+        },
       },
     };
 
@@ -103,7 +124,12 @@ const RegistrationForm = () => {
       examYear: "",
       paymentStandard: "",
       totalamount: 0,
-      dropdowns: { show9th: false, show10th: false, show11th: false, show12th: false },
+      dropdowns: {
+        show9th: false,
+        show10th: false,
+        show11th: false,
+        show12th: false,
+      },
     };
 
     const { dropdowns, ...formFields } = config;
@@ -116,20 +142,18 @@ const RegistrationForm = () => {
     return formFields;
   };
 
-
   // Helper function to find center by centerId
   const getCenterNameById = (centerId) => {
-    const center = examCentres.find(centre => centre.value === centerId);
+    const center = examCentres.find((centre) => centre.value === centerId);
     return center ? center : "";
   };
 
   useEffect(() => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      examCentre: selectedExamCentre?.value ?? ""
+      examCentre: selectedExamCentre?.value ?? "",
     }));
   }, [selectedExamCentre]);
-
 
   const loadDraftFromLocalStorage = () => {
     try {
@@ -140,7 +164,7 @@ const RegistrationForm = () => {
       }
       return null;
     } catch (error) {
-      console.error('Error loading draft from localStorage:', error);
+      console.error("Error loading draft from localStorage:", error);
       return null;
     }
   };
@@ -150,13 +174,16 @@ const RegistrationForm = () => {
       localStorage.removeItem(DRAFT_STORAGE_KEY);
       setShowDraftButton(false);
     } catch (error) {
-      console.error('Error clearing draft from localStorage:', error);
+      console.error("Error clearing draft from localStorage:", error);
     }
   };
 
   const checkForExistingDraft = () => {
     const draft = loadDraftFromLocalStorage();
-    if (draft && Object.values(draft).some(value => value !== "" && value !== 0)) {
+    if (
+      draft &&
+      Object.values(draft).some((value) => value !== "" && value !== 0)
+    ) {
       setShowDraftButton(true);
     } else {
       setShowDraftButton(false);
@@ -166,21 +193,18 @@ const RegistrationForm = () => {
   const loadDraftData = () => {
     const draftData = loadDraftFromLocalStorage();
     if (draftData) {
-
       if (draftData.standard) {
         applyStandardLogic(draftData.standard);
       }
 
-      setFormData(prevData => ({
+      setFormData((prevData) => ({
         ...prevData,
-        ...draftData
+        ...draftData,
       }));
-
 
       setShowDraftButton(false);
       // alert("Draft data loaded successfully!");
-      infoToast("Draft data loaded successfully!")
-
+      infoToast("Draft data loaded successfully!");
     }
   };
 
@@ -192,7 +216,8 @@ const RegistrationForm = () => {
   // Auto-save to localStorage whenever formData changes
   useEffect(() => {
     const hasData = Object.entries(formData).some(([key, value]) => {
-      if (['studentPhoto', 'receiptPhoto', 'amountRemaining'].includes(key)) return false;
+      if (["studentPhoto", "receiptPhoto", "amountRemaining"].includes(key))
+        return false;
       return value !== "" && value !== 0;
     });
 
@@ -203,27 +228,31 @@ const RegistrationForm = () => {
         const draftData = { ...formData };
         delete draftData.studentPhoto;
         delete draftData.receiptPhoto;
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({
-          data: draftData,
-          timestamp: new Date().toISOString()
-        }));
+        localStorage.setItem(
+          DRAFT_STORAGE_KEY,
+          JSON.stringify({
+            data: draftData,
+            timestamp: new Date().toISOString(),
+          }),
+        );
       } catch (error) {
-        console.error('Error saving draft:', error);
+        console.error("Error saving draft:", error);
       }
     }, 1000);
 
     return () => clearTimeout(timeoutId);
   }, [formData]);
 
-
   useEffect(() => {
     api
       .get("/admin/getExamCenters")
       .then((response) => {
-        setExamCentres(response.data.data.map((centre) => ({
-          value: centre.centerId,
-          label: centre.centerName,
-        })))
+        setExamCentres(
+          response.data.data.map((centre) => ({
+            value: centre.centerId,
+            label: centre.centerName,
+          })),
+        );
         // setExamCentres(response.data.data);
       })
       .catch((error) => {
@@ -251,18 +280,17 @@ const RegistrationForm = () => {
     setPaymentError(
       amountPaid > totalAmount && amountPaid > 0
         ? "Amount paid cannot be greater than total amount"
-        : ""
+        : "",
     );
 
     setIsPaidInFull(isPaidInFull);
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       amountRemaining: remaining >= 0 ? remaining.toString() : "0",
       ...(isPaidInFull && { dueDate: "" }),
     }));
   }, [formData.totalamount, formData.amountPaid]);
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -278,8 +306,8 @@ const RegistrationForm = () => {
   // Handle file uploads with form data update
   const handleStudentPhotoUpload = async (type) => {
     const imageUrl = await studentPhoto.uploadImage(type);
-    if (imageUrl && imageUrl.trim() !== '') {
-      setFormData(prevData => ({ ...prevData, studentPhoto: imageUrl }));
+    if (imageUrl && imageUrl.trim() !== "") {
+      setFormData((prevData) => ({ ...prevData, studentPhoto: imageUrl }));
     } else {
       console.error("Student photo upload failed - no valid URL returned");
     }
@@ -287,8 +315,8 @@ const RegistrationForm = () => {
 
   const handleReceiptPhotoUpload = async (type) => {
     const imageUrl = await receiptPhoto.uploadImage(type);
-    if (imageUrl && imageUrl.trim() !== '') {
-      setFormData(prev => ({ ...prev, receiptPhoto: imageUrl }));
+    if (imageUrl && imageUrl.trim() !== "") {
+      setFormData((prev) => ({ ...prev, receiptPhoto: imageUrl }));
     } else {
       console.error("Receipt photo upload failed - no valid URL returned");
     }
@@ -306,17 +334,20 @@ const RegistrationForm = () => {
       if (response.status === 201) {
         clearDraftFromLocalStorage();
         // alert("Student Registered Successfully!!");
-        successToast("Student Registered Successfully!!")
+        successToast("Student Registered Successfully!!");
         navigate("/dashboard/registertable");
       }
     } catch (error) {
       if (error.response?.status === 400) {
         // alert(error.response.data.message);
-        errorToast(error.response.data.message || "Error registering student. Please try again.");
+        errorToast(
+          error.response.data.message ||
+            "Error registering student. Please try again.",
+        );
       } else {
         console.error("Error submitting form:", error);
         // alert("Error registering student. Please try again.");
-        errorToast("Error registering student. Please try again.")
+        errorToast("Error registering student. Please try again.");
       }
     } finally {
       setSubmitLoader(false);
@@ -338,7 +369,8 @@ const RegistrationForm = () => {
                 <div className="flex items-start sm:items-center">
                   <div className="ml-0 sm:ml-3">
                     <p className="text-sm text-blue-700">
-                      <strong>Draft Found!</strong> You have unsaved form data. Would you like to continue where you left off?
+                      <strong>Draft Found!</strong> You have unsaved form data.
+                      Would you like to continue where you left off?
                     </p>
                   </div>
                 </div>
@@ -363,11 +395,15 @@ const RegistrationForm = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full">
-
+          <form
+            onSubmit={handleSubmit}
+            className="p-2 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full"
+          >
             {/* Personal Details Section */}
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Personal Details</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                Student Personal Details
+              </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
                 <input
                   type="text"
@@ -390,7 +426,9 @@ const RegistrationForm = () => {
                   <option value="Female">Female</option>
                 </select>
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Date of Birth:</label>
+                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">
+                    Date of Birth:
+                  </label>
                   <input
                     type="date"
                     name="dob"
@@ -435,7 +473,9 @@ const RegistrationForm = () => {
 
             {/* Educational Details Section */}
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Educational Details</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                Student Educational Details
+              </h3>
               <div className="flex flex-col gap-3 sm:gap-4 w-full lg:grid lg:grid-cols-2">
                 <select
                   name="standard"
@@ -453,7 +493,9 @@ const RegistrationForm = () => {
 
                 {/* Auto-filled Previous Year Field */}
                 <div className="w-full flex flex-row items-center gap-1 order-2">
-                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Previous Year:</label>
+                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-gray-600">
+                    Previous Year:
+                  </label>
                   <input
                     type="text"
                     name="previousYear"
@@ -533,7 +575,9 @@ const RegistrationForm = () => {
                   onChange={handleChange}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-4"
                   required
-                  min="0" max="100" step="0.01"
+                  min="0"
+                  max="100"
+                  step="0.01"
                 />
 
                 <input
@@ -550,7 +594,9 @@ const RegistrationForm = () => {
 
             {/* Contact Details Section */}
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Contact Details</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                Student Contact Details
+              </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
                 <input
                   type="email"
@@ -628,9 +674,10 @@ const RegistrationForm = () => {
 
             {/* Exam Centre and Form Details Section */}
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Exam Centre and Form Details</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                Student Exam Centre and Form Details
+              </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-
                 <CustomSelect
                   options={examCentres}
                   value={selectedExamCentre}
@@ -641,7 +688,9 @@ const RegistrationForm = () => {
 
                 {/* Auto-filled Exam Year Field */}
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Exam Year:</label>
+                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-gray-600">
+                    Exam Year:
+                  </label>
                   <input
                     type="text"
                     name="examYear"
@@ -656,13 +705,16 @@ const RegistrationForm = () => {
 
             {/* Payment Details Section */}
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Payment Details</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                Student Payment Details
+              </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-
                 {/* Payment Standard field is hidden but logic remains */}
 
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Total Amount: </label>
+                  <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">
+                    Total Amount:{" "}
+                  </label>
                   <input
                     type="number"
                     value={formData.totalamount}
@@ -682,14 +734,19 @@ const RegistrationForm = () => {
                   onWheel={(e) => e.target.blur()}
                   onChange={handleChange}
                   placeholder="Enter Amount Paid"
-                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-sm sm:text-base ${paymentError ? 'border-red-500 focus:ring-red-300' : 'border-gray-300 focus:ring-blue-300'
-                    }`}
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 text-sm sm:text-base ${
+                    paymentError
+                      ? "border-red-500 focus:ring-red-300"
+                      : "border-gray-300 focus:ring-blue-300"
+                  }`}
                   required
                   min="1"
                   max={formData.totalamount}
                 />
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">Amount Remaining: </label>
+                  <label className=" min-w-fit md:text-[17px] text-md mr-2 text-gray-600">
+                    Amount Remaining:{" "}
+                  </label>
                   <input
                     type="number"
                     name="amountRemaining"
@@ -732,7 +789,9 @@ const RegistrationForm = () => {
                 </select>
 
                 <div className="w-full flex flex-row items-center gap-1">
-                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Due Date:</label>
+                  <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">
+                    Due Date:
+                  </label>
                   <input
                     disabled={isPaidInFull}
                     type="date"
@@ -748,7 +807,9 @@ const RegistrationForm = () => {
 
             {/* Documents Section */}
             <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Documents</h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                Student Documents
+              </h3>
               <div className="space-y-4">
                 <FileUpload
                   title="Student Photo"
@@ -776,61 +837,85 @@ const RegistrationForm = () => {
             </div>
 
             <div className="grid place-items-center w-full">
-              {studentPhoto.isSaved && receiptPhoto.isSaved && formData.examCentre && !paymentError && (
-                <button
-                  type="submit"
-                  disabled={submitLoader}
-                  className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
-                >
-                  {submitLoader ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span> : "Submit"}
-                </button>
-              )}
-              {(!studentPhoto.isSaved || !receiptPhoto.isSaved || !formData.examCentre) && (
+              {studentPhoto.isSaved &&
+                receiptPhoto.isSaved &&
+                formData.examCentre &&
+                !paymentError && (
+                  <button
+                    type="submit"
+                    disabled={submitLoader}
+                    className="w-full py-3 bg-primary disabled:opacity-50 grid place-items-center text-white rounded hover:bg-opacity-90 transition text-sm sm:text-base"
+                  >
+                    {submitLoader ? (
+                      <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                    ) : (
+                      "Submit"
+                    )}
+                  </button>
+                )}
+              {(!studentPhoto.isSaved ||
+                !receiptPhoto.isSaved ||
+                !formData.examCentre) && (
                 <div className="mb-4 space-y-2">
-                  {!studentPhoto.isSaved && !receiptPhoto.isSaved && !formData.examCentre && (
-                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
-                      📋 Please complete: Upload Student photo, Upload Receipt photo, and Select Exam Centre
-                    </p>
-                  )}
-                  {!studentPhoto.isSaved && !receiptPhoto.isSaved && formData.examCentre && (
-                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
-                      📸 Please upload and save both Student photo and Receipt photo
-                    </p>
-                  )}
-                  {!studentPhoto.isSaved && receiptPhoto.isSaved && !formData.examCentre && (
-                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
-                      📋 Please upload Student photo and select Exam Centre
-                    </p>
-                  )}
-                  {studentPhoto.isSaved && !receiptPhoto.isSaved && !formData.examCentre && (
-                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
-                      📋 Please upload Receipt photo and select Exam Centre
-                    </p>
-                  )}
-                  {!studentPhoto.isSaved && receiptPhoto.isSaved && formData.examCentre && (
-                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
-                      📸 Please upload and save Student photo
-                    </p>
-                  )}
-                  {studentPhoto.isSaved && !receiptPhoto.isSaved && formData.examCentre && (
-                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
-                      📸 Please upload and save Receipt photo
-                    </p>
-                  )}
-                  {studentPhoto.isSaved && receiptPhoto.isSaved && !formData.examCentre && (
-                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
-                      🏫 Please select an Exam Centre
-                    </p>
-                  )}
+                  {!studentPhoto.isSaved &&
+                    !receiptPhoto.isSaved &&
+                    !formData.examCentre && (
+                      <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                        📋 Please complete: Upload Student photo, Upload Receipt
+                        photo, and Select Exam Centre
+                      </p>
+                    )}
+                  {!studentPhoto.isSaved &&
+                    !receiptPhoto.isSaved &&
+                    formData.examCentre && (
+                      <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                        📸 Please upload and save both Student photo and Receipt
+                        photo
+                      </p>
+                    )}
+                  {!studentPhoto.isSaved &&
+                    receiptPhoto.isSaved &&
+                    !formData.examCentre && (
+                      <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                        📋 Please upload Student photo and select Exam Centre
+                      </p>
+                    )}
+                  {studentPhoto.isSaved &&
+                    !receiptPhoto.isSaved &&
+                    !formData.examCentre && (
+                      <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                        📋 Please upload Receipt photo and select Exam Centre
+                      </p>
+                    )}
+                  {!studentPhoto.isSaved &&
+                    receiptPhoto.isSaved &&
+                    formData.examCentre && (
+                      <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                        📸 Please upload and save Student photo
+                      </p>
+                    )}
+                  {studentPhoto.isSaved &&
+                    !receiptPhoto.isSaved &&
+                    formData.examCentre && (
+                      <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                        📸 Please upload and save Receipt photo
+                      </p>
+                    )}
+                  {studentPhoto.isSaved &&
+                    receiptPhoto.isSaved &&
+                    !formData.examCentre && (
+                      <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                        🏫 Please select an Exam Centre
+                      </p>
+                    )}
                 </div>
               )}
             </div>
-
           </form>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default RegistrationForm;
