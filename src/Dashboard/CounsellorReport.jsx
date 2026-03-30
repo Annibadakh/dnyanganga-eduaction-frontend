@@ -55,21 +55,23 @@ const CounsellorReport = () => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [week, setWeek] = useState("");
-  const [day, setDay] = useState("");
+  const [day, setDay] = useState(today.getDate());
 
   useEffect(() => {
     const currentDate = new Date();
 
     if (Number(year) === currentDate.getFullYear()) {
-      setMonth(currentDate.getMonth() + 1); // current month
+      setMonth(currentDate.getMonth() + 1);
+      setDay(currentDate.getDate()); // ✅ keep today's day
     } else {
-      setMonth(1); // or "" if you want blank
+      setMonth(1);
+      setDay(""); // optional for past years
     }
 
     setWeek("");
-    setDay("");
   }, [year]);
-  // Fetch report
+
+  // 🔥 Fetch report (single API)
   const fetchReport = async () => {
     try {
       setLoading(true);
@@ -81,22 +83,21 @@ const CounsellorReport = () => {
         day,
       };
 
-      let url = "/report/admin";
-
-      if (user.role === "counsellor") {
-        url = `/report/counsellor/${user.uuid}`;
-      }
-
+      // ✅ Admin can optionally filter by counsellor
       if (user.role === "admin" && selectedCounsellor?.value) {
-        url = `/report/counsellor/${selectedCounsellor.value}`;
+        params.counsellorId = selectedCounsellor.value;
       }
 
-      const res = await api.get(url, { params });
+      // ✅ Single endpoint for all
+      const res = await api.get("/report", { params });
 
-      if (user.role === "admin" && !selectedCounsellor) {
-        setData(res.data.data || []);
+      // ✅ Normalize response
+      const responseData = res.data.data;
+
+      if (Array.isArray(responseData)) {
+        setData(responseData); // admin (all)
       } else {
-        setData(res.data.data ? [res.data.data] : []);
+        setData(responseData ? [responseData] : []); // counsellor or filtered admin
       }
 
       setLoading(false);
@@ -109,7 +110,6 @@ const CounsellorReport = () => {
   useEffect(() => {
     fetchReport();
   }, [year, month, week, day, selectedCounsellor]);
-
   const handleExportExcel = () => {
     if (!data || data.length === 0) {
       alert("No data to export");
@@ -152,6 +152,10 @@ const CounsellorReport = () => {
 
   // Table columns
   const columns = [
+    {
+      header: "Sr No",
+      render: (row, index) => index + 1,
+    },
     {
       header: "Counsellor",
       render: (row) => row.counsellorName,
