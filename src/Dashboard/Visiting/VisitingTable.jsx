@@ -169,12 +169,9 @@ const VisitingTable = () => {
       dateTo: dateTo,
     };
 
-    console.log("Fetching data with params:", params); // Debug log for parameters
-
     api
       .get("/counsellor/getVisiting", { params })
       .then((response) => {
-        console.log("API response:", response); // Debug log for API response
         setVisitingData(response.data.data);
         setTotalCount(response.data.totalCount);
         setTotalPages(response.data.totalPages);
