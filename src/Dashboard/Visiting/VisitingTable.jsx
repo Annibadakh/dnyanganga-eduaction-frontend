@@ -11,8 +11,6 @@ import Pagination from "../Generic/Pagination";
 import Button from "../Generic/Button";
 import { Eye, Edit } from "lucide-react";
 
-
-
 const VisitingTable = () => {
   const { user } = useAuth();
   const { counsellor, counsellorBranch } = useContext(DashboardContext);
@@ -47,13 +45,11 @@ const VisitingTable = () => {
   const columns = [
     {
       header: "Sr. No.",
-      render: (_, index) =>
-        (currentPage - 1) * itemsPerPage + index + 1,
+      render: (_, index) => (currentPage - 1) * itemsPerPage + index + 1,
     },
     {
       header: "Visit Date",
-      render: (row) =>
-        new Date(row.createdAt).toLocaleDateString("en-GB"),
+      render: (row) => new Date(row.createdAt).toLocaleDateString("en-GB"),
     },
     {
       header: "Visit Time",
@@ -88,42 +84,39 @@ const VisitingTable = () => {
       accessor: "reason",
     },
 
-    ...(user.role === "admin"
+    ...(user.role === "admin" || user.role === "followUp"
       ? [
-        {
-          header: "Counsellor Name",
-          render: (row) => row.User?.name,
-        },
-        {
-          header: "Counsellor Branch",
-          render: (row) => row.User?.counsellorBranch,
-        },
-      ]
+          {
+            header: "Counsellor Name",
+            render: (row) => row.User?.name,
+          },
+          {
+            header: "Counsellor Branch",
+            render: (row) => row.User?.counsellorBranch,
+          },
+        ]
       : []),
 
     ...(user.role === "admin" || user.role === "followUp"
       ? [
-        {
-          header: "Follow-up",
-          render: (row) => (
-            <input
-              type="checkbox"
-              checked={row.followUp || false}
-              onChange={() =>
-                handleFollowUpChange(row.id, row.followUp)
-              }
-              className="w-5 h-5 cursor-pointer accent-primary"
-            />
-          ),
-        },
-      ]
+          {
+            header: "Follow-up",
+            render: (row) => (
+              <input
+                type="checkbox"
+                checked={row.followUp || false}
+                onChange={() => handleFollowUpChange(row.id, row.followUp)}
+                className="w-5 h-5 cursor-pointer accent-primary"
+              />
+            ),
+          },
+        ]
       : []),
 
     {
       header: "Actions",
       render: (row) => (
         <div className="flex gap-2 justify-center flex-nowrap">
-
           <Button
             variant="info"
             startIcon={<Eye size={16} />}
@@ -145,7 +138,6 @@ const VisitingTable = () => {
       ),
     },
   ];
-
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -177,9 +169,12 @@ const VisitingTable = () => {
       dateTo: dateTo,
     };
 
+    console.log("Fetching data with params:", params); // Debug log for parameters
+
     api
       .get("/counsellor/getVisiting", { params })
       .then((response) => {
+        console.log("API response:", response); // Debug log for API response
         setVisitingData(response.data.data);
         setTotalCount(response.data.totalCount);
         setTotalPages(response.data.totalPages);
@@ -218,7 +213,6 @@ const VisitingTable = () => {
     dateFrom,
     dateTo,
   ]);
-
 
   const clearDateFilters = () => {
     setDateFrom("");
@@ -381,12 +375,9 @@ const VisitingTable = () => {
               isRequired={false}
               placeholder="Select Branch"
             />
-
           </div>
         )}
       </div>
-
-
 
       <DataTable
         columns={columns}
@@ -405,7 +396,6 @@ const VisitingTable = () => {
         onPageChange={handlePageChange}
         onItemsPerPageChange={handleItemsPerPageChange}
       />
-
 
       {/* View Modal */}
       {showViewModal && selectedVisit && (
