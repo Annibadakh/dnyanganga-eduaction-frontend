@@ -13,8 +13,6 @@ import PdfViewerModal from "../Generic/PdfViewerModal";
 import Button from "../Generic/Button";
 import { FileText, Edit, Trash2, Power } from "lucide-react";
 
-
-
 const RegistrationTable = () => {
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState([]);
@@ -52,18 +50,17 @@ const RegistrationTable = () => {
   const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
   const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
 
-  const { counsellor, examCenter, counsellorBranch } = useContext(DashboardContext);
+  const { counsellor, examCenter, counsellorBranch } =
+    useContext(DashboardContext);
 
   const columns = [
     {
       header: "Sr. No.",
-      render: (_, index) =>
-        (currentPage - 1) * itemsPerPage + index + 1,
+      render: (_, index) => (currentPage - 1) * itemsPerPage + index + 1,
     },
     {
       header: "Register Date",
-      render: (row) =>
-        new Date(row.createdAt).toLocaleDateString("en-GB"),
+      render: (row) => new Date(row.createdAt).toLocaleDateString("en-GB"),
     },
     {
       header: "Register Time",
@@ -99,8 +96,7 @@ const RegistrationTable = () => {
     },
     {
       header: "Total Amount",
-      render: (row) =>
-        row.totalAmount.toLocaleString("en-IN"),
+      render: (row) => row.totalAmount.toLocaleString("en-IN"),
     },
     {
       header: "Paid",
@@ -121,28 +117,25 @@ const RegistrationTable = () => {
     {
       header: "Due Date",
       render: (row) =>
-        row.dueDate
-          ? new Date(row.dueDate).toLocaleDateString("en-GB")
-          : "-",
+        row.dueDate ? new Date(row.dueDate).toLocaleDateString("en-GB") : "-",
     },
 
-    ...(user.role === "admin"
+    ...(user.role === "admin" || user.role === "followUp"
       ? [
-        {
-          header: "Counsellor",
-          render: (row) => row.User?.name,
-        },
-        {
-          header: "Branch",
-          render: (row) => row.User?.counsellorBranch,
-        },
-      ]
+          {
+            header: "Counsellor",
+            render: (row) => row.User?.name,
+          },
+          {
+            header: "Branch",
+            render: (row) => row.User?.counsellorBranch,
+          },
+        ]
       : []),
     {
       header: "Actions",
       render: (row) => (
         <div className="flex items-center gap-2 flex-nowrap">
-
           {/* PDF */}
           <Button
             variant="primary"
@@ -186,15 +179,11 @@ const RegistrationTable = () => {
             </>
           )}
 
-          {user.role === "counsellor" &&
-            row.amountRemaining > 0 && (
-              <Button
-                variant="info"
-                onClick={() => handlePayment(row)}
-              >
-                Pay
-              </Button>
-            )}
+          {user.role === "counsellor" && row.amountRemaining > 0 && (
+            <Button variant="info" onClick={() => handlePayment(row)}>
+              Pay
+            </Button>
+          )}
         </div>
       ),
     },
@@ -291,7 +280,7 @@ const RegistrationTable = () => {
     dateFrom,
     dateTo,
     onlyZeroRemaining,
-    onlyNonZeroRemaining
+    onlyNonZeroRemaining,
   ]);
 
   const handlePageChange = (page) => {
@@ -594,24 +583,23 @@ const RegistrationTable = () => {
             </label>
           </div>
 
-            
-            <DataTable
-                  columns={columns}
-                  data={registrations}
-                  loading={loading}
-                  error={error}
-                  rowKey="studentId"
-                  emptyMessage="No registrations found."
-                />
+          <DataTable
+            columns={columns}
+            data={registrations}
+            loading={loading}
+            error={error}
+            rowKey="studentId"
+            emptyMessage="No registrations found."
+          />
 
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={totalCount}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={handlePageChange}
-                  onItemsPerPageChange={handleItemsPerPageChange}
-                />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
         </>
       ) : (
         <PaymentForm
