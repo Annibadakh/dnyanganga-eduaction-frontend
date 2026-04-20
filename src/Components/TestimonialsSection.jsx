@@ -70,7 +70,7 @@ const TestimonialsSection = () => {
         </div>
 
         {/* 🔹 SLIDER */}
-        <div className="relative">
+        {/* <div className="relative">
           <div className="overflow-hidden rounded-2xl">
             <div
               className="flex transition-transform duration-500"
@@ -81,7 +81,6 @@ const TestimonialsSection = () => {
                   <div className="bg-gradient-to-br from-primary to-tertiary p-8 md:p-12">
                     <div className="max-w-4xl mx-auto text-center text-white">
 
-                      {/* Icon */}
                       <div className="flex justify-center mb-6">
                         <div className="w-20 h-20 flex items-center justify-center rounded-full bg-white/20">
                           <User className="w-10 h-10 text-white" />
@@ -111,7 +110,6 @@ const TestimonialsSection = () => {
             </div>
           </div>
 
-          {/* Arrows */}
           <button
             onClick={prevSlide}
             className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 p-2 rounded-full"
@@ -126,7 +124,6 @@ const TestimonialsSection = () => {
             <ChevronRight className="w-6 h-6 text-primary" />
           </button>
 
-          {/* Indicators */}
           <div className="flex justify-center mt-8 gap-2">
             {sliderTestimonials.map((_, i) => (
               <div
@@ -137,11 +134,11 @@ const TestimonialsSection = () => {
               />
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* 🔹 GRID (ALL REMAINING STORIES) */}
         <div className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {gridTestimonials.map((feedback, index) => (
+          {sliderTestimonials.map((feedback, index) => (
             <div
               key={index}
               className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition h-full flex flex-col"
