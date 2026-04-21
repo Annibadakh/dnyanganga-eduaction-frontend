@@ -50,6 +50,17 @@ const RegistrationTable = () => {
   const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
   const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
 
+  const currentYear = new Date().getFullYear();
+  const [selectedExamYear, setSelectedExamYear] = useState(currentYear);
+
+  const examYearOptions = [
+    currentYear - 2,
+    currentYear - 1,
+    currentYear,
+    currentYear + 1,
+    currentYear + 2,
+  ];
+
   const { counsellor, examCenter, counsellorBranch } =
     useContext(DashboardContext);
 
@@ -122,15 +133,15 @@ const RegistrationTable = () => {
 
     ...(user.role === "admin" || user.role === "followUp"
       ? [
-          {
-            header: "Counsellor",
-            render: (row) => row.User?.name,
-          },
-          {
-            header: "Branch",
-            render: (row) => row.User?.counsellorBranch,
-          },
-        ]
+        {
+          header: "Counsellor",
+          render: (row) => row.User?.name,
+        },
+        {
+          header: "Branch",
+          render: (row) => row.User?.counsellorBranch,
+        },
+      ]
       : []),
     {
       header: "Actions",
@@ -231,6 +242,7 @@ const RegistrationTable = () => {
       dateTo: dateTo,
       onlyZeroRemaining,
       onlyNonZeroRemaining,
+      examYear: selectedExamYear,
     };
 
     api
@@ -266,6 +278,7 @@ const RegistrationTable = () => {
     showEditStudent,
     onlyZeroRemaining,
     onlyNonZeroRemaining,
+    selectedExamYear
   ]);
 
   useEffect(() => {
@@ -281,6 +294,7 @@ const RegistrationTable = () => {
     dateTo,
     onlyZeroRemaining,
     onlyNonZeroRemaining,
+    selectedExamYear
   ]);
 
   const handlePageChange = (page) => {
@@ -555,6 +569,18 @@ const RegistrationTable = () => {
               <option value="">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
+            </select>
+
+            <select
+              value={selectedExamYear}
+              onChange={(e) => setSelectedExamYear(e.target.value)}
+              className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
+            >
+              {examYearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
             </select>
           </div>
           <div className="flex flex-wrap gap-4 mb-5">
