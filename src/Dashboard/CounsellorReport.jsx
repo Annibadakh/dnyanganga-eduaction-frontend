@@ -110,6 +110,7 @@ const CounsellorReport = () => {
   useEffect(() => {
     fetchReport();
   }, [year, month, week, day, selectedCounsellor]);
+
   const handleExportExcel = () => {
     if (!data || data.length === 0) {
       alert("No data to export");
@@ -254,16 +255,14 @@ const CounsellorReport = () => {
             placeholder="Select Counsellor"
           />
         )}
-        {user.role === "admin" && (
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={handleExportExcel}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-            >
-              Export Excel
-            </button>
-          </div>
-        )}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={handleExportExcel}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            Export Excel
+          </button>
+        </div>
       </div>
 
       {/* Cards */}
