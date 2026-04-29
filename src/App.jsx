@@ -3,7 +3,11 @@ import { lazy, Suspense, useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import { DashboardProvider } from "./Context/DashboardContext";
-import { ProtectedRoute, ProtectedRoleBasedRoute } from "./ProtectedRoute";
+import {
+  ProtectedRoute,
+  ProtectedRoleBasedRoute,
+  StudentProtectedRoute,
+} from "./ProtectedRoute";
 
 import "./App.css";
 
@@ -15,6 +19,8 @@ import QuestionBank from "./Dashboard/QuestionBank";
 import Quizz from "./Dashboard/Quizz";
 import CounsellorReport from "./Dashboard/CounsellorReport";
 import StudentLogin from "./Components/StudentLogin";
+import StudentQuizPlay from "./Dashboard/Student/StudentQuizPlay";
+import StudentQuizList from "./Dashboard/Student/StudentQuizList";
 
 // Landing
 const About = lazy(() => import("./Pages/About"));
@@ -71,6 +77,9 @@ const CounsellorBooks = lazy(() => import("./Dashboard/Books/CounsellorBooks"));
 const CounsellorCollection = lazy(
   () => import("./Dashboard/Collection/CounsellorCollection"),
 );
+
+////// student dashboard
+const StudentDashboard = lazy(() => import("./Dashboard/Student/index"));
 
 const PageNotFound = lazy(() => import("./Pages/PageNotFound"));
 
@@ -233,6 +242,14 @@ function App() {
                 >
                   <Route path="bookentries" element={<AddBookEntry />} />
                 </Route>
+              </Route>
+            </Route>
+
+            <Route path="student" element={<StudentProtectedRoute />}>
+              <Route element={<Dashboard />}>
+                <Route index element={<Navigate to="home" replace />} />
+                <Route path="home" element={<StudentQuizList />} />
+                <Route path="play/:quizId" element={<StudentQuizPlay />} />
               </Route>
             </Route>
 

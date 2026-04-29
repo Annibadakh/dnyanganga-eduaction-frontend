@@ -12,7 +12,7 @@ function StudentLogin() {
 
   const { successToast, errorToast } = useToast();
 
-  const from = location.state?.from || "/dashboard";
+  const from = location.state?.from || "/student";
 
   const [studentId, setStudentId] = useState("");
   const [dob, setDob] = useState("");
@@ -36,8 +36,8 @@ function StudentLogin() {
 
       await login(response.data);
 
-      setEmail("");
-      setPassword("");
+      setStudentId("");
+      setDob("");
 
       successToast("Login successful !!");
     } catch (error) {
