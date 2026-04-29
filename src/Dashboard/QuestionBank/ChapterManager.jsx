@@ -38,7 +38,7 @@ const ChapterManager = () => {
   const fetchSubjects = async (standardId) => {
     try {
       const res = await api.get(`/simple/standards/${standardId}/subjects`);
-      console.log("Subjects Response:", res.data.data.subjects); // Debug log
+      // console.log("Subjects Response:", res.data.data.subjects); // Debug log
       const options = res.data.data.subjects.map((sub) => ({
         label: sub.subjectName,
         value: sub.subjectCode,
@@ -57,7 +57,7 @@ const ChapterManager = () => {
       const res = await api.get("/question-bank/chapter", {
         params: { subjectId },
       });
-      console.log("Chapters Response:", res.data); // Debug log
+      // console.log("Chapters Response:", res.data); // Debug log
       setChapters(res.data);
     } catch (err) {
       console.error(err);

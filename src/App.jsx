@@ -11,8 +11,10 @@ import Loader from "./Pages/Loader";
 import LandingLayout from "./LandingLayout";
 import Main from "./Pages/Main";
 import Login from "./Components/Login";
-import Quizz from "./Dashboard/QuestionBank";
+import QuestionBank from "./Dashboard/QuestionBank";
+import Quizz from "./Dashboard/Quizz";
 import CounsellorReport from "./Dashboard/CounsellorReport";
+import StudentLogin from "./Components/StudentLogin";
 
 // Landing
 const About = lazy(() => import("./Pages/About"));
@@ -112,6 +114,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="login" element={<Login />} />
+            <Route path="student-login" element={<StudentLogin />} />
 
             <Route
               path="hallticket"
@@ -217,6 +220,7 @@ function App() {
                   <Route path="jobCreation" element={<JobCreation />} />
                   <Route path="jobs" element={<JobsList />} />
                   <Route path="marksentry" element={<MarksContextSelector />} />
+                  <Route path="question-bank/*" element={<QuestionBank />} />
                   <Route path="quizz/*" element={<Quizz />} />
                 </Route>
 
