@@ -3,7 +3,11 @@ import { lazy, Suspense, useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import { DashboardProvider } from "./Context/DashboardContext";
-import { ProtectedRoute, ProtectedRoleBasedRoute } from "./ProtectedRoute";
+import {
+  ProtectedRoute,
+  ProtectedRoleBasedRoute,
+  StudentProtectedRoute,
+} from "./ProtectedRoute";
 
 import "./App.css";
 
@@ -11,8 +15,15 @@ import Loader from "./Pages/Loader";
 import LandingLayout from "./LandingLayout";
 import Main from "./Pages/Main";
 import Login from "./Components/Login";
-import Quizz from "./Dashboard/QuestionBank";
+import Quizz from "./Dashboard/Quizz";
 import CounsellorReport from "./Dashboard/CounsellorReport";
+import StudentLogin from "./Components/StudentLogin";
+import StudentQuizPlay from "./Dashboard/Student/StudentQuizPlay";
+import StudentActiveQuizList from "./Dashboard/Student/StudentActiveQuizList";
+import StudentQuizHistory from "./Dashboard/Student/StudentQuizHistory";
+import StudentQuizResult from "./Dashboard/Student/StudentQuizResult";
+import StudentQuizzDashboard from "./Dashboard/Student/StudentQuizzDashboard";
+import ChapterManager from "./Dashboard/QuestionBank/ChapterManager";
 
 // Landing
 const About = lazy(() => import("./Pages/About"));
@@ -70,6 +81,8 @@ const CounsellorCollection = lazy(
   () => import("./Dashboard/Collection/CounsellorCollection"),
 );
 
+////// student dashboard
+
 const PageNotFound = lazy(() => import("./Pages/PageNotFound"));
 
 function App() {
@@ -112,6 +125,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="login" element={<Login />} />
+            <Route path="student-login" element={<StudentLogin />} />
 
             <Route
               path="hallticket"
@@ -217,6 +231,7 @@ function App() {
                   <Route path="jobCreation" element={<JobCreation />} />
                   <Route path="jobs" element={<JobsList />} />
                   <Route path="marksentry" element={<MarksContextSelector />} />
+                  <Route path="question-bank" element={<ChapterManager />} />
                   <Route path="quizz/*" element={<Quizz />} />
                 </Route>
 
@@ -229,6 +244,17 @@ function App() {
                 >
                   <Route path="bookentries" element={<AddBookEntry />} />
                 </Route>
+              </Route>
+            </Route>
+
+            <Route path="student" element={<StudentProtectedRoute />}>
+              <Route element={<Dashboard />}>
+                <Route index element={<Navigate to="home" replace />} />
+                <Route path="home" element={<StudentQuizzDashboard />} />
+                <Route path="active" element={<StudentActiveQuizList />} />
+                <Route path="history" element={<StudentQuizHistory />} />
+                <Route path="result/:studentQuizId"element={<StudentQuizResult />}/>
+                <Route path="play/:quizId" element={<StudentQuizPlay />} />
               </Route>
             </Route>
 

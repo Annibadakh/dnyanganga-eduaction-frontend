@@ -8,11 +8,7 @@ const ProtectedRoute = () => {
   return user ? (
     <Outlet />
   ) : (
-    <Navigate
-      to="/login"
-      replace
-      state={{ from: location.pathname }}
-    />
+    <Navigate to="/login" replace state={{ from: location.pathname }} />
   );
 };
 
@@ -22,13 +18,7 @@ const ProtectedRoleBasedRoute = ({ allowedRoles }) => {
 
   // not logged in
   if (!user) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-        state={{ from: location.pathname }}
-      />
-    );
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   // logged in but role not allowed
@@ -39,4 +29,20 @@ const ProtectedRoleBasedRoute = ({ allowedRoles }) => {
   return <Outlet />;
 };
 
-export { ProtectedRoute, ProtectedRoleBasedRoute };
+const StudentProtectedRoute = () => {
+  const { user } = useAuth();
+
+  // not logged in
+  if (!user) {
+    return <Navigate to="/student-login" replace />;
+  }
+
+  // logged in but not a student
+  if (user.role !== "student") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <Outlet />;
+};
+
+export { ProtectedRoute, ProtectedRoleBasedRoute, StudentProtectedRoute };

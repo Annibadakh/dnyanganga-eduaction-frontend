@@ -21,11 +21,12 @@ import {
   FaPaperPlane,
   FaListAlt,
   FaChartBar,
+  FaPlayCircle,
+  FaHistory,
 } from "react-icons/fa";
 
 const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
   const location = useLocation();
-
   const links = [
     { path: "home", label: "Home", icon: <FaHome className="text-lg" /> },
     {
@@ -136,9 +137,33 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       role: ["admin"],
       icon: <FaPaperPlane className="text-lg" />,
     },
+    {
+      path: "question-bank",
+      label: "Question Bank",
+      role: ["admin"],
+      icon: <FaPaperPlane className="text-lg" />,
+    },
+    {
+      path: "quizz",
+      label: "Quizz",
+      role: ["admin"],
+      icon: <FaPaperPlane className="text-lg" />,
+    },
+    {
+      path: "active",
+      label: "Active Quizz",
+      role: ["student"],
+      icon: <FaPlayCircle className="text-lg" />,
+    },
+    {
+      path: "history",
+      label: "Quizz History",
+      role: ["student"],
+      icon: <FaHistory className="text-lg" />,
+    },
   ];
-
-  const isActive = (path) => location.pathname === `/dashboard/${path}`;
+console.log(userRole)
+  const isActive = (path) => location.pathname === (userRole.role == "student" ? `/student/${path}` : `/dashboard/${path}`);
 
   return (
     <aside
