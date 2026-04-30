@@ -23,6 +23,7 @@ import {
   FaChartBar,
   FaPlayCircle,
   FaHistory,
+  FaDatabase,
 } from "react-icons/fa";
 
 const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
@@ -141,13 +142,13 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       path: "question-bank",
       label: "Question Bank",
       role: ["admin"],
-      icon: <FaPaperPlane className="text-lg" />,
+      icon: <FaDatabase className="text-lg" />,
     },
     {
       path: "quizz",
       label: "Quizz",
       role: ["admin"],
-      icon: <FaPaperPlane className="text-lg" />,
+      icon: <FaClipboardCheck className="text-lg" />,
     },
     {
       path: "active",
