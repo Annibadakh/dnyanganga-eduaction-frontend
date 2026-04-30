@@ -2,145 +2,145 @@ import { useEffect, useState } from "react";
 import api from "../../Api";
 import Button from "../Generic/Button";
 import DataTable from "../Generic/DataTable";
+import { Eye, Pencil, Trash2, Plus, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 
-// ─── Pill badge ───────────────────────────────────────────────────────────────
+// ─── Badge ────────────────────────────────────────────────────────────────────
 const Badge = ({ value, map }) => {
   const cfg = map[value] ?? { label: value, cls: "bg-gray-100 text-gray-600" };
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.cls}`}
-    >
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.cls}`}>
       {cfg.label}
     </span>
   );
 };
 
 const DIFFICULTY_MAP = {
-  EASY: { label: "Easy", cls: "bg-emerald-100 text-emerald-700" },
-  MEDIUM: { label: "Medium", cls: "bg-amber-100   text-amber-700" },
-  HARD: { label: "Hard", cls: "bg-rose-100    text-rose-700" },
+  EASY:   { label: "Easy",   cls: "bg-green-100 text-green-700" },
+  MEDIUM: { label: "Medium", cls: "bg-yellow-100 text-yellow-700" },
+  HARD:   { label: "Hard",   cls: "bg-red-100   text-red-700" },
 };
 
 const TYPE_MAP = {
   SINGLE: { label: "Single Choice", cls: "bg-blue-100   text-blue-700" },
-  MULTI: { label: "Multi Choice", cls: "bg-violet-100 text-violet-700" },
+  MULTI:  { label: "Multi Choice",  cls: "bg-purple-100 text-purple-700" },
 };
 
-// ─── Modal shell ──────────────────────────────────────────────────────────────
+// ─── Modal ────────────────────────────────────────────────────────────────────
 const Modal = ({ title, onClose, children }) => (
   <div
     className="fixed inset-0 z-50 flex items-center justify-center p-4"
-    style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}
+    style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(3px)" }}
   >
-    <div
-      className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
-    >
-      {/* header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-        <h3 className="text-lg font-bold text-slate-800">{title}</h3>
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <h3 className="text-lg font-bold text-primary">{title}</h3>
         <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400
-                           hover:bg-slate-100 hover:text-slate-700 transition-colors text-xl leading-none"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400
+                     hover:bg-gray-100 hover:text-gray-700 transition-colors text-xl leading-none"
         >
           ×
         </button>
       </div>
-      {/* body */}
+      {/* Body */}
       <div className="overflow-y-auto px-6 py-5 flex-1">{children}</div>
     </div>
   </div>
 );
 
-// ─── Form field helpers ───────────────────────────────────────────────────────
+// ─── Delete Confirm Modal ─────────────────────────────────────────────────────
+const DeleteConfirmModal = ({ onClose, onConfirm, deleting }) => (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(3px)" }}
+  >
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+      <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <Trash2 size={26} className="text-red-500" />
+      </div>
+      <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Question?</h3>
+      <p className="text-sm text-gray-500 mb-6">
+        This action cannot be undone. The question will be permanently removed.
+      </p>
+      <div className="flex gap-3">
+        <button
+          onClick={onClose}
+          className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-semibold
+                     text-gray-600 hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <Button
+          variant="danger"
+          loading={deleting}
+          onClick={onConfirm}
+          className="flex-1"
+        >
+          Delete
+        </Button>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Field wrapper ────────────────────────────────────────────────────────────
 const Field = ({ label, required, children }) => (
   <div className="mb-4">
-    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+    <label className="block text-sm text-gray-600 mb-1">
       {label}
-      {required && <span className="text-rose-500 ml-0.5">*</span>}
+      {required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
     {children}
   </div>
 );
 
 const inputCls =
-  "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 " +
-  "focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white transition";
+  "w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition";
 
 // ─── Question Form ────────────────────────────────────────────────────────────
 const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
   const editing = !!initial;
 
-  const [questionText, setQuestionText] = useState(initial?.questionText ?? "");
-  const [topic, setTopic] = useState(initial?.topic ?? "");
-  const [type, setType] = useState(initial?.type ?? "SINGLE");
-  const [difficulty, setDifficulty] = useState(initial?.difficulty ?? "MEDIUM");
-  const [marks, setMarks] = useState(initial?.marks ?? "");
-  const [solutionDescription, setSolutionDescription] = useState(
-    initial?.solutionDescription ?? "",
+  const [questionText, setQuestionText]           = useState(initial?.questionText ?? "");
+  const [topic, setTopic]                         = useState(initial?.topic ?? "");
+  const [type, setType]                           = useState(initial?.type ?? "SINGLE");
+  const [difficulty, setDifficulty]               = useState(initial?.difficulty ?? "MEDIUM");
+  const [marks, setMarks]                         = useState(initial?.marks ?? "");
+  const [solutionDescription, setSolutionDescription] = useState(initial?.solutionDescription ?? "");
+  const [options, setOptions]                     = useState(
+    initial?.options ?? [{ index: 1, text: "" }, { index: 2, text: "" }]
   );
-  const [options, setOptions] = useState(
-    initial?.options ?? [
-      { index: 1, text: "" },
-      { index: 2, text: "" },
-    ],
-  );
-  const [correctAns, setCorrectAns] = useState(initial?.correctAns ?? []);
-  const [saving, setSaving] = useState(false);
+  const [correctAns, setCorrectAns]               = useState(initial?.correctAns ?? []);
+  const [saving, setSaving]                       = useState(false);
 
-  const addOption = () =>
-    setOptions([...options, { index: options.length + 1, text: "" }]);
-
+  const addOption    = () => setOptions([...options, { index: options.length + 1, text: "" }]);
   const removeOption = (idx) => {
-    const next = options
-      .filter((o) => o.index !== idx)
-      .map((o, i) => ({ ...o, index: i + 1 }));
+    const next = options.filter((o) => o.index !== idx).map((o, i) => ({ ...o, index: i + 1 }));
     setOptions(next);
-    setCorrectAns(
-      correctAns.filter((i) => i !== idx).map((i) => (i > idx ? i - 1 : i)),
-    );
+    setCorrectAns(correctAns.filter((i) => i !== idx).map((i) => (i > idx ? i - 1 : i)));
   };
-
-  const updateOption = (index, value) =>
-    setOptions(
-      options.map((o) => (o.index === index ? { ...o, text: value } : o)),
-    );
-
+  const updateOption  = (index, value) =>
+    setOptions(options.map((o) => (o.index === index ? { ...o, text: value } : o)));
   const toggleCorrect = (index) => {
-    if (type === "SINGLE") {
-      setCorrectAns([index]);
-      return;
-    }
+    if (type === "SINGLE") { setCorrectAns([index]); return; }
     setCorrectAns((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
 
   const handleSave = async () => {
-    if (!questionText.trim()) {
-      alert("Question text is required");
-      return;
-    }
-    if (correctAns.length === 0) {
-      alert("Select at least one correct answer");
-      return;
-    }
+    if (!questionText.trim()) { alert("Question text is required"); return; }
+    if (correctAns.length === 0) { alert("Select at least one correct answer"); return; }
     setSaving(true);
     try {
-      console.log("Saving question with payload:", chapter);
       const payload = {
         chapterId: chapter.id,
         subjectId: chapter.subjectId,
         standardId: chapter.Subject?.standardId,
-        questionText,
-        topic,
-        type,
-        difficulty,
+        questionText, topic, type, difficulty,
         marks: marks ? Number(marks) : undefined,
-        solutionDescription,
-        correctAns,
-        options,
+        solutionDescription, correctAns, options,
       };
       if (editing) {
         await api.put(`/question-bank/question/${initial.id}`, payload);
@@ -159,7 +159,7 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Topic">
           <input
             className={inputCls}
@@ -180,15 +180,12 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Answer Type">
           <select
             className={inputCls}
             value={type}
-            onChange={(e) => {
-              setType(e.target.value);
-              setCorrectAns([]);
-            }}
+            onChange={(e) => { setType(e.target.value); setCorrectAns([]); }}
           >
             <option value="SINGLE">Single Choice</option>
             <option value="MULTI">Multi Choice</option>
@@ -223,22 +220,17 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
             <div key={opt.index} className="flex items-center gap-2 group">
               <button
                 onClick={() => toggleCorrect(opt.index)}
-                className={`w-5 h-5 shrink-0 rounded ${type === "SINGLE" ? "rounded-full" : "rounded"} border-2 flex items-center justify-center transition-all
+                className={`w-5 h-5 shrink-0 flex items-center justify-center border-2 transition-all
+                  ${type === "SINGLE" ? "rounded-full" : "rounded"}
                   ${
                     correctAns.includes(opt.index)
-                      ? "bg-indigo-500 border-indigo-500 text-white"
-                      : "border-slate-300 hover:border-indigo-400"
+                      ? "bg-primary border-primary text-white"
+                      : "border-gray-300 hover:border-primary"
                   }`}
               >
                 {correctAns.includes(opt.index) && (
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 12 12">
-                    <path
-                      d="M2 6l3 3 5-5"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
               </button>
@@ -251,8 +243,8 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
               {options.length > 2 && (
                 <button
                   onClick={() => removeOption(opt.index)}
-                  className="w-7 h-7 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50
-                                   flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+                  className="w-7 h-7 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50
+                             flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
                 >
                   ✕
                 </button>
@@ -262,9 +254,9 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
         </div>
         <button
           onClick={addOption}
-          className="mt-3 text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
+          className="mt-3 text-sm font-semibold text-primary hover:opacity-80 flex items-center gap-1 transition-opacity"
         >
-          <span className="text-base">＋</span> Add Option
+          <Plus size={15} /> Add Option
         </button>
       </Field>
 
@@ -277,105 +269,97 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
         />
       </Field>
 
+      {/* Footer */}
       <div className="flex justify-end gap-3 pt-2">
         <button
           onClick={onClose}
-          className="px-5 py-2 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200
-                           hover:bg-slate-50 transition-colors"
+          className="px-5 py-2 rounded-lg text-sm font-semibold text-gray-600 border border-gray-300
+                     hover:bg-gray-50 transition-colors"
         >
           Cancel
         </button>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="px-5 py-2 rounded-xl text-sm font-semibold text-white
-                           bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all
-                           disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          {saving && (
-            <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-          )}
+        <Button variant="primary" loading={saving} onClick={handleSave}>
           {editing ? "Update Question" : "Save Question"}
-        </button>
+        </Button>
       </div>
     </>
   );
 };
 
-// ─── Expanded detail card ──────────────────────────────────────────────────────
-const QuestionDetail = ({ q, onClose }) => (
-  <div
-    className="bg-white rounded-2xl border border-slate-100 shadow-lg p-5 mt-2 relative"
-    style={{ fontFamily: "'DM Sans', sans-serif" }}
-  >
-    <button
-      onClick={onClose}
-      className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center
-                       text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors text-lg"
-    >
-      ×
-    </button>
+// ─── Question Detail Modal ────────────────────────────────────────────────────
+const QuestionDetailModal = ({ q, onClose }) => (
+  <Modal title="Question Detail" onClose={onClose}>
+    {/* Meta badges */}
+    <div className="flex flex-wrap gap-2 mb-4">
+      <Badge value={q.type} map={TYPE_MAP} />
+      <Badge value={q.difficulty} map={DIFFICULTY_MAP} />
+      {q.topic && (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+          {q.topic}
+        </span>
+      )}
+      {q.marks != null && (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+          {q.marks} mark{q.marks !== 1 ? "s" : ""}
+        </span>
+      )}
+    </div>
 
-    <p className="font-semibold text-slate-800 mb-4 pr-8 text-sm leading-relaxed">
+    {/* Question text */}
+    <p className="font-semibold text-gray-800 mb-4 text-sm leading-relaxed">
       {q.questionText}
     </p>
 
+    {/* Options */}
     <div className="space-y-2 mb-4">
       {q.options?.map((opt) => (
         <div
           key={opt.id ?? opt.index}
-          className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors
-               ${
-                 q.correctAns?.includes(opt.index)
-                   ? "bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium"
-                   : "bg-slate-50 border border-slate-100 text-slate-600"
-               }`}
+          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm border transition-colors
+            ${
+              q.correctAns?.includes(opt.index)
+                ? "bg-green-50 border-green-200 text-green-800 font-medium"
+                : "bg-gray-50 border-gray-200 text-gray-600"
+            }`}
         >
           <span
             className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0
-            ${q.correctAns?.includes(opt.index) ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"}`}
+              ${q.correctAns?.includes(opt.index) ? "bg-green-500 text-white" : "bg-gray-200 text-gray-500"}`}
           >
             {opt.index}
           </span>
           {opt.text}
           {q.correctAns?.includes(opt.index) && (
-            <span className="ml-auto text-emerald-600 text-xs font-semibold">
-              ✓ Correct
-            </span>
+            <span className="ml-auto text-green-600 text-xs font-semibold">✓ Correct</span>
           )}
         </div>
       ))}
     </div>
 
+    {/* Solution */}
     {q.solutionDescription && (
-      <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3">
-        <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-1">
-          Solution
-        </p>
-        <p className="text-sm text-indigo-800">{q.solutionDescription}</p>
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+        <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">Solution</p>
+        <p className="text-sm text-blue-800">{q.solutionDescription}</p>
       </div>
     )}
-  </div>
+  </Modal>
 );
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const QuestionManager = ({ chapter, onBack }) => {
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [questions, setQuestions]   = useState([]);
+  const [loading, setLoading]       = useState(false);
+  const [showForm, setShowForm]     = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [viewTarget, setViewTarget] = useState(null);
+  const [deleteId, setDeleteId]     = useState(null);
+  const [deleting, setDeleting]     = useState(false);
 
-  const [showForm, setShowForm] = useState(false);
-  const [editTarget, setEditTarget] = useState(null); // question obj or null
-  const [expandedRow, setExpandedRow] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-
-  // ── fetch ────────────────────────────────────────────────────────────────────
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/question-bank/question", {
-        params: { chapterId: chapter.id },
-      });
+      const res = await api.get("/question-bank/question", { params: { chapterId: chapter.id } });
       setQuestions(res.data);
     } catch (err) {
       console.error(err);
@@ -384,17 +368,14 @@ const QuestionManager = ({ chapter, onBack }) => {
     }
   };
 
-  useEffect(() => {
-    fetchQuestions();
-  }, []);
+  useEffect(() => { fetchQuestions(); }, []);
 
-  // ── delete ───────────────────────────────────────────────────────────────────
   const confirmDelete = async () => {
     setDeleting(true);
     try {
       await api.delete(`/question-bank/question/${deleteId}`);
       setQuestions((prev) => prev.filter((q) => q.id !== deleteId));
-      if (expandedRow === deleteId) setExpandedRow(null);
+      if (viewTarget?.id === deleteId) setViewTarget(null);
     } catch (err) {
       console.error(err);
       alert("Failed to delete question");
@@ -404,29 +385,23 @@ const QuestionManager = ({ chapter, onBack }) => {
     }
   };
 
-  // ── table columns ─────────────────────────────────────────────────────────────
   const columns = [
     {
-      header: "#",
-      render: (_, i) => (
-        <span className="text-xs font-bold text-slate-400 tabular-nums">
-          {String(i + 1).padStart(2, "0")}
-        </span>
-      ),
+      header: "Sr. No.",
+      render: (_, i) => i + 1,
     },
     {
       header: "Question",
       render: (row) => (
-        <span className="text-sm text-slate-700 line-clamp-2 leading-snug">
-          {row.questionText?.slice(0, 80)}
-          {row.questionText?.length > 80 ? "…" : ""}
+        <span className="text-sm text-gray-700">
+          {row.questionText?.slice(0, 80)}{row.questionText?.length > 80 ? "…" : ""}
         </span>
       ),
     },
     {
       header: "Topic",
       render: (row) => (
-        <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+        <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-lg">
           {row.topic || "—"}
         </span>
       ),
@@ -442,138 +417,94 @@ const QuestionManager = ({ chapter, onBack }) => {
     {
       header: "Marks",
       render: (row) => (
-        <span className="text-sm font-semibold text-slate-700">
-          {row.marks ?? "—"}
-        </span>
+        <span className="text-sm font-semibold text-gray-700">{row.marks ?? "—"}</span>
       ),
     },
     {
       header: "Status",
       render: (row) =>
         row.status ? (
-          <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-            Active
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-green-600">
+            <CheckCircle2 size={13} /> Active
           </span>
         ) : (
-          <span className="flex items-center gap-1.5 text-xs font-semibold text-rose-500">
-            <span className="w-1.5 h-1.5 bg-rose-400 rounded-full" />
-            Inactive
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-red-500">
+            <XCircle size={13} /> Inactive
           </span>
         ),
     },
     {
       header: "Actions",
       render: (row) => (
-        <div className="flex items-center gap-1.5">
-          {/* View */}
-          <button
-            onClick={() =>
-              setExpandedRow(expandedRow === row.id ? null : row.id)
-            }
-            title="View"
-            className={`w-8 h-8 rounded-lg flex items-center justify-center text-base transition-all
-              ${
-                expandedRow === row.id
-                  ? "bg-indigo-100 text-indigo-600"
-                  : "text-slate-400 hover:bg-indigo-50 hover:text-indigo-600"
-              }`}
+        <div className="flex items-center gap-2 flex-nowrap">
+          <Button
+            variant="primary"
+            startIcon={<Eye size={15} />}
+            onClick={() => setViewTarget(row)}
           >
-            👁
-          </button>
-          {/* Edit */}
-          <button
-            onClick={() => {
-              setEditTarget(row);
-              setShowForm(false);
-            }}
-            title="Edit"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-base text-slate-400
-                       hover:bg-amber-50 hover:text-amber-600 transition-all"
+            View
+          </Button>
+          <Button
+            variant="warning"
+            startIcon={<Pencil size={15} />}
+            onClick={() => { setEditTarget(row); setShowForm(false); }}
           >
-            ✏️
-          </button>
-          {/* Delete */}
-          <button
+            Edit
+          </Button>
+          <Button
+            variant="danger"
+            startIcon={<Trash2 size={15} />}
             onClick={() => setDeleteId(row.id)}
-            title="Delete"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-base text-slate-400
-                       hover:bg-rose-50 hover:text-rose-600 transition-all"
           >
-            🗑
-          </button>
+            Delete
+          </Button>
         </div>
       ),
     },
   ];
 
-  // ── render ───────────────────────────────────────────────────────────────────
   return (
-    <div
-      className="min-h-screen bg-slate-50 p-6"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
-    >
-      {/* Google font */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');`}</style>
+    <div className="p-2 container mx-auto">
 
-      {/* ── Header ── */}
+      {/* ── Page Header ── */}
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-sm font-semibold text-slate-500
-                           hover:text-slate-800 px-3 py-2 rounded-xl hover:bg-white hover:shadow-sm transition-all"
+          className="flex items-center gap-2 text-sm font-semibold text-gray-500
+                     hover:text-gray-800 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all"
         >
-          ← Back
+          <ArrowLeft size={16} /> Back
         </button>
 
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-800">{chapter.name}</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Question Bank · {questions.length} question
-            {questions.length !== 1 ? "s" : ""}
+          <h1 className="text-3xl font-bold text-primary">{chapter.name}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Question Bank · {questions.length} question{questions.length !== 1 ? "s" : ""}
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setShowForm(true);
-            setEditTarget(null);
-          }}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold
-                           text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-200
-                           active:scale-95 transition-all"
+        <Button
+          variant="primary"
+          startIcon={<Plus size={16} />}
+          onClick={() => { setShowForm(true); setEditTarget(null); }}
         >
-          <span className="text-base">＋</span> Add Question
-        </button>
+          Add Question
+        </Button>
       </div>
 
-      {/* ── Stats strip ── */}
+      {/* ── Stats Strip ── */}
       {questions.length > 0 && (
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            {
-              label: "Easy",
-              count: questions.filter((q) => q.difficulty === "EASY").length,
-              cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
-            },
-            {
-              label: "Medium",
-              count: questions.filter((q) => q.difficulty === "MEDIUM").length,
-              cls: "bg-amber-50   text-amber-700   border-amber-200",
-            },
-            {
-              label: "Hard",
-              count: questions.filter((q) => q.difficulty === "HARD").length,
-              cls: "bg-rose-50    text-rose-700    border-rose-200",
-            },
+            { label: "Easy",   count: questions.filter((q) => q.difficulty === "EASY").length,   cls: "bg-green-50  border-green-200  text-green-700"  },
+            { label: "Medium", count: questions.filter((q) => q.difficulty === "MEDIUM").length, cls: "bg-yellow-50 border-yellow-200 text-yellow-700" },
+            { label: "Hard",   count: questions.filter((q) => q.difficulty === "HARD").length,   cls: "bg-red-50    border-red-200    text-red-700"    },
           ].map((s) => (
             <div
               key={s.label}
               className={`flex items-center justify-between px-4 py-3 rounded-xl border ${s.cls}`}
             >
-              <span className="text-xs font-semibold uppercase tracking-wide">
-                {s.label}
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-wide">{s.label}</span>
               <span className="text-2xl font-bold">{s.count}</span>
             </div>
           ))}
@@ -581,20 +512,19 @@ const QuestionManager = ({ chapter, onBack }) => {
       )}
 
       {/* ── Table ── */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <DataTable
-          columns={columns}
-          data={questions}
-          loading={loading}
-          rowKey="id"
-        />
-      </div>
+      <DataTable
+        columns={columns}
+        data={questions}
+        loading={loading}
+        rowKey="id"
+        emptyMessage="No questions found for this chapter."
+      />
 
-      {/* ── Expanded detail ── */}
-      {expandedRow && (
-        <QuestionDetail
-          q={questions.find((q) => q.id === expandedRow)}
-          onClose={() => setExpandedRow(null)}
+      {/* ── View Detail Modal ── */}
+      {viewTarget && (
+        <QuestionDetailModal
+          q={viewTarget}
+          onClose={() => setViewTarget(null)}
         />
       )}
 
@@ -622,51 +552,13 @@ const QuestionManager = ({ chapter, onBack }) => {
         </Modal>
       )}
 
-      {/* ── Delete Confirm Modal ── */}
+      {/* ── Delete Confirm ── */}
       {deleteId && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{
-            background: "rgba(15,23,42,0.55)",
-            backdropFilter: "blur(4px)",
-          }}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
-            <div className="w-14 h-14 bg-rose-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-              🗑
-            </div>
-            <h3 className="text-lg font-bold text-slate-800 mb-2">
-              Delete Question?
-            </h3>
-            <p className="text-sm text-slate-500 mb-6">
-              This action cannot be undone. The question will be permanently
-              removed.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold
-                                 text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleting}
-                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white
-                                 bg-rose-500 hover:bg-rose-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-              >
-                {deleting && (
-                  <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                )}
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteConfirmModal
+          onClose={() => setDeleteId(null)}
+          onConfirm={confirmDelete}
+          deleting={deleting}
+        />
       )}
     </div>
   );

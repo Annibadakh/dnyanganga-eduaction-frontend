@@ -56,14 +56,17 @@ function StudentLogin() {
         </div>
 
         <h2 className="text-2xl font-serif font-bold text-center mb-6">
-          Login
+          Student Login
         </h2>
 
         <form onSubmit={handleLogin} className="space-y-4">
+         
           <div>
             <label className="block font-medium">Student ID</label>
             <input
               type="text"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+              placeholder="Enter Student Id"
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
               required
@@ -75,6 +78,7 @@ function StudentLogin() {
             <input
               type="date"
               value={dob}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
               onChange={(e) => setDob(e.target.value)}
               required
             />
