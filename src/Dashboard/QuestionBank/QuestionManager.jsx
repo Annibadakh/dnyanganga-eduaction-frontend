@@ -2,27 +2,37 @@ import { useEffect, useState } from "react";
 import api from "../../Api";
 import Button from "../Generic/Button";
 import DataTable from "../Generic/DataTable";
-import { Eye, Pencil, Trash2, Plus, ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Eye,
+  Pencil,
+  Trash2,
+  Plus,
+  ArrowLeft,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 
 // ─── Badge ────────────────────────────────────────────────────────────────────
 const Badge = ({ value, map }) => {
   const cfg = map[value] ?? { label: value, cls: "bg-gray-100 text-gray-600" };
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.cls}`}>
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.cls}`}
+    >
       {cfg.label}
     </span>
   );
 };
 
 const DIFFICULTY_MAP = {
-  EASY:   { label: "Easy",   cls: "bg-green-100 text-green-700" },
+  EASY: { label: "Easy", cls: "bg-green-100 text-green-700" },
   MEDIUM: { label: "Medium", cls: "bg-yellow-100 text-yellow-700" },
-  HARD:   { label: "Hard",   cls: "bg-red-100   text-red-700" },
+  HARD: { label: "Hard", cls: "bg-red-100   text-red-700" },
 };
 
 const TYPE_MAP = {
   SINGLE: { label: "Single Choice", cls: "bg-blue-100   text-blue-700" },
-  MULTI:  { label: "Multi Choice",  cls: "bg-purple-100 text-purple-700" },
+  MULTI: { label: "Multi Choice", cls: "bg-purple-100 text-purple-700" },
 };
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
@@ -102,45 +112,71 @@ const inputCls =
 const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
   const editing = !!initial;
 
-  const [questionText, setQuestionText]           = useState(initial?.questionText ?? "");
-  const [topic, setTopic]                         = useState(initial?.topic ?? "");
-  const [type, setType]                           = useState(initial?.type ?? "SINGLE");
-  const [difficulty, setDifficulty]               = useState(initial?.difficulty ?? "MEDIUM");
-  const [marks, setMarks]                         = useState(initial?.marks ?? "");
-  const [solutionDescription, setSolutionDescription] = useState(initial?.solutionDescription ?? "");
-  const [options, setOptions]                     = useState(
-    initial?.options ?? [{ index: 1, text: "" }, { index: 2, text: "" }]
+  const [questionText, setQuestionText] = useState(initial?.questionText ?? "");
+  const [topic, setTopic] = useState(initial?.topic ?? "");
+  const [type, setType] = useState(initial?.type ?? "SINGLE");
+  const [difficulty, setDifficulty] = useState(initial?.difficulty ?? "MEDIUM");
+  const [marks, setMarks] = useState(initial?.marks ?? "");
+  const [solutionDescription, setSolutionDescription] = useState(
+    initial?.solutionDescription ?? "",
   );
-  const [correctAns, setCorrectAns]               = useState(initial?.correctAns ?? []);
-  const [saving, setSaving]                       = useState(false);
+  const [options, setOptions] = useState(
+    initial?.options ?? [
+      { index: 1, text: "" },
+      { index: 2, text: "" },
+    ],
+  );
+  const [correctAns, setCorrectAns] = useState(initial?.correctAns ?? []);
+  const [saving, setSaving] = useState(false);
 
-  const addOption    = () => setOptions([...options, { index: options.length + 1, text: "" }]);
+  const addOption = () =>
+    setOptions([...options, { index: options.length + 1, text: "" }]);
   const removeOption = (idx) => {
-    const next = options.filter((o) => o.index !== idx).map((o, i) => ({ ...o, index: i + 1 }));
+    const next = options
+      .filter((o) => o.index !== idx)
+      .map((o, i) => ({ ...o, index: i + 1 }));
     setOptions(next);
-    setCorrectAns(correctAns.filter((i) => i !== idx).map((i) => (i > idx ? i - 1 : i)));
+    setCorrectAns(
+      correctAns.filter((i) => i !== idx).map((i) => (i > idx ? i - 1 : i)),
+    );
   };
-  const updateOption  = (index, value) =>
-    setOptions(options.map((o) => (o.index === index ? { ...o, text: value } : o)));
+  const updateOption = (index, value) =>
+    setOptions(
+      options.map((o) => (o.index === index ? { ...o, text: value } : o)),
+    );
   const toggleCorrect = (index) => {
-    if (type === "SINGLE") { setCorrectAns([index]); return; }
+    if (type === "SINGLE") {
+      setCorrectAns([index]);
+      return;
+    }
     setCorrectAns((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     );
   };
 
   const handleSave = async () => {
-    if (!questionText.trim()) { alert("Question text is required"); return; }
-    if (correctAns.length === 0) { alert("Select at least one correct answer"); return; }
+    if (!questionText.trim()) {
+      alert("Question text is required");
+      return;
+    }
+    if (correctAns.length === 0) {
+      alert("Select at least one correct answer");
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
         chapterId: chapter.id,
         subjectId: chapter.subjectId,
         standardId: chapter.Subject?.standardId,
-        questionText, topic, type, difficulty,
+        questionText,
+        topic,
+        type,
+        difficulty,
         marks: marks ? Number(marks) : undefined,
-        solutionDescription, correctAns, options,
+        solutionDescription,
+        correctAns,
+        options,
       };
       if (editing) {
         await api.put(`/question-bank/question/${initial.id}`, payload);
@@ -185,7 +221,10 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
           <select
             className={inputCls}
             value={type}
-            onChange={(e) => { setType(e.target.value); setCorrectAns([]); }}
+            onChange={(e) => {
+              setType(e.target.value);
+              setCorrectAns([]);
+            }}
           >
             <option value="SINGLE">Single Choice</option>
             <option value="MULTI">Multi Choice</option>
@@ -230,7 +269,13 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
               >
                 {correctAns.includes(opt.index) && (
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 12 12">
-                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M2 6l3 3 5-5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 )}
               </button>
@@ -330,7 +375,9 @@ const QuestionDetailModal = ({ q, onClose }) => (
           </span>
           {opt.text}
           {q.correctAns?.includes(opt.index) && (
-            <span className="ml-auto text-green-600 text-xs font-semibold">✓ Correct</span>
+            <span className="ml-auto text-green-600 text-xs font-semibold">
+              ✓ Correct
+            </span>
           )}
         </div>
       ))}
@@ -339,7 +386,9 @@ const QuestionDetailModal = ({ q, onClose }) => (
     {/* Solution */}
     {q.solutionDescription && (
       <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
-        <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">Solution</p>
+        <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">
+          Solution
+        </p>
         <p className="text-sm text-blue-800">{q.solutionDescription}</p>
       </div>
     )}
@@ -348,18 +397,20 @@ const QuestionDetailModal = ({ q, onClose }) => (
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const QuestionManager = ({ chapter, onBack }) => {
-  const [questions, setQuestions]   = useState([]);
-  const [loading, setLoading]       = useState(false);
-  const [showForm, setShowForm]     = useState(false);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [viewTarget, setViewTarget] = useState(null);
-  const [deleteId, setDeleteId]     = useState(null);
-  const [deleting, setDeleting]     = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/question-bank/question", { params: { chapterId: chapter.id } });
+      const res = await api.get("/question-bank/question", {
+        params: { chapterId: chapter.id },
+      });
       setQuestions(res.data);
     } catch (err) {
       console.error(err);
@@ -368,7 +419,9 @@ const QuestionManager = ({ chapter, onBack }) => {
     }
   };
 
-  useEffect(() => { fetchQuestions(); }, []);
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
 
   const confirmDelete = async () => {
     setDeleting(true);
@@ -394,7 +447,8 @@ const QuestionManager = ({ chapter, onBack }) => {
       header: "Question",
       render: (row) => (
         <span className="text-sm text-gray-700">
-          {row.questionText?.slice(0, 80)}{row.questionText?.length > 80 ? "…" : ""}
+          {row.questionText?.slice(0, 80)}
+          {row.questionText?.length > 80 ? "…" : ""}
         </span>
       ),
     },
@@ -417,7 +471,9 @@ const QuestionManager = ({ chapter, onBack }) => {
     {
       header: "Marks",
       render: (row) => (
-        <span className="text-sm font-semibold text-gray-700">{row.marks ?? "—"}</span>
+        <span className="text-sm font-semibold text-gray-700">
+          {row.marks ?? "—"}
+        </span>
       ),
     },
     {
@@ -447,7 +503,10 @@ const QuestionManager = ({ chapter, onBack }) => {
           <Button
             variant="warning"
             startIcon={<Pencil size={15} />}
-            onClick={() => { setEditTarget(row); setShowForm(false); }}
+            onClick={() => {
+              setEditTarget(row);
+              setShowForm(false);
+            }}
           >
             Edit
           </Button>
@@ -465,7 +524,6 @@ const QuestionManager = ({ chapter, onBack }) => {
 
   return (
     <div className="p-2 container mx-auto">
-
       {/* ── Page Header ── */}
       <div className="flex items-center justify-between mb-6">
         <button
@@ -479,14 +537,18 @@ const QuestionManager = ({ chapter, onBack }) => {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-primary">{chapter.name}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Question Bank · {questions.length} question{questions.length !== 1 ? "s" : ""}
+            Question Bank · {questions.length} question
+            {questions.length !== 1 ? "s" : ""}
           </p>
         </div>
 
         <Button
           variant="primary"
           startIcon={<Plus size={16} />}
-          onClick={() => { setShowForm(true); setEditTarget(null); }}
+          onClick={() => {
+            setShowForm(true);
+            setEditTarget(null);
+          }}
         >
           Add Question
         </Button>
@@ -496,15 +558,29 @@ const QuestionManager = ({ chapter, onBack }) => {
       {questions.length > 0 && (
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { label: "Easy",   count: questions.filter((q) => q.difficulty === "EASY").length,   cls: "bg-green-50  border-green-200  text-green-700"  },
-            { label: "Medium", count: questions.filter((q) => q.difficulty === "MEDIUM").length, cls: "bg-yellow-50 border-yellow-200 text-yellow-700" },
-            { label: "Hard",   count: questions.filter((q) => q.difficulty === "HARD").length,   cls: "bg-red-50    border-red-200    text-red-700"    },
+            {
+              label: "Easy",
+              count: questions.filter((q) => q.difficulty === "EASY").length,
+              cls: "bg-green-50  border-green-200  text-green-700",
+            },
+            {
+              label: "Medium",
+              count: questions.filter((q) => q.difficulty === "MEDIUM").length,
+              cls: "bg-yellow-50 border-yellow-200 text-yellow-700",
+            },
+            {
+              label: "Hard",
+              count: questions.filter((q) => q.difficulty === "HARD").length,
+              cls: "bg-red-50    border-red-200    text-red-700",
+            },
           ].map((s) => (
             <div
               key={s.label}
               className={`flex items-center justify-between px-4 py-3 rounded-xl border ${s.cls}`}
             >
-              <span className="text-xs font-semibold uppercase tracking-wide">{s.label}</span>
+              <span className="text-xs font-semibold uppercase tracking-wide">
+                {s.label}
+              </span>
               <span className="text-2xl font-bold">{s.count}</span>
             </div>
           ))}

@@ -253,9 +253,12 @@ function App() {
                 <Route path="home" element={<StudentQuizzDashboard />} />
                 <Route path="active" element={<StudentActiveQuizList />} />
                 <Route path="history" element={<StudentQuizHistory />} />
-                <Route path="result/:studentQuizId"element={<StudentQuizResult />}/>
-                <Route path="play/:quizId" element={<StudentQuizPlay />} />
+                <Route
+                  path="result/:studentQuizId"
+                  element={<StudentQuizResult />}
+                />
               </Route>
+              <Route path="play/:quizId" element={<StudentQuizPlay />} />
             </Route>
 
             {/* 404 */}
