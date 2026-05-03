@@ -14,6 +14,10 @@ const QuizList = () => {
   const [standards, setStandards] = useState([]);
   const [selectedStandard, setSelectedStandard] = useState(null);
 
+  const handleAnalytics = (quiz) => {
+    navigate(`./${quiz.id}/analytics`);
+  };
+
   // ---------------- FETCH STANDARDS ----------------
   const fetchStandards = async () => {
     try {
@@ -110,6 +114,9 @@ const QuizList = () => {
           <Button onClick={() => handleView(row)}>View</Button>
           <Button variant="primary" onClick={() => handleEdit(row)}>
             Edit
+          </Button>
+          <Button variant="secondary" onClick={() => handleAnalytics(row)}>
+            Stats
           </Button>
         </div>
       ),
