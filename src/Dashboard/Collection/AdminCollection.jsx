@@ -227,6 +227,36 @@ const AdminCollection = () => {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const params = {
+        counsellor: selectedUser,
+        startDate,
+        endDate,
+        status: statusFilter,
+        remark: remarkFilter,
+      };
+
+      const response = await api.get(
+        "/counsellor/collection/exportTransactionsExcel",
+        {
+          params,
+          responseType: "blob",
+        },
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "transaction-history.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Export failed", error);
+    }
+  };
+
   return (
     <div className="p-4 container mx-auto">
       <h1 className="text-3xl font-bold text-center text-primary mb-6">
@@ -373,12 +403,18 @@ const AdminCollection = () => {
         </div>
 
         {/* Clear Filters Button */}
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <button
             onClick={clearFilters}
             className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
           >
             Clear Filters
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          >
+            Export Excel
           </button>
         </div>
       </div>

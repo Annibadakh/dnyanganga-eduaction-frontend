@@ -290,6 +290,35 @@ const VisitingTable = () => {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const params = {
+        search: debouncedSearchQuery,
+        counsellor: selectedCounsellor?.value || "",
+        branch: selectedBranch?.value || "",
+        standard: selectedStandard,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+      };
+
+      const response = await api.get("/counsellor/exportVisitingExcel", {
+        params,
+        responseType: "blob", // IMPORTANT
+      });
+
+      // Create download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "visiting-data.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Excel export failed", error);
+    }
+  };
+
   return (
     <div className="p-2 container mx-auto">
       <h1 className="text-3xl text-center font-bold text-primary mb-6">
@@ -372,6 +401,11 @@ const VisitingTable = () => {
               isRequired={false}
               placeholder="Select Branch"
             />
+            <div className="flex justify-start mb-3">
+              <Button variant="success" onClick={handleExportExcel}>
+                Export Excel
+              </Button>
+            </div>
           </div>
         )}
       </div>
