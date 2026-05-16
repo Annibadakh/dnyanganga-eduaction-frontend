@@ -133,15 +133,15 @@ const RegistrationTable = () => {
 
     ...(user.role === "admin" || user.role === "followUp"
       ? [
-        {
-          header: "Counsellor",
-          render: (row) => row.User?.name,
-        },
-        {
-          header: "Branch",
-          render: (row) => row.User?.counsellorBranch,
-        },
-      ]
+          {
+            header: "Counsellor",
+            render: (row) => row.User?.name,
+          },
+          {
+            header: "Branch",
+            render: (row) => row.User?.counsellorBranch,
+          },
+        ]
       : []),
     {
       header: "Actions",
@@ -278,7 +278,7 @@ const RegistrationTable = () => {
     showEditStudent,
     onlyZeroRemaining,
     onlyNonZeroRemaining,
-    selectedExamYear
+    selectedExamYear,
   ]);
 
   useEffect(() => {
@@ -294,7 +294,7 @@ const RegistrationTable = () => {
     dateTo,
     onlyZeroRemaining,
     onlyNonZeroRemaining,
-    selectedExamYear
+    selectedExamYear,
   ]);
 
   const handlePageChange = (page) => {

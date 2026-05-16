@@ -7,28 +7,29 @@ import FileUpload from "../FileUpload/FileUpload";
 const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   const imgUrl = import.meta.env.VITE_IMG_URL;
   const { user } = useAuth();
-  
+
   // Student data states
   const [studentData, setStudentData] = useState(null);
   const [searchLoader, setSearchLoader] = useState(false);
   const [searchError, setSearchError] = useState("");
-  
+
   // File upload hook for photo editing
   const studentPhoto = FileUploadHook();
-  
+
   // Form states
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
-  
+
   // Searchable exam centre dropdown states
   const [examCentreSearch, setExamCentreSearch] = useState("");
   const [showExamCentreDropdown, setShowExamCentreDropdown] = useState(false);
   const examCentreDropdownRef = useRef(null);
-  
+
   // Branch dropdown visibility states
   const [show9thBranchDropdown, setShow9thBranchDropdown] = useState(false); // For mediums (9th/10th)
-  const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] = useState(false); // For groups (11th/12th)
-  
+  const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] =
+    useState(false); // For groups (11th/12th)
+
   const [formData, setFormData] = useState({
     studentName: "",
     gender: "",
@@ -48,19 +49,25 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
     branch: "",
     examCentre: "",
     examYear: "",
-    studentPhoto: ""
+    studentPhoto: "",
+
+    // NEW
+    paymentStandard: "",
+    totalAmount: 0,
+    amountPaid: 0,
+    amountRemaining: 0,
   });
 
   // Handle branch dropdown visibility based on standard
   useEffect(() => {
     const standard = formData.standard || "";
-    
+
     // Show medium dropdowns for 9th+10th and 10th standards
     const showMediumDropdown = standard === "9th+10th" || standard === "10th";
-    
+
     // Show group dropdowns for 11th+12th and 12th standards
     const showGroupDropdown = standard === "11th+12th" || standard === "12th";
-    
+
     setShow9thBranchDropdown(showMediumDropdown);
     setShow11thPlusBranchDropdown(showGroupDropdown);
   }, [formData.standard]);
@@ -78,19 +85,21 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
     setSearchLoader(true);
     setSearchError("");
-    
+
     try {
       const response = await api.get(`/counsellor/student/${propStudentId}`);
-      
+
       if (response.status === 200) {
         const student = response.data.student;
         setStudentData(student);
-        
+
+        // console.log("Fetched student data:", student);
+
         // Safely set form data with fallback values
         setFormData({
           studentName: student.studentName || "",
           gender: student.gender || "",
-          dob: new Date(student.dob).toISOString().split('T')[0] || "",
+          dob: new Date(student.dob).toISOString().split("T")[0] || "",
           motherName: student.motherName || "",
           address: student.address || "",
           pincode: student.pincode || "",
@@ -106,17 +115,23 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
           branch: student.branch || "",
           examCentre: student.examCentre || "", // This will be the centerId
           examYear: student.examYear || "",
-          studentPhoto: student.studentPhoto || ""
+          studentPhoto: student.studentPhoto || "",
+          paymentStandard: student.standard || "",
+          totalAmount: student.totalAmount || 0,
+          amountPaid: student.amountPaid || 0,
+          amountRemaining: student.amountRemaining || 0,
         });
-        
+
         // Find and set exam centre name for search field
         if (student.examCentre && examCentres.length > 0) {
-          const selectedCentre = examCentres.find(centre => centre.centerId === student.examCentre);
+          const selectedCentre = examCentres.find(
+            (centre) => centre.centerId === student.examCentre,
+          );
           if (selectedCentre) {
             setExamCentreSearch(selectedCentre.centerName);
           }
         }
-        
+
         setSearchError("");
       }
     } catch (error) {
@@ -133,29 +148,32 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   };
 
   // Filter function for searchable exam centre dropdown
-  const filteredExamCentres = examCentres.filter(centre =>
-    centre.centerName.toLowerCase().includes(examCentreSearch.toLowerCase())
+  const filteredExamCentres = examCentres.filter((centre) =>
+    centre.centerName.toLowerCase().includes(examCentreSearch.toLowerCase()),
   );
 
   // Click outside handler for exam centre dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (examCentreDropdownRef.current && !examCentreDropdownRef.current.contains(event.target)) {
+      if (
+        examCentreDropdownRef.current &&
+        !examCentreDropdownRef.current.contains(event.target)
+      ) {
         setShowExamCentreDropdown(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   // Handle exam centre selection
   const handleExamCentreSelect = (centre) => {
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
-      examCentre: centre.centerId // Store only centerId
+      examCentre: centre.centerId, // Store only centerId
     }));
     setExamCentreSearch(centre.centerName);
     setShowExamCentreDropdown(false);
@@ -163,9 +181,9 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
   // Clear exam centre filter
   const clearExamCentreFilter = () => {
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
-      examCentre: ""
+      examCentre: "",
     }));
     setExamCentreSearch("");
   };
@@ -185,13 +203,88 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   // Update exam centre search when exam centres are loaded and student data exists
   useEffect(() => {
     if (studentData && examCentres.length > 0 && formData.examCentre) {
-      const selectedCentre = examCentres.find(centre => centre.centerId === formData.examCentre);
+      const selectedCentre = examCentres.find(
+        (centre) => centre.centerId === formData.examCentre,
+      );
       if (selectedCentre) {
         setExamCentreSearch(selectedCentre.centerName);
       }
     }
   }, [examCentres, studentData, formData.examCentre]);
 
+  const applyStandardLogic = (standard) => {
+    const currDate = new Date();
+    const currentYear = currDate.getFullYear();
+    const currMonth = currDate.getMonth();
+    const nextYear = currMonth < 4 ? currentYear : currentYear + 1;
+
+    const standardConfig = {
+      "9th+10th": {
+        previousYear: "8th",
+        examYear: nextYear.toString(),
+        paymentStandard: "9th+10th",
+        totalAmount: 6850,
+      },
+
+      "10th": {
+        previousYear: "9th",
+        examYear: currentYear.toString(),
+        paymentStandard: "10th",
+        totalAmount: 6850,
+      },
+
+      "11th+12th": {
+        previousYear: "10th",
+        examYear: nextYear.toString(),
+        paymentStandard: "11th+12th",
+        totalAmount: 9850,
+      },
+
+      "12th": {
+        previousYear: "11th",
+        examYear: currentYear.toString(),
+        paymentStandard: "12th",
+        totalAmount: 7900,
+      },
+    };
+
+    return standardConfig[standard] || {};
+  };
+
+  const allowedConversions = {
+    "11th+12th": "12th",
+    "9th+10th": "10th",
+  };
+
+  const handleStandardConversion = () => {
+    const newStandard = allowedConversions[formData.standard];
+
+    if (!newStandard) {
+      return;
+    }
+
+    const standardFields = applyStandardLogic(newStandard);
+
+    const newTotalAmount = Number(standardFields.totalAmount || 0);
+    const amountPaid = Number(formData.amountPaid || 0);
+
+    // BLOCK INVALID CONVERSION
+    if (amountPaid > newTotalAmount) {
+      alert(
+        `Conversion not allowed.\nPaid amount ₹${amountPaid} exceeds new standard fee ₹${newTotalAmount}.`,
+      );
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      standard: newStandard,
+      ...standardFields,
+      amountRemaining: newTotalAmount - amountPaid,
+    }));
+
+    alert(`Student converted successfully to ${newStandard}`);
+  };
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -219,7 +312,7 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
       branch: "",
       examCentre: "",
       examYear: "",
-      studentPhoto: ""
+      studentPhoto: "",
     });
     studentPhoto.resetUpload();
     setExamCentreSearch("");
@@ -228,11 +321,11 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   // Handle photo upload
   const handleStudentPhotoUpload = async () => {
     const imageUrl = await studentPhoto.uploadImage();
-    
-    if (imageUrl && imageUrl.trim() !== '') {
-      setFormData(prevData => ({
+
+    if (imageUrl && imageUrl.trim() !== "") {
+      setFormData((prevData) => ({
         ...prevData,
-        studentPhoto: imageUrl
+        studentPhoto: imageUrl,
       }));
     } else {
       console.error("Student photo upload failed - no valid URL returned");
@@ -243,12 +336,12 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   const handleCombinedUpdate = async (e) => {
     e.preventDefault();
     setSubmitLoader(true);
-    
+
     try {
       // Prepare update data
       const updateData = { ...formData };
       updateData.studentId = studentData.studentId;
-      
+
       // If there's a new photo uploaded, include it in the update
       if (studentPhoto.isSaved && studentPhoto.imageUrl) {
         updateData.studentPhoto = formData.studentPhoto;
@@ -258,9 +351,13 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
         updateData.studentPhoto = studentData.studentPhoto;
       }
 
-      const response = await api.put(`/counsellor/updateStudentCombined/${studentData.studentId}`, updateData, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await api.put(
+        `/counsellor/updateStudentCombined/${studentData.studentId}`,
+        updateData,
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
 
       if (response.status === 200) {
         alert("Student details updated successfully!");
@@ -312,7 +409,9 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
             <div className="p-2 sm:p-4">
               <div className="max-w-6xl mx-auto">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Edit Student Details & Photo</h3>
+                  <h3 className="text-lg font-semibold">
+                    Edit Student Details & Photo
+                  </h3>
                   <button
                     onClick={handleCloseModal}
                     className="text-gray-500 hover:text-gray-700 text-xl font-bold"
@@ -321,16 +420,21 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                   </button>
                 </div>
 
-                <form onSubmit={handleCombinedUpdate} className="space-y-4 sm:space-y-6 w-full">
-                  
+                <form
+                  onSubmit={handleCombinedUpdate}
+                  className="space-y-4 sm:space-y-6 w-full"
+                >
                   {/* Photo Upload Section */}
                   <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6 bg-blue-50">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-blue-800">Student Photo</h3>
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-blue-800">
+                      Student Photo
+                    </h3>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                      
                       {/* Current Photo Preview */}
                       <div className="border rounded-lg shadow-sm p-2 sm:p-4 bg-white">
-                        <h4 className="text-base font-semibold mb-3 text-gray-700">Current Photo</h4>
+                        <h4 className="text-base font-semibold mb-3 text-gray-700">
+                          Current Photo
+                        </h4>
                         <div className="flex justify-center">
                           {studentData.studentPhoto ? (
                             <div className="relative">
@@ -339,16 +443,24 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                                 alt="Current student photo"
                                 className="w-32 sm:w-40 h-40 sm:h-48 object-cover border-2 border-gray-300 rounded-lg shadow-md"
                                 onError={(e) => {
-                                  e.target.style.display = 'none';
-                                  e.target.nextSibling.style.display = 'flex';
+                                  e.target.style.display = "none";
+                                  e.target.nextSibling.style.display = "flex";
                                 }}
                               />
-                              <div 
-                                className="hidden w-32 sm:w-40 h-40 sm:h-48 bg-gray-200 border-2 border-gray-300 rounded-lg items-center justify-center text-gray-500"
-                              >
+                              <div className="hidden w-32 sm:w-40 h-40 sm:h-48 bg-gray-200 border-2 border-gray-300 rounded-lg items-center justify-center text-gray-500">
                                 <div className="text-center px-2">
-                                  <svg className="w-6 sm:w-8 h-6 sm:h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"></path>
+                                  <svg
+                                    className="w-6 sm:w-8 h-6 sm:h-8 mx-auto mb-2 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"
+                                    ></path>
                                   </svg>
                                   <p className="text-xs">Image not available</p>
                                 </div>
@@ -357,10 +469,22 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                           ) : (
                             <div className="w-32 sm:w-40 h-40 sm:h-48 bg-gray-200 border-2 border-gray-300 rounded-lg flex items-center justify-center text-gray-500">
                               <div className="text-center px-2">
-                                <svg className="w-6 sm:w-8 h-6 sm:h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"></path>
+                                <svg
+                                  className="w-6 sm:w-8 h-6 sm:h-8 mx-auto mb-2 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"
+                                  ></path>
                                 </svg>
-                                <p className="text-xs font-medium">No Photo Available</p>
+                                <p className="text-xs font-medium">
+                                  No Photo Available
+                                </p>
                               </div>
                             </div>
                           )}
@@ -369,7 +493,9 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
                       {/* New Photo Upload */}
                       <div className="border rounded-lg shadow-sm p-2 sm:p-4 bg-white">
-                        <h4 className="text-base font-semibold mb-3 text-gray-700">Upload New Photo (Optional)</h4>
+                        <h4 className="text-base font-semibold mb-3 text-gray-700">
+                          Upload New Photo (Optional)
+                        </h4>
                         <FileUpload
                           title="Select New Student Photo"
                           imageUrl={studentPhoto.imageUrl}
@@ -384,7 +510,9 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                         {studentPhoto.imageUrl && (
                           <div className="mt-3 text-center">
                             <p className="text-sm text-green-600 font-medium">
-                              {studentPhoto.isSaved ? "✓ Photo ready for update" : "Please save the photo first"}
+                              {studentPhoto.isSaved
+                                ? "✓ Photo ready for update"
+                                : "Please save the photo first"}
                             </p>
                           </div>
                         )}
@@ -394,21 +522,23 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
                   {/* Personal Details Section */}
                   <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Personal Details</h3>
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                      Student Personal Details
+                    </h3>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                      <input 
-                        type="text" 
-                        name="studentName" 
+                      <input
+                        type="text"
+                        name="studentName"
                         value={formData.studentName}
-                        onChange={handleChange} 
-                        placeholder="Enter Student Name" 
+                        onChange={handleChange}
+                        placeholder="Enter Student Name"
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                         required
                       />
-                      <select 
-                        name="gender" 
+                      <select
+                        name="gender"
                         value={formData.gender}
-                        onChange={handleChange} 
+                        onChange={handleChange}
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                         required
                       >
@@ -417,40 +547,42 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                         <option value="Female">Female</option>
                       </select>
                       <div className="w-full flex flex-row items-center gap-1">
-                        <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Date of Birth:</label>
-                        <input 
-                          type="date" 
-                          name="dob" 
+                        <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">
+                          Date of Birth:
+                        </label>
+                        <input
+                          type="date"
+                          name="dob"
                           value={formData.dob}
-                          onChange={handleChange} 
+                          onChange={handleChange}
                           className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                           required
                         />
                       </div>
-                      <input 
-                        type="text" 
-                        name="motherName" 
+                      <input
+                        type="text"
+                        name="motherName"
                         value={formData.motherName}
-                        onChange={handleChange} 
-                        placeholder="Enter Mother's Name" 
+                        onChange={handleChange}
+                        placeholder="Enter Mother's Name"
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                         required
                       />
-                      <textarea 
-                        name="address" 
+                      <textarea
+                        name="address"
                         value={formData.address}
-                        onChange={handleChange} 
-                        placeholder="Enter Address" 
+                        onChange={handleChange}
+                        placeholder="Enter Address"
                         rows="3"
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base resize-vertical"
                         required
                       />
-                      <input 
-                        type="text" 
-                        name="pincode" 
+                      <input
+                        type="text"
+                        name="pincode"
                         value={formData.pincode}
-                        onChange={handleChange} 
-                        placeholder="Enter Pincode" 
+                        onChange={handleChange}
+                        placeholder="Enter Pincode"
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                         required
                         pattern="\d{6}"
@@ -461,27 +593,42 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
                   {/* Educational Details Section */}
                   <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Educational Details</h3>
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                      Student Educational Details
+                    </h3>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                      
                       {/* Standard Field */}
-                      <div className="w-full flex flex-row items-center gap-1 order-1">
-                        <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Standard:</label>
-                        <input 
-                          type="text" 
-                          name="standard" 
-                          disabled
-                          value={formData.standard}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
-                          required
-                        />
+                      <div className="w-full flex flex-col gap-3 order-1">
+                        <div className="flex flex-row items-center gap-2">
+                          <label className="min-w-fit md:text-[17px] text-md text-black">
+                            Standard:
+                          </label>
+
+                          <input
+                            type="text"
+                            value={formData.standard}
+                            disabled
+                            className="w-full px-3 py-2 border rounded bg-gray-100"
+                          />
+                        </div>
+
+                        {allowedConversions[formData.standard] && (
+                          <button
+                            type="button"
+                            onClick={handleStandardConversion}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+                          >
+                            Convert to {allowedConversions[formData.standard]}
+                          </button>
+                        )}
                       </div>
                       <div className="w-full flex flex-row items-center gap-1 order-1">
-                        <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Previous Year:</label>
-                        <input 
-                          type="text" 
-                          name="previousYear" 
+                        <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">
+                          Previous Year:
+                        </label>
+                        <input
+                          type="text"
+                          name="previousYear"
                           disabled
                           value={formData.previousYear}
                           onChange={handleChange}
@@ -489,26 +636,28 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                           required
                         />
                       </div>
-                      
+
                       {/* Previous Year Percentage */}
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         name="preYearPercent"
-                        placeholder="Enter Previous Year Percentage" 
+                        placeholder="Enter Previous Year Percentage"
                         value={formData.preYearPercent}
-                        onWheel={(e) => e.target.blur()} 
-                        onChange={handleChange} 
-                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-2" 
-                        required 
-                        min="0" max="100" step="0.01"
+                        onWheel={(e) => e.target.blur()}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-2"
+                        required
+                        min="0"
+                        max="100"
+                        step="0.01"
                       />
-                      
+
                       {/* Dynamic Branch Dropdowns */}
                       {show9thBranchDropdown && (
-                        <select 
-                          name="branch" 
-                          value={formData.branch} 
-                          onChange={handleChange} 
+                        <select
+                          name="branch"
+                          value={formData.branch}
+                          onChange={handleChange}
                           className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                           required
                         >
@@ -518,12 +667,12 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                           <option value="English">English</option>
                         </select>
                       )}
-                      
+
                       {show11thPlusBranchDropdown && (
-                        <select 
-                          name="branch" 
-                          value={formData.branch} 
-                          onChange={handleChange} 
+                        <select
+                          name="branch"
+                          value={formData.branch}
+                          onChange={handleChange}
                           className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                           required
                         >
@@ -533,14 +682,14 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                           <option value="PCMB">PCMB</option>
                         </select>
                       )}
-                      
+
                       {/* School/College Name */}
-                      <input 
-                        type="text" 
-                        name="schoolCollege" 
+                      <input
+                        type="text"
+                        name="schoolCollege"
                         value={formData.schoolCollege}
-                        onChange={handleChange} 
-                        placeholder="Enter School/College Name" 
+                        onChange={handleChange}
+                        placeholder="Enter School/College Name"
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-4"
                         required
                       />
@@ -549,44 +698,46 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
                   {/* Contact Details Section */}
                   <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Contact Details</h3>
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                      Student Contact Details
+                    </h3>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                      <input 
-                        type="email" 
-                        name="email" 
+                      <input
+                        type="email"
+                        name="email"
                         value={formData.email}
-                        onChange={handleChange} 
-                        placeholder="Enter Student Email" 
+                        onChange={handleChange}
+                        placeholder="Enter Student Email"
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                         required
                         pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                       />
-                      <input 
-                        type="tel" 
-                        name="studentNo" 
+                      <input
+                        type="tel"
+                        name="studentNo"
                         value={formData.studentNo}
-                        onChange={handleChange} 
-                        placeholder="Enter Student Mobile No." 
+                        onChange={handleChange}
+                        placeholder="Enter Student Mobile No."
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                         required
                         pattern="[0-9]{10}"
                         title="Phone number must be 10 digits"
                       />
-                      <input 
-                        type="tel" 
-                        name="parentsNo" 
+                      <input
+                        type="tel"
+                        name="parentsNo"
                         value={formData.parentsNo}
-                        onChange={handleChange} 
-                        placeholder="Enter Parents Mobile No." 
+                        onChange={handleChange}
+                        placeholder="Enter Parents Mobile No."
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                         required
                         pattern="[0-9]{10}"
                         title="Phone number must be 10 digits"
                       />
-                      <select 
-                        name="appNo" 
+                      <select
+                        name="appNo"
                         value={formData.appNo}
-                        onChange={handleChange} 
+                        onChange={handleChange}
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                         required
                       >
@@ -603,10 +754,10 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                         )}
                       </select>
 
-                      <select 
-                        name="notificationNo" 
+                      <select
+                        name="notificationNo"
                         value={formData.notificationNo}
-                        onChange={handleChange} 
+                        onChange={handleChange}
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 lg:col-span-2 text-sm sm:text-base"
                         required
                       >
@@ -627,11 +778,15 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
                   {/* Exam Centre and Form Details Section */}
                   <div className="mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6">
-                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">Student Exam Centre and Form Details</h3>
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary">
+                      Student Exam Centre and Form Details
+                    </h3>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 w-full">
-                      
                       {/* Searchable Exam Centre Dropdown */}
-                      <div className="relative w-full" ref={examCentreDropdownRef}>
+                      <div
+                        className="relative w-full"
+                        ref={examCentreDropdownRef}
+                      >
                         <div className="relative">
                           <input
                             type="text"
@@ -654,7 +809,7 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                             </button>
                           )}
                         </div>
-                        
+
                         {showExamCentreDropdown && (
                           <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 max-h-60 overflow-y-auto shadow-lg">
                             <div
@@ -675,19 +830,24 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                                 {centre.centerName}
                               </div>
                             ))}
-                            {filteredExamCentres.length === 0 && examCentreSearch && (
-                              <div className="p-2 text-gray-500">No exam centres found</div>
-                            )}
+                            {filteredExamCentres.length === 0 &&
+                              examCentreSearch && (
+                                <div className="p-2 text-gray-500">
+                                  No exam centres found
+                                </div>
+                              )}
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Exam Year Field */}
                       <div className="w-full flex flex-row items-center gap-1">
-                        <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">Exam Year:</label>
-                        <input 
-                          type="text" 
-                          name="examYear" 
+                        <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">
+                          Exam Year:
+                        </label>
+                        <input
+                          type="text"
+                          name="examYear"
                           disabled
                           value={formData.examYear}
                           onChange={handleChange}
@@ -698,11 +858,50 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                     </div>
                   </div>
 
+                  <div className="w-full flex flex-row items-center gap-1">
+                    <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">
+                      Total Fees:
+                    </label>
+
+                    <input
+                      type="number"
+                      value={formData.totalAmount}
+                      disabled
+                      className="w-full px-3 py-2 border rounded bg-gray-100"
+                    />
+                  </div>
+
+                  <div className="w-full flex flex-row items-center gap-1">
+                    <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">
+                      Amount Paid:
+                    </label>
+
+                    <input
+                      type="number"
+                      value={formData.amountPaid}
+                      disabled
+                      className="w-full px-3 py-2 border rounded bg-gray-100"
+                    />
+                  </div>
+
+                  <div className="w-full flex flex-row items-center gap-1">
+                    <label className="min-w-fit md:text-[17px] text-md mr-2 text-black">
+                      Amount Remaining:
+                    </label>
+
+                    <input
+                      type="number"
+                      value={formData.amountRemaining}
+                      disabled
+                      className="w-full px-3 py-2 border rounded bg-gray-100"
+                    />
+                  </div>
+
                   {/* Submit Button */}
                   <div className="grid place-items-center w-full">
                     {formData.examCentre ? (
-                      <button 
-                        type="submit" 
+                      <button
+                        type="submit"
                         disabled={submitLoader}
                         className="w-full max-w-md py-3 bg-green-600 disabled:opacity-50 grid place-items-center text-white rounded hover:bg-green-700 transition text-sm sm:text-base font-medium"
                       >
@@ -723,16 +922,14 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                       </div>
                     )}
                   </div>
-                  
                 </form>
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default StudentEditPage;
