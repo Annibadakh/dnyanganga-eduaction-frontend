@@ -223,7 +223,7 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
         previousYear: "8th",
         examYear: nextYear.toString(),
         paymentStandard: "9th+10th",
-        totalAmount: 6850,
+        totalAmount: 7850,
       },
 
       "10th": {
@@ -237,7 +237,7 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
         previousYear: "10th",
         examYear: nextYear.toString(),
         paymentStandard: "11th+12th",
-        totalAmount: 9850,
+        totalAmount: 9950,
       },
 
       "12th": {

@@ -69,7 +69,7 @@ const RegistrationForm = () => {
         previousYear: "8th",
         examYear: nextYear.toString(),
         paymentStandard: "9th+10th",
-        totalamount: 6850,
+        totalamount: 7850,
         dropdowns: {
           show9th: true,
           show10th: false,
@@ -95,7 +95,7 @@ const RegistrationForm = () => {
         previousYear: "10th",
         examYear: nextYear.toString(),
         paymentStandard: "11th+12th",
-        totalamount: 9850,
+        totalamount: 9950,
         dropdowns: {
           show9th: false,
           show10th: false,
