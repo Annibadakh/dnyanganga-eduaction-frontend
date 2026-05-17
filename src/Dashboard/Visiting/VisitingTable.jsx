@@ -9,7 +9,7 @@ import { DashboardContext } from "../../Context/DashboardContext";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
 import Button from "../Generic/Button";
-import { Eye, Edit } from "lucide-react";
+import { Eye, Edit, Trash2 } from "lucide-react";
 
 const VisitingTable = () => {
   const { user } = useAuth();
@@ -126,13 +126,23 @@ const VisitingTable = () => {
           </Button>
 
           {user.role === "admin" && (
-            <Button
-              variant="success"
-              startIcon={<Edit size={16} />}
-              onClick={() => handleEditVisit(row)}
-            >
-              Edit
-            </Button>
+            <>
+              <Button
+                variant="success"
+                startIcon={<Edit size={16} />}
+                onClick={() => handleEditVisit(row)}
+              >
+                Edit
+              </Button>
+
+              <Button
+                variant="danger"
+                startIcon={<Trash2 size={16} />}
+                onClick={() => handleDeleteVisit(row.id)}
+              >
+                Delete
+              </Button>
+            </>
           )}
         </div>
       ),
@@ -258,6 +268,28 @@ const VisitingTable = () => {
     fetchVisitingData(); // Refresh the table data
   };
 
+  const handleDeleteVisit = async (visitId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this visiting record?",
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/counsellor/deleteVisiting/${visitId}`);
+
+      // Remove deleted row instantly from UI
+      setVisitingData((prev) => prev.filter((visit) => visit.id !== visitId));
+
+      // Optional: refresh table data
+      fetchVisitingData();
+
+      alert("Visiting record deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting visiting record:", error);
+      alert("Failed to delete visiting record.");
+    }
+  };
   // Handle follow-up checkbox change
   const handleFollowUpChange = async (visitId, currentFollowUpStatus) => {
     try {
