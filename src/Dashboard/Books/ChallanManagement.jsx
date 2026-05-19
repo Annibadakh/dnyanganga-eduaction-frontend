@@ -57,11 +57,11 @@ const ChallanManagement = () => {
 
     ...(user.role === "admin" || user.role === "logistics"
       ? [
-        {
-          header: "Counsellor",
-          render: (row) => row.User?.name,
-        },
-      ]
+          {
+            header: "Counsellor",
+            render: (row) => row.User?.name,
+          },
+        ]
       : []),
 
     {
@@ -72,7 +72,7 @@ const ChallanManagement = () => {
           .filter(
             (item) =>
               item.Book &&
-              !["pamphlet", "receiptBook"].includes(item.Book.standard)
+              !["pamphlet", "receiptBook"].includes(item.Book.standard),
           )
           .reduce((sum, item) => sum + (item.countSent || 0), 0);
       },
@@ -82,9 +82,7 @@ const ChallanManagement = () => {
       render: (row) => {
         const items = row.ChalanItems || [];
         return items
-          .filter(
-            (item) => item.Book?.standard === "pamphlet"
-          )
+          .filter((item) => item.Book?.standard === "pamphlet")
           .reduce((sum, item) => sum + (item.countSent || 0), 0);
       },
     },
@@ -93,9 +91,7 @@ const ChallanManagement = () => {
       render: (row) => {
         const items = row.ChalanItems || [];
         return items
-          .filter(
-            (item) => item.Book?.standard === "receiptBook"
-          )
+          .filter((item) => item.Book?.standard === "receiptBook")
           .reduce((sum, item) => sum + (item.countSent || 0), 0);
       },
     },
@@ -230,7 +226,7 @@ const ChallanManagement = () => {
   const applyFilters = () => {
     let filtered = [...challans];
 
-    console.log(filterCounsellor);
+    // console.log(filterCounsellor);
 
     // Filter by counsellor
     if (filterCounsellor) {
@@ -242,7 +238,6 @@ const ChallanManagement = () => {
         );
       });
     }
-
 
     // Filter by date range
     if (filterDateFrom) {
@@ -279,8 +274,6 @@ const ChallanManagement = () => {
     setInternalSearch("");
   };
 
-
-
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-IN", {
@@ -294,8 +287,6 @@ const ChallanManagement = () => {
     setSelectedChallan(challan);
     setShowDetails(true);
   };
-
-
 
   // Pagination logic
   const indexOfLastChallan = currentPage * challansPerPage;
@@ -624,30 +615,30 @@ const ChallanManagement = () => {
 
             {(!selectedChallan.ChalanItems ||
               selectedChallan.ChalanItems.length === 0) && (
-                <div className="text-center py-12">
-                  <div className="bg-gray-100 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                    <svg
-                      className="w-8 h-8 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    No Items Found
-                  </h3>
-                  <p className="text-gray-500">
-                    This challan doesn't contain any items yet.
-                  </p>
+              <div className="text-center py-12">
+                <div className="bg-gray-100 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                  <svg
+                    className="w-8 h-8 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                    />
+                  </svg>
                 </div>
-              )}
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No Items Found
+                </h3>
+                <p className="text-gray-500">
+                  This challan doesn't contain any items yet.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
@@ -772,10 +763,11 @@ const ChallanManagement = () => {
 
       {/* Enhanced Statistics Cards */}
       <div
-        className={`grid gap-4 mb-6 ${user.role === "admin" || user.role === "logistics"
-          ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6"
-          : "grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
-          }`}
+        className={`grid gap-4 mb-6 ${
+          user.role === "admin" || user.role === "logistics"
+            ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-6"
+            : "grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
+        }`}
       >
         {getStatsCards().map((card, index) => (
           <div
@@ -802,10 +794,11 @@ const ChallanManagement = () => {
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Filters</h2>
 
         <div
-          className={`grid gap-4 ${user.role === "admin" || user.role === "logistics"
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
-            : "grid-cols-1 md:grid-cols-3"
-            }`}
+          className={`grid gap-4 ${
+            user.role === "admin" || user.role === "logistics"
+              ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
+              : "grid-cols-1 md:grid-cols-3"
+          }`}
         >
           {(user.role === "admin" || user.role === "logistics") && (
             <div>
@@ -875,7 +868,6 @@ const ChallanManagement = () => {
           </h2>
         </div>
 
-        
         <DataTable
           columns={columns}
           data={currentChallans}

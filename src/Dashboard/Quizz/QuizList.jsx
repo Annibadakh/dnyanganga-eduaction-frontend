@@ -46,7 +46,7 @@ const QuizList = () => {
           standardId: selectedStandard?.value,
         },
       });
-      console.log(res);
+      // console.log(res);
       setQuizzes(res.data);
     } catch (err) {
       console.error(err);
@@ -128,7 +128,7 @@ const QuizList = () => {
   };
 
   const handleEdit = (quiz) => {
-    console.log("Edit Quiz:", quiz);
+    // console.log("Edit Quiz:", quiz);
   };
 
   return (

@@ -50,9 +50,8 @@ export default function ExcelUploader() {
 
   // COLUMN LABEL UPDATE
   const renameColumn = (key, value) => {
-  setLabels({ ...labels, [key]: value });
-};
-
+    setLabels({ ...labels, [key]: value });
+  };
 
   // DELETE COLUMN
   const deleteColumn = (col) => {
@@ -62,7 +61,7 @@ export default function ExcelUploader() {
       rows.map((r) => {
         const { [col]: removed, ...rest } = r;
         return rest;
-      })
+      }),
     );
 
     const newLabels = { ...labels };
@@ -72,28 +71,27 @@ export default function ExcelUploader() {
 
   // SUBMIT
   const handleSubmit = async () => {
-  // map rows to new keys using labels
-  const mappedRows = rows.map((row) => {
-    const newRow = {};
+    // map rows to new keys using labels
+    const mappedRows = rows.map((row) => {
+      const newRow = {};
 
-    columns.forEach((col) => {
-      const finalKey = labels[col] || col;   // use label if changed
-      newRow[finalKey] = row[col];
+      columns.forEach((col) => {
+        const finalKey = labels[col] || col; // use label if changed
+        newRow[finalKey] = row[col];
+      });
+
+      return newRow;
     });
 
-    return newRow;
-  });
+    // console.log("FINAL DATA:", mappedRows);
 
-  console.log("FINAL DATA:", mappedRows);
-
-  // Example backend call
-  // await fetch("/api/upload", {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify(mappedRows),
-  // });
-};
-
+    // Example backend call
+    // await fetch("/api/upload", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify(mappedRows),
+    // });
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
