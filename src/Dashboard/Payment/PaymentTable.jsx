@@ -10,14 +10,12 @@ import PdfViewerModal from "../Generic/PdfViewerModal";
 import Button from "../Generic/Button";
 import { FileText } from "lucide-react";
 
-
-
 const capitalizeFirstLetter = (string) => {
-  if (!string || typeof string !== 'string') {
-    return '';
+  if (!string || typeof string !== "string") {
+    return "";
   }
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-}
+};
 const PaymentTable = () => {
   const { user } = useAuth();
   const { counsellor } = useContext(DashboardContext);
@@ -32,7 +30,6 @@ const PaymentTable = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [paymentType, setPaymentType] = useState("");
-
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,30 +47,26 @@ const PaymentTable = () => {
   const [pdfFileName, setPdfFileName] = useState("");
   const [currentPdfStudent, setCurrentPdfStudent] = useState(null);
 
-
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   const imgUrl = import.meta.env.VITE_IMG_URL;
 
-
   const columns = [
     {
       header: "Sr. No.",
-      render: (_, index) =>
-        (currentPage - 1) * itemsPerPage + index + 1,
+      render: (_, index) => (currentPage - 1) * itemsPerPage + index + 1,
     },
     {
       header: "Payment Date",
-      render: (row) =>
-        new Date(row.createdAt).toLocaleDateString("en-GB"),
+      render: (row) => new Date(row.createdAt).toLocaleDateString("en-GB"),
     },
     ...(user.role === "admin"
       ? [
-        {
-          header: "Counsellor",
-          render: (row) => row.Student?.User?.name || "-",
-        },
-      ]
+          {
+            header: "Counsellor",
+            render: (row) => row.Student?.User?.name || "-",
+          },
+        ]
       : []),
     {
       header: "Student ID",
@@ -83,6 +76,10 @@ const PaymentTable = () => {
     {
       header: "Student Name",
       render: (row) => row.Student?.studentName,
+    },
+    {
+      header: "Standard",
+      render: (row) => row.Student?.standard,
     },
     {
       header: "Payment ID",
@@ -106,8 +103,7 @@ const PaymentTable = () => {
     },
     {
       header: "Payment Type",
-      render: (row) =>
-        capitalizeFirstLetter(row.paymentType),
+      render: (row) => capitalizeFirstLetter(row.paymentType),
     },
     {
       header: "Receipt",
@@ -134,7 +130,6 @@ const PaymentTable = () => {
       ),
     },
   ];
-
 
   // Cleanup PDF URL when dialog closes
   useEffect(() => {
@@ -170,12 +165,13 @@ const PaymentTable = () => {
       counsellor: selectedCounsellor?.value || "",
       startDate: startDate,
       endDate: endDate,
-      paymentType
+      paymentType,
     };
 
     api
       .get("/counsellor/getPayments", { params })
       .then((response) => {
+        // console.log("Fetched payments data:", response.data);
         setPaymentsData(response.data.payments);
         setTotalCount(response.data.totalCount);
         setTotalPages(response.data.totalPages);
@@ -198,14 +194,19 @@ const PaymentTable = () => {
     selectedCounsellor,
     startDate,
     endDate,
-    paymentType
+    paymentType,
   ]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm, selectedCounsellor, startDate, endDate, paymentType]);
-
+  }, [
+    debouncedSearchTerm,
+    selectedCounsellor,
+    startDate,
+    endDate,
+    paymentType,
+  ]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -251,9 +252,12 @@ const PaymentTable = () => {
       setPdfFileName(fileName);
       setCurrentPdfStudent(payment.Student);
       setShowPdfPreview(true);
-
     } catch (err) {
-      alert(err.response?.status === 403 ? "Student not found!" : "Receipt download failed.");
+      alert(
+        err.response?.status === 403
+          ? "Student not found!"
+          : "Receipt download failed.",
+      );
       console.error(err);
     } finally {
       setLoadingPdfId(null);
@@ -272,7 +276,9 @@ const PaymentTable = () => {
 
   return (
     <div className="p-2 container mx-auto">
-      <h1 className="text-3xl text-center font-bold text-primary mb-6">Payment Records</h1>
+      <h1 className="text-3xl text-center font-bold text-primary mb-6">
+        Payment Records
+      </h1>
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row justify-between gap-2 mb-4">
@@ -333,9 +339,6 @@ const PaymentTable = () => {
             </button>
           )}
         </div>
-        
-
-
       </div>
 
       {/* Table */}

@@ -163,8 +163,10 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       icon: <FaHistory className="text-lg" />,
     },
   ];
-console.log(userRole)
-  const isActive = (path) => location.pathname === (userRole.role == "student" ? `/student/${path}` : `/dashboard/${path}`);
+  // console.log(userRole)
+  const isActive = (path) =>
+    location.pathname ===
+    (userRole.role == "student" ? `/student/${path}` : `/dashboard/${path}`);
 
   return (
     <aside

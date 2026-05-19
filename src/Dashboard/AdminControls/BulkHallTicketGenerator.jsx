@@ -1,13 +1,21 @@
 import { useState, useEffect, useRef } from "react";
-import { FileText, Loader2, AlertCircle, Download, X, CheckCircle, Users } from "lucide-react";
+import {
+  FileText,
+  Loader2,
+  AlertCircle,
+  Download,
+  X,
+  CheckCircle,
+  Users,
+} from "lucide-react";
 
 export default function BulkHallTicketGenerator({ centerId, onClose }) {
   const [progress, setProgress] = useState({
-    stage: 'fetching',
-    message: '',
+    stage: "fetching",
+    message: "",
     current: 0,
     total: 0,
-    totalStudents: 0
+    totalStudents: 0,
   });
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfBlob, setPdfBlob] = useState(null);
@@ -34,30 +42,31 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
 
     try {
       // Create EventSource for SSE
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const apiBaseUrl =
+        import.meta.env.VITE_API_URL || "http://localhost:5000";
       const eventSource = new EventSource(
-        `${apiBaseUrl}/pdf/bulk-generate-progress?centerId=${centerId}`
+        `${apiBaseUrl}/pdf/bulk-generate-progress?centerId=${centerId}`,
       );
       eventSourceRef.current = eventSource;
 
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log('SSE Data:', data);
-        if (data.stage === 'error') {
+        // console.log('SSE Data:', data);
+        if (data.stage === "error") {
           setError(data.message);
           eventSource.close();
           return;
         }
 
-        if (data.stage === 'complete') {
+        if (data.stage === "complete") {
           setProgress({
-            stage: 'complete',
+            stage: "complete",
             message: data.message,
             current: data.totalGenerated,
             total: data.totalGenerated,
-            totalStudents: data.totalGenerated
+            totalStudents: data.totalGenerated,
           });
-          
+
           // Convert base64 to blob
           const byteCharacters = atob(data.pdfData);
           const byteNumbers = new Array(byteCharacters.length);
@@ -65,8 +74,8 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
             byteNumbers[i] = byteCharacters.charCodeAt(i);
           }
           const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: 'application/pdf' });
-          
+          const blob = new Blob([byteArray], { type: "application/pdf" });
+
           const url = URL.createObjectURL(blob);
           setPdfUrl(url);
           setPdfBlob(blob);
@@ -79,11 +88,10 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
       };
 
       eventSource.onerror = (err) => {
-        console.error('EventSource error:', err);
-        setError('Connection error. Please try again.');
+        console.error("EventSource error:", err);
+        setError("Connection error. Please try again.");
         eventSource.close();
       };
-
     } catch (err) {
       setError(err.message || "Error generating hall tickets.");
       console.error(err);
@@ -117,8 +125,8 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
               <p className="text-blue-100 text-sm">Center ID: {centerId}</p>
             </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all"
             disabled={!isComplete && !error}
           >
@@ -137,12 +145,13 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-4">
                   <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
                 </div>
-                
+
                 <div>
                   <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                    {progress.stage === 'fetching' && 'Fetching Students...'}
-                    {progress.stage === 'students_fetched' && 'Students Loaded'}
-                    {progress.stage === 'generating' && 'Generating Hall Tickets'}
+                    {progress.stage === "fetching" && "Fetching Students..."}
+                    {progress.stage === "students_fetched" && "Students Loaded"}
+                    {progress.stage === "generating" &&
+                      "Generating Hall Tickets"}
                   </h3>
                   <p className="text-gray-600">{progress.message}</p>
                 </div>
@@ -197,7 +206,9 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-red-900 mb-1">Error Occurred</h3>
+                  <h3 className="text-lg font-semibold text-red-900 mb-1">
+                    Error Occurred
+                  </h3>
                   <p className="text-red-700">{error}</p>
                 </div>
               </div>
@@ -210,7 +221,6 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
               {/* Success Header */}
               <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-sm">
                 <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-6 md:gap-0">
-                  
                   {/* Left Section */}
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -221,7 +231,8 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
                         Generation Complete!
                       </h3>
                       <p className="text-green-700 text-sm md:text-base text-center md:text-left">
-                        Successfully generated {progress.totalStudents} hall tickets
+                        Successfully generated {progress.totalStudents} hall
+                        tickets
                       </p>
                     </div>
                   </div>
@@ -232,12 +243,12 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
                     className="w-full md:w-auto bg-green-600 text-white px-6 py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-green-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   >
                     <Download className="w-5 h-5" />
-                    <span className="font-semibold text-sm md:text-base">Download PDF</span>
+                    <span className="font-semibold text-sm md:text-base">
+                      Download PDF
+                    </span>
                   </button>
-
                 </div>
               </div>
-
 
               {/* PDF Preview */}
               <div className="bg-gray-100 rounded-xl p-4 shadow-inner">

@@ -216,7 +216,7 @@ const AdminCollection = () => {
   );
 
   const handleDelete = async (id) => {
-    console.log("Delete transaction with ID:", id);
+    // console.log("Delete transaction with ID:", id);
     try {
       await api.delete(`/counsellor/collection/deleteTransaction/${id}`);
       successToast("Transaction deleted successfully");
