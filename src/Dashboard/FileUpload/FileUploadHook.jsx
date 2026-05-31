@@ -27,6 +27,9 @@ export const FileUploadHook = () => {
       "application/pdf",
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "video/mp4",
+      "video/quicktime",
+      "video/x-matroska",
     ];
 
     if (!validTypes.includes(selectedFile.type)) {
@@ -39,7 +42,7 @@ export const FileUploadHook = () => {
     if (selectedFile.type.startsWith("image/")) {
       try {
         const options = {
-          maxSizeMB: 0.3, // 300 KB target
+          maxSizeMB: 0.5, // 300 KB target
           useWebWorker: true,
         };
 

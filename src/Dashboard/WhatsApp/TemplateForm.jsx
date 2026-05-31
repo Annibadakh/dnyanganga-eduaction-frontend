@@ -252,6 +252,7 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
           >
             <option value="none">None</option>
             <option value="image">Image</option>
+            <option value="video">Video</option>
             <option value="document">Document</option>
           </select>
         </div>
@@ -263,13 +264,21 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
               title={
                 formData.header_type === "image"
                   ? "Template Header Image"
-                  : "Template Header Document"
+                  : formData.header_type === "video"
+                    ? "Template Header Video"
+                    : "Template Header Document"
               }
               imageUrl={headerFile.imageUrl || formData.headerFileUrl}
               error={headerFile.error}
               loader={headerFile.loader}
               isSaved={headerFile.isSaved || !!formData.headerFileUrl}
-              imageType={formData.header_type === "image" ? "template" : "document"}
+              imageType={
+                formData.header_type === "image"
+                  ? "template"
+                  : formData.header_type === "video"
+                    ? "video"
+                    : "document"
+              }
               onFileUpload={headerFile.handleFileUpload}
               onUploadImage={handleHeaderFileUpload}
               onRemovePhoto={() => {
