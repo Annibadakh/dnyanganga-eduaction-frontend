@@ -348,6 +348,17 @@ const PaymentTable = () => {
         loading={loading}
         error={error}
         rowKey="paymentId"
+        getRowClassName={(row) => {
+          if (row.paymentType === "INITIAL") {
+            return "bg-green-50 hover:bg-green-100";
+          }
+
+          if (row.paymentType === "RECOLLECTION") {
+            return "bg-yellow-50 hover:bg-yellow-100";
+          }
+
+          return "";
+        }}
       />
 
       <Pagination
