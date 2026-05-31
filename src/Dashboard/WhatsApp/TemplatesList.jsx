@@ -62,6 +62,22 @@ const TemplatesList = ({ templates, onEdit, onDelete, onTest, loading }) => {
             </div>
           )}
 
+          {/* Header Video */}
+          {template.header_url && template.header_type === "video" && (
+            <div className="mb-3 flex justify-center">
+              <video
+                controls
+                className="w-40 h-40 object-contain rounded bg-black"
+              >
+                <source
+                  src={`${imgUrl}${template.header_url}`}
+                  type="video/mp4"
+                />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          )}
+
           {/* Header Document */}
           {template.header_url && template.header_type === "document" && (
             <div className="mb-3 flex flex-col gap-2 items-center">
