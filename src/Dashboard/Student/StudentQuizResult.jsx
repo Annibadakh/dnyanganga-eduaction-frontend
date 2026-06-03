@@ -2,7 +2,17 @@ import { useEffect, useState } from "react";
 import api from "../../Api";
 import { useNavigate, useParams } from "react-router-dom";
 import Button from "../Generic/Button";
-import { Printer, CheckCircle2, XCircle, MinusCircle, BarChart2, BookOpen, Award } from "lucide-react";
+import {
+  Printer,
+  CheckCircle2,
+  XCircle,
+  MinusCircle,
+  BarChart2,
+  BookOpen,
+  Award,
+} from "lucide-react";
+import ImagePreview from "../Generic/ImagePreview";
+import renderMathText from "../Generic/RenderMathText";
 
 const StudentQuizResult = () => {
   const navigate = useNavigate();
@@ -19,19 +29,28 @@ const StudentQuizResult = () => {
     }
   };
 
-  useEffect(() => { fetchResult(); }, []);
+  useEffect(() => {
+    fetchResult();
+  }, []);
 
-  if (!data) return (
-    <div className="p-2 container mx-auto">
-      <p className="text-center text-gray-400 py-10">Loading...</p>
-    </div>
-  );
+  if (!data)
+    return (
+      <div className="p-2 container mx-auto">
+        <p className="text-center text-gray-400 py-10">Loading...</p>
+      </div>
+    );
 
   const { summary, questions } = data;
 
-  const percentage = summary.total > 0
-    ? Math.round((summary.marksObtained / (summary.total * (summary.marksObtained / (summary.correct || 1)))) * 100)
-    : 0;
+  const percentage =
+    summary.total > 0
+      ? Math.round(
+          (summary.marksObtained /
+            (summary.total *
+              (summary.marksObtained / (summary.correct || 1)))) *
+            100,
+        )
+      : 0;
 
   const handlePrint = () => window.print();
 
@@ -63,7 +82,6 @@ const StudentQuizResult = () => {
       `}</style>
 
       <div className="p-2 container mx-auto" id="quiz-result-printable">
-
         {/* ── Page Title ── */}
         <h1 className="text-3xl text-center font-bold text-primary mb-2">
           Quiz Result
@@ -100,7 +118,10 @@ const StudentQuizResult = () => {
               cls: "bg-yellow-50 border-yellow-200 text-yellow-700",
             },
           ].map((s) => (
-            <div key={s.label} className={`flex flex-col gap-1 px-4 py-3 rounded-xl border ${s.cls} print-avoid-break`}>
+            <div
+              key={s.label}
+              className={`flex flex-col gap-1 px-4 py-3 rounded-xl border ${s.cls} print-avoid-break`}
+            >
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide opacity-70">
                 {s.icon} {s.label}
               </div>
@@ -116,8 +137,12 @@ const StudentQuizResult = () => {
               <Award size={24} className="text-primary" />
             </div>
             <div>
-              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Marks Obtained</p>
-              <p className="text-3xl font-bold text-primary">{summary.marksObtained}</p>
+              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">
+                Marks Obtained
+              </p>
+              <p className="text-3xl font-bold text-primary">
+                {summary.marksObtained}
+              </p>
             </div>
           </div>
 
@@ -125,12 +150,16 @@ const StudentQuizResult = () => {
           <div className="flex-1 max-w-sm w-full">
             <div className="flex justify-between text-xs text-gray-500 mb-1">
               <span>Score</span>
-              <span className="font-semibold">{summary.correct}/{summary.total} correct</span>
+              <span className="font-semibold">
+                {summary.correct}/{summary.total} correct
+              </span>
             </div>
             <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
               <div
                 className="h-3 bg-primary rounded-full transition-all"
-                style={{ width: `${summary.total > 0 ? Math.round((summary.correct / summary.total) * 100) : 0}%` }}
+                style={{
+                  width: `${summary.total > 0 ? Math.round((summary.correct / summary.total) * 100) : 0}%`,
+                }}
               />
             </div>
           </div>
@@ -160,24 +189,42 @@ const StudentQuizResult = () => {
               >
                 {/* Question header */}
                 <div className="flex items-start justify-between gap-4 mb-3">
-                  <p className="text-sm font-semibold text-gray-800 leading-relaxed">
-                    <span className="text-primary font-bold mr-1">Q{index + 1}.</span>
-                    {question.questionText}
-                  </p>
-                  <span className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold
-                    ${isNotAttempted
-                      ? "bg-yellow-100 text-yellow-700"
-                      : q.marksObtained > 0
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-600"
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-gray-800 leading-relaxed">
+                      <span className="text-primary font-bold mr-1">
+                        Q{index + 1}.
+                      </span>
+                      {renderMathText(question.questionText)}
+                    </div>
+
+                    <ImagePreview
+                      imagePath={question.imageUrl}
+                      alt={`Question ${index + 1}`}
+                      className="mt-3 max-h-40"
+                    />
+                  </div>
+                  <span
+                    className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold
+                    ${
+                      isNotAttempted
+                        ? "bg-yellow-100 text-yellow-700"
+                        : q.marksObtained > 0
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-600"
                     }`}
                   >
                     {isNotAttempted ? (
-                      <><MinusCircle size={11} /> Skipped</>
+                      <>
+                        <MinusCircle size={11} /> Skipped
+                      </>
                     ) : q.marksObtained > 0 ? (
-                      <><CheckCircle2 size={11} /> +{q.marksObtained}</>
+                      <>
+                        <CheckCircle2 size={11} /> +{q.marksObtained}
+                      </>
                     ) : (
-                      <><XCircle size={11} /> {q.marksObtained}</>
+                      <>
+                        <XCircle size={11} /> {q.marksObtained}
+                      </>
                     )}
                   </span>
                 </div>
@@ -185,26 +232,40 @@ const StudentQuizResult = () => {
                 {/* Options */}
                 <div className="space-y-1.5 print-avoid-break">
                   {question.options.map((opt) => {
-                    const isCorrect  = question.correctAns.includes(opt.index);
+                    const isCorrect = question.correctAns.includes(opt.index);
                     const isSelected = q.selectedAns?.includes(opt.index);
 
                     let rowCls = "bg-white border-gray-200 text-gray-600";
-                    if (isCorrect)             rowCls = "bg-green-50 border-green-200 text-green-800 font-medium";
-                    else if (isSelected)       rowCls = "bg-red-50   border-red-200   text-red-700";
+                    if (isCorrect)
+                      rowCls =
+                        "bg-green-50 border-green-200 text-green-800 font-medium";
+                    else if (isSelected)
+                      rowCls = "bg-red-50   border-red-200   text-red-700";
 
                     let badgeCls = "bg-gray-200 text-gray-500";
-                    if (isCorrect)             badgeCls = "bg-green-500 text-white";
-                    else if (isSelected)       badgeCls = "bg-red-400   text-white";
+                    if (isCorrect) badgeCls = "bg-green-500 text-white";
+                    else if (isSelected) badgeCls = "bg-red-400   text-white";
 
                     return (
                       <div
                         key={opt.id}
                         className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm border transition-colors ${rowCls}`}
                       >
-                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${badgeCls}`}>
+                        <span
+                          className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${badgeCls}`}
+                        >
                           {opt.index}
                         </span>
-                        {opt.text}
+
+                        <div className="flex-1">
+                          <div>{renderMathText(opt.text)}</div>
+
+                          <ImagePreview
+                            imagePath={opt.imageUrl}
+                            alt={`Option ${opt.index}`}
+                            className="mt-2 max-h-24"
+                          />
+                        </div>
                         {isCorrect && (
                           <span className="ml-auto text-green-600 text-xs font-semibold flex items-center gap-1">
                             <CheckCircle2 size={12} /> Correct
@@ -223,15 +284,18 @@ const StudentQuizResult = () => {
                 {/* Solution */}
                 {question.solutionDescription && (
                   <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3 print-avoid-break">
-                    <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">Solution</p>
-                    <p className="text-sm text-blue-800">{question.solutionDescription}</p>
+                    <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">
+                      Solution
+                    </p>
+                    <p className="text-sm text-blue-800">
+                      {question.solutionDescription}
+                    </p>
                   </div>
                 )}
               </div>
             );
           })}
         </div>
-
       </div>
     </>
   );

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import renderMathText from "../Generic/RenderMathText";
 import MathEditor from "../Generic/MathEditor";
+import ImagePreview from "../Generic/ImagePreview";
 
 // ─── Badge ────────────────────────────────────────────────────────────────────
 const Badge = ({ value, map }) => {
@@ -147,15 +148,23 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
   );
   const [correctAns, setCorrectAns] = useState(initial?.correctAns ?? []);
   const [saving, setSaving] = useState(false);
-
-  const questionImage = FileUploadHook();
   const [questionImageUrl, setQuestionImageUrl] = useState(
-    initial?.imageUrl || "",
+    initial?.imageUrl ?? "",
   );
+  const questionImage = FileUploadHook();
+
+  useEffect(() => {
+    if (initial?.imageUrl) {
+      setQuestionImageUrl(initial.imageUrl);
+    }
+  }, [initial]);
 
   const handleQuestionImageUpload = async (type) => {
-    const url = await questionImage.uploadImage(type);
-    if (url) setQuestionImageUrl(url);
+    const imageUrl = await questionImage.uploadImage(type);
+
+    if (imageUrl) {
+      setQuestionImageUrl(imageUrl);
+    }
   };
 
   const addOption = () =>
@@ -317,17 +326,14 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
         <div className="flex-shrink-0">
           <FileUpload
             title=""
-            imageUrl={questionImageUrl || questionImage.imageUrl}
+            imageUrl={questionImage.imageUrl}
             error={questionImage.error}
             loader={questionImage.loader}
-            isSaved={!!questionImageUrl || questionImage.isSaved}
+            isSaved={questionImage.isSaved}
             imageType="question"
             onFileUpload={questionImage.handleFileUpload}
             onUploadImage={handleQuestionImageUpload}
-            onRemovePhoto={() => {
-              questionImage.removePhoto();
-              setQuestionImageUrl("");
-            }}
+            onRemovePhoto={questionImage.removePhoto}
           />
         </div>
       </FormSection>
@@ -447,7 +453,7 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
 
 // ─── Question Detail Modal ────────────────────────────────────────────────────
 const QuestionDetailModal = ({ q, onClose }) => (
-  <Modal title="Question detail" onClose={onClose}>
+  <Modal title="Question Detail" onClose={onClose}>
     <div className="flex flex-wrap gap-2 mb-4">
       <Badge value={q.type} map={TYPE_MAP} />
       <Badge value={q.difficulty} map={DIFFICULTY_MAP} />
@@ -463,9 +469,17 @@ const QuestionDetailModal = ({ q, onClose }) => (
       )}
     </div>
 
-    <p className="font-semibold text-gray-800 mb-4 text-sm leading-relaxed">
-      {renderMathText(q.questionText)}
-    </p>
+    <div className="mb-4">
+      <p className="font-semibold text-gray-800 text-sm leading-relaxed">
+        {renderMathText(q.questionText)}
+      </p>
+
+      <ImagePreview
+        imagePath={q.imageUrl}
+        alt="Question Image"
+        className="mt-3 max-h-30"
+      />
+    </div>
 
     <div className="space-y-2 mb-4">
       {q.options?.map((opt) => (
@@ -484,7 +498,15 @@ const QuestionDetailModal = ({ q, onClose }) => (
           >
             {opt.index}
           </span>
-          {renderMathText(opt.text)}
+          <div className="flex-1">
+            <div>{renderMathText(opt.text)}</div>
+
+            <ImagePreview
+              imagePath={opt.imageUrl}
+              alt={`Option ${opt.index}`}
+              className="mt-2 max-h-20"
+            />
+          </div>
           {q.correctAns?.includes(opt.index) && (
             <span className="ml-auto text-green-600 text-xs font-semibold">
               ✓ Correct
