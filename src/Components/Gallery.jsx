@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, ZoomIn } from 'lucide-react';
+import React, { useState } from "react";
+import { X, ZoomIn } from "lucide-react";
 import img1 from "../Images/gallery/img5.jpg";
 import img2 from "../Images/gallery/img2.jpg";
 import img6 from "../Images/gallery/img6.jpg";
@@ -14,32 +14,33 @@ const Gallery = () => {
   const galleryImages = [
     {
       src: img7,
-      alt: 'Students during mock exam',
-      category: 'Exams'
+      alt: "Students during mock exam",
+      category: "Exams",
     },
     {
       src: img8,
-      alt: 'Students during mock exam',
-      category: 'Exams'
+      alt: "Students during mock exam",
+      category: "Exams",
     },
     {
       src: img9,
-      alt: 'Students during mock exam',
-      category: 'Exams'
+      alt: "Students during mock exam",
+      category: "Exams",
     },
     {
       src: img1,
-      alt: 'Expert lecture session',
-      category: 'Seminars'
+      alt: "Expert lecture session",
+      category: "Seminars",
     },
     {
       src: img2,
-      alt: 'Expert lecture session',
-      category: 'Seminars'
-    },{
+      alt: "Expert lecture session",
+      category: "Seminars",
+    },
+    {
       src: img6,
-      alt: 'Expert lecture session',
-      category: 'Seminars'
+      alt: "Expert lecture session",
+      category: "Seminars",
     },
   ];
 
@@ -47,10 +48,12 @@ const Gallery = () => {
     <section className="py-16 bg-customwhite">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <div className='mb-10'>
-                <h1 className='md:w-72 w-52 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Gallery</h1>
-                <div className='md:w-48 w-40 h-2 bg-secondary'></div>
-            </div>
+          <div className="mb-10">
+            <h1 className="md:w-72 w-52 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary">
+              Gallery
+            </h1>
+            <div className="md:w-48 w-40 h-2 bg-secondary"></div>
+          </div>
           {/* <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
             Gallery
           </h2> */}
@@ -75,7 +78,9 @@ const Gallery = () => {
                 <ZoomIn className="w-8 h-8 text-customwhite opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                <span className="text-customwhite text-sm font-medium">{image.category}</span>
+                <span className="text-customwhite text-sm font-medium">
+                  {image.category}
+                </span>
               </div>
             </div>
           ))}
