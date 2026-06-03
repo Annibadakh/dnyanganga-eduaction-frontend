@@ -15,11 +15,11 @@ const OptionImageUpload = ({ option, onImageChange }) => {
 
   return (
     <FileUpload
-      title={`Option ${option.index} Image`}
-      imageUrl={option.imageUrl || optionImage.imageUrl}
+      title=""
+      imageUrl={optionImage.imageUrl}
       error={optionImage.error}
       loader={optionImage.loader}
-      isSaved={!!option.imageUrl || optionImage.isSaved}
+      isSaved={optionImage.isSaved}
       imageType="option"
       onFileUpload={optionImage.handleFileUpload}
       onUploadImage={handleUpload}

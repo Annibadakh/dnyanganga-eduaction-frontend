@@ -12,8 +12,10 @@ import {
   CheckCircle2,
   Maximize,
 } from "lucide-react";
+import renderMathText from "../Generic/RenderMathText";
+import ImagePreview from "../Generic/ImagePreview";
 
-const BATCH_SIZE = 5;
+const BATCH_SIZE = 2;
 
 // ─── Fullscreen helpers (cross-browser) ──────────────────────────────────────
 const fsApi = {
@@ -466,9 +468,17 @@ const StudentQuizPlay = () => {
           )}
         </div>
 
-        <p className="text-base font-semibold text-gray-800 leading-relaxed mb-5">
-          {currentQuestion.questionText}
-        </p>
+        <div className="mb-5">
+          <div className="text-base font-semibold text-gray-800 leading-relaxed">
+            {renderMathText(currentQuestion.questionText)}
+          </div>
+
+          <ImagePreview
+            imagePath={currentQuestion.imageUrl}
+            alt="Question Image"
+            className="mt-3 max-h-40"
+          />
+        </div>
 
         <div className="space-y-3">
           {currentQuestion.options.map((opt) => {
@@ -477,16 +487,16 @@ const StudentQuizPlay = () => {
               <button
                 key={opt.id}
                 onClick={() => handleOptionChange(currentQuestion, opt.index)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left text-sm transition-all
-                  ${
-                    isSelected
-                      ? "bg-primary/10 border-primary text-primary font-semibold"
-                      : "bg-white border-gray-200 text-gray-700 hover:border-primary/40 hover:bg-gray-50"
-                  }`}
+                className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl border text-left text-sm transition-all
+    ${
+      isSelected
+        ? "bg-primary/10 border-primary text-primary font-semibold"
+        : "bg-white border-gray-200 text-gray-700 hover:border-primary/40 hover:bg-gray-50"
+    }`}
               >
                 <span
-                  className={`w-5 h-5 shrink-0 flex items-center justify-center rounded-full border-2 transition-all
-                  ${isSelected ? "border-primary bg-primary text-white" : "border-gray-300"}`}
+                  className={`w-5 h-5 shrink-0 flex items-center justify-center rounded-full border-2 transition-all mt-0.5
+    ${isSelected ? "border-primary bg-primary text-white" : "border-gray-300"}`}
                 >
                   {isSelected &&
                     (currentQuestion.type === "MULTI" ? (
@@ -502,7 +512,16 @@ const StudentQuizPlay = () => {
                       <span className="w-2 h-2 rounded-full bg-white block" />
                     ))}
                 </span>
-                <span>{opt.text}</span>
+
+                <div className="flex-1">
+                  <div>{renderMathText(opt.text)}</div>
+
+                  <ImagePreview
+                    imagePath={opt.imageUrl}
+                    alt={`Option ${opt.index}`}
+                    className="mt-2 max-h-24"
+                  />
+                </div>
               </button>
             );
           })}

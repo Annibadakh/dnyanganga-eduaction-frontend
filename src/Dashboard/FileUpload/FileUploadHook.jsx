@@ -106,6 +106,7 @@ export const FileUploadHook = () => {
     error,
     loader,
     handleFileUpload,
+    setImageUrl,
     uploadImage,
     removePhoto,
   };
