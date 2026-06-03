@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import api from "../../Api";
 import Button from "../Generic/Button";
 import DataTable from "../Generic/DataTable";
+import FileUpload from "../FileUpload/FileUpload";
+import { FileUploadHook } from "../FileUpload/FileUploadHook";
+import OptionImageUpload from "./OptionImageUpload";
 import {
   Eye,
   Pencil,
@@ -11,6 +14,8 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import renderMathText from "../Generic/RenderMathText";
+import MathEditor from "../Generic/MathEditor";
 
 // ─── Badge ────────────────────────────────────────────────────────────────────
 const Badge = ({ value, map }) => {
@@ -27,24 +32,24 @@ const Badge = ({ value, map }) => {
 const DIFFICULTY_MAP = {
   EASY: { label: "Easy", cls: "bg-green-100 text-green-700" },
   MEDIUM: { label: "Medium", cls: "bg-yellow-100 text-yellow-700" },
-  HARD: { label: "Hard", cls: "bg-red-100   text-red-700" },
+  HARD: { label: "Hard", cls: "bg-red-100 text-red-700" },
 };
 
 const TYPE_MAP = {
-  SINGLE: { label: "Single Choice", cls: "bg-blue-100   text-blue-700" },
+  SINGLE: { label: "Single Choice", cls: "bg-blue-100 text-blue-700" },
   MULTI: { label: "Multi Choice", cls: "bg-purple-100 text-purple-700" },
 };
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 const Modal = ({ title, onClose, children }) => (
   <div
-    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 overflow-y-auto"
     style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(3px)" }}
   >
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col my-auto">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-bold text-primary">{title}</h3>
+        <h3 className="text-base font-semibold text-gray-800">{title}</h3>
         <button
           onClick={onClose}
           className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400
@@ -54,7 +59,7 @@ const Modal = ({ title, onClose, children }) => (
         </button>
       </div>
       {/* Body */}
-      <div className="overflow-y-auto px-6 py-5 flex-1">{children}</div>
+      <div className="px-6 py-5">{children}</div>
     </div>
   </div>
 );
@@ -94,19 +99,33 @@ const DeleteConfirmModal = ({ onClose, onConfirm, deleting }) => (
   </div>
 );
 
+// ─── Section wrapper ──────────────────────────────────────────────────────────
+const FormSection = ({ label, children }) => (
+  <div className="py-4 border-b border-gray-100 last:border-b-0 last:pb-0">
+    {label && (
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-3">
+        {label}
+      </p>
+    )}
+    {children}
+  </div>
+);
+
 // ─── Field wrapper ────────────────────────────────────────────────────────────
-const Field = ({ label, required, children }) => (
-  <div className="mb-4">
-    <label className="block text-sm text-gray-600 mb-1">
-      {label}
-      {required && <span className="text-red-500 ml-0.5">*</span>}
-    </label>
+const Field = ({ label, required, children, className = "" }) => (
+  <div className={`flex flex-col gap-1 ${className}`}>
+    {label && (
+      <label className="text-xs text-gray-500">
+        {label}
+        {required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+    )}
     {children}
   </div>
 );
 
 const inputCls =
-  "w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition";
+  "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition bg-white";
 
 // ─── Question Form ────────────────────────────────────────────────────────────
 const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
@@ -122,15 +141,29 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
   );
   const [options, setOptions] = useState(
     initial?.options ?? [
-      { index: 1, text: "" },
-      { index: 2, text: "" },
+      { index: 1, text: "", imageUrl: "" },
+      { index: 2, text: "", imageUrl: "" },
     ],
   );
   const [correctAns, setCorrectAns] = useState(initial?.correctAns ?? []);
   const [saving, setSaving] = useState(false);
 
+  const questionImage = FileUploadHook();
+  const [questionImageUrl, setQuestionImageUrl] = useState(
+    initial?.imageUrl || "",
+  );
+
+  const handleQuestionImageUpload = async (type) => {
+    const url = await questionImage.uploadImage(type);
+    if (url) setQuestionImageUrl(url);
+  };
+
   const addOption = () =>
-    setOptions([...options, { index: options.length + 1, text: "" }]);
+    setOptions([
+      ...options,
+      { index: options.length + 1, text: "", imageUrl: "" },
+    ]);
+
   const removeOption = (idx) => {
     const next = options
       .filter((o) => o.index !== idx)
@@ -140,10 +173,12 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
       correctAns.filter((i) => i !== idx).map((i) => (i > idx ? i - 1 : i)),
     );
   };
-  const updateOption = (index, value) =>
-    setOptions(
-      options.map((o) => (o.index === index ? { ...o, text: value } : o)),
+
+  const updateOption = (index, data) =>
+    setOptions((prev) =>
+      prev.map((o) => (o.index === index ? { ...o, ...data } : o)),
     );
+
   const toggleCorrect = (index) => {
     if (type === "SINGLE") {
       setCorrectAns([index]);
@@ -176,6 +211,7 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
         marks: marks ? Number(marks) : undefined,
         solutionDescription,
         correctAns,
+        imageUrl: questionImageUrl,
         options,
       };
       if (editing) {
@@ -194,81 +230,129 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
   };
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Topic">
-          <input
-            className={inputCls}
-            placeholder="e.g. Algebra"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-          />
-        </Field>
-        <Field label="Marks">
-          <input
-            className={inputCls}
-            type="number"
-            placeholder="e.g. 2"
-            value={marks}
-            onChange={(e) => setMarks(e.target.value)}
-            min={0}
-          />
-        </Field>
-      </div>
+    <div className="flex flex-col gap-0">
+      {/* ── Section 1: Details ── */}
+      <FormSection label="Details">
+        <div className="grid grid-cols-3 gap-3 mb-3">
+          <Field label="Topic">
+            <input
+              className={inputCls}
+              placeholder="e.g. Algebra"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            />
+          </Field>
+          <Field label="Marks">
+            <input
+              className={inputCls}
+              type="number"
+              placeholder="e.g. 2"
+              value={marks}
+              onChange={(e) => setMarks(e.target.value)}
+              min={0}
+            />
+          </Field>
+          <Field label="Difficulty">
+            <select
+              className={inputCls}
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+            >
+              <option value="EASY">Easy</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HARD">Hard</option>
+            </select>
+          </Field>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Answer Type">
-          <select
-            className={inputCls}
-            value={type}
-            onChange={(e) => {
-              setType(e.target.value);
-              setCorrectAns([]);
-            }}
-          >
-            <option value="SINGLE">Single Choice</option>
-            <option value="MULTI">Multi Choice</option>
-          </select>
+        {/* Answer type as radio buttons */}
+        <Field label="Answer type">
+          <div className="flex gap-5 mt-0.5">
+            {[
+              { value: "SINGLE", label: "Single choice" },
+              { value: "MULTI", label: "Multi choice" },
+            ].map((opt) => (
+              <label
+                key={opt.value}
+                className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none"
+              >
+                <input
+                  type="radio"
+                  name="answerType"
+                  value={opt.value}
+                  checked={type === opt.value}
+                  onChange={() => {
+                    setType(opt.value);
+                    setCorrectAns([]);
+                  }}
+                  className="accent-blue-600"
+                />
+                {opt.label}
+              </label>
+            ))}
+          </div>
         </Field>
-        <Field label="Difficulty">
-          <select
-            className={inputCls}
-            value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value)}
-          >
-            <option value="EASY">Easy</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HARD">Hard</option>
-          </select>
-        </Field>
-      </div>
+      </FormSection>
 
-      <Field label="Question" required>
-        <textarea
-          className={inputCls + " min-h-[90px] resize-y"}
-          placeholder="Write your question here…"
+      {/* ── Section 2: Question ── */}
+      <FormSection label="Question *">
+        {/* Math editor */}
+        <MathEditor
           value={questionText}
-          onChange={(e) => setQuestionText(e.target.value)}
+          onChange={setQuestionText}
+          placeholder="Write your question using maths…"
         />
-      </Field>
 
-      {/* Options */}
-      <Field label="Options (tick correct answer)">
-        <div className="space-y-2">
+        {/* Preview */}
+        {questionText && (
+          <div className="mt-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+              Preview
+            </p>
+            <div className="text-sm">{renderMathText(questionText)}</div>
+          </div>
+        )}
+
+        {/* ── File upload — compact inline bar ── */}
+        <div className="flex-shrink-0">
+          <FileUpload
+            title=""
+            imageUrl={questionImageUrl || questionImage.imageUrl}
+            error={questionImage.error}
+            loader={questionImage.loader}
+            isSaved={!!questionImageUrl || questionImage.isSaved}
+            imageType="question"
+            onFileUpload={questionImage.handleFileUpload}
+            onUploadImage={handleQuestionImageUpload}
+            onRemovePhoto={() => {
+              questionImage.removePhoto();
+              setQuestionImageUrl("");
+            }}
+          />
+        </div>
+      </FormSection>
+
+      {/* ── Section 3: Options ── */}
+      <FormSection label="Options — tick the correct answer">
+        <div className="flex flex-col gap-2">
           {options.map((opt) => (
-            <div key={opt.index} className="flex items-center gap-2 group">
+            <div key={opt.index} className="flex items-start gap-2 group">
+              {/* Correct toggle */}
               <button
                 onClick={() => toggleCorrect(opt.index)}
-                className={`w-5 h-5 shrink-0 flex items-center justify-center border-2 transition-all
+                title={
+                  type === "SINGLE" ? "Select correct answer" : "Toggle correct"
+                }
+                className={`mt-2 w-5 h-5 shrink-0 flex items-center justify-center border-2 transition-all
                   ${type === "SINGLE" ? "rounded-full" : "rounded"}
                   ${
                     correctAns.includes(opt.index)
-                      ? "bg-primary border-primary text-white"
-                      : "border-gray-300 hover:border-primary"
+                      ? "bg-blue-600 border-blue-600 text-white"
+                      : "border-gray-300 hover:border-blue-400"
                   }`}
               >
                 {correctAns.includes(opt.index) && (
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 12 12">
+                  <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 12 12">
                     <path
                       d="M2 6l3 3 5-5"
                       stroke="currentColor"
@@ -279,17 +363,44 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
                   </svg>
                 )}
               </button>
-              <input
-                className={inputCls + " flex-1"}
-                placeholder={`Option ${opt.index}`}
-                value={opt.text}
-                onChange={(e) => updateOption(opt.index, e.target.value)}
-              />
+
+              {/* Option body */}
+              <div className="flex-1 min-w-0">
+                <MathEditor
+                  value={opt.text}
+                  onChange={(value) => updateOption(opt.index, { text: value })}
+                  placeholder={`Option ${opt.index}`}
+                />
+
+                {/* Math preview */}
+                {opt.text && (
+                  <div className="mt-1 px-2 py-1 text-xs bg-gray-50 rounded text-gray-600">
+                    {renderMathText(opt.text)}
+                  </div>
+                )}
+
+                {/* Option image + correct badge row */}
+                <div className="flex items-center gap-2 mt-1.5">
+                  <OptionImageUpload
+                    option={opt}
+                    onImageChange={(imageUrl) =>
+                      updateOption(opt.index, { imageUrl })
+                    }
+                  />
+                  {correctAns.includes(opt.index) && (
+                    <span className="text-[11px] font-semibold text-green-700 bg-green-50 rounded px-2 py-0.5">
+                      ✓ Correct
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Remove */}
               {options.length > 2 && (
                 <button
                   onClick={() => removeOption(opt.index)}
-                  className="w-7 h-7 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50
-                             flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100"
+                  className="mt-2 w-6 h-6 rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50
+                             flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
                 >
                   ✕
                 </button>
@@ -297,25 +408,28 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
             </div>
           ))}
         </div>
+
         <button
           onClick={addOption}
-          className="mt-3 text-sm font-semibold text-primary hover:opacity-80 flex items-center gap-1 transition-opacity"
+          className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-blue-600
+                     hover:text-blue-800 transition-colors"
         >
-          <Plus size={15} /> Add Option
+          <Plus size={13} /> Add option
         </button>
-      </Field>
+      </FormSection>
 
-      <Field label="Solution / Explanation">
+      {/* ── Section 4: Solution ── */}
+      <FormSection label="Solution / explanation">
         <textarea
           className={inputCls + " min-h-[80px] resize-y"}
           placeholder="Explain the correct answer…"
           value={solutionDescription}
           onChange={(e) => setSolutionDescription(e.target.value)}
         />
-      </Field>
+      </FormSection>
 
-      {/* Footer */}
-      <div className="flex justify-end gap-3 pt-2">
+      {/* ── Footer ── */}
+      <div className="flex justify-end gap-3 pt-4">
         <button
           onClick={onClose}
           className="px-5 py-2 rounded-lg text-sm font-semibold text-gray-600 border border-gray-300
@@ -324,17 +438,16 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
           Cancel
         </button>
         <Button variant="primary" loading={saving} onClick={handleSave}>
-          {editing ? "Update Question" : "Save Question"}
+          {editing ? "Update question" : "Save question"}
         </Button>
       </div>
-    </>
+    </div>
   );
 };
 
 // ─── Question Detail Modal ────────────────────────────────────────────────────
 const QuestionDetailModal = ({ q, onClose }) => (
-  <Modal title="Question Detail" onClose={onClose}>
-    {/* Meta badges */}
+  <Modal title="Question detail" onClose={onClose}>
     <div className="flex flex-wrap gap-2 mb-4">
       <Badge value={q.type} map={TYPE_MAP} />
       <Badge value={q.difficulty} map={DIFFICULTY_MAP} />
@@ -350,12 +463,10 @@ const QuestionDetailModal = ({ q, onClose }) => (
       )}
     </div>
 
-    {/* Question text */}
     <p className="font-semibold text-gray-800 mb-4 text-sm leading-relaxed">
-      {q.questionText}
+      {renderMathText(q.questionText)}
     </p>
 
-    {/* Options */}
     <div className="space-y-2 mb-4">
       {q.options?.map((opt) => (
         <div
@@ -373,7 +484,7 @@ const QuestionDetailModal = ({ q, onClose }) => (
           >
             {opt.index}
           </span>
-          {opt.text}
+          {renderMathText(opt.text)}
           {q.correctAns?.includes(opt.index) && (
             <span className="ml-auto text-green-600 text-xs font-semibold">
               ✓ Correct
@@ -383,7 +494,6 @@ const QuestionDetailModal = ({ q, onClose }) => (
       ))}
     </div>
 
-    {/* Solution */}
     {q.solutionDescription && (
       <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
         <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">
@@ -439,18 +549,18 @@ const QuestionManager = ({ chapter, onBack }) => {
   };
 
   const columns = [
-    {
-      header: "Sr. No.",
-      render: (_, i) => i + 1,
-    },
+    { header: "Sr. No.", render: (_, i) => i + 1 },
     {
       header: "Question",
-      render: (row) => (
-        <span className="text-sm text-gray-700">
-          {row.questionText?.slice(0, 80)}
-          {row.questionText?.length > 80 ? "…" : ""}
-        </span>
-      ),
+      render: (row) => {
+        const text = row.questionText || "";
+        const truncated = text.length > 80 ? text.slice(0, 80) + "…" : text;
+        return (
+          <span className="text-sm text-gray-700">
+            {renderMathText(truncated)}
+          </span>
+        );
+      },
     },
     {
       header: "Topic",
@@ -596,7 +706,7 @@ const QuestionManager = ({ chapter, onBack }) => {
         emptyMessage="No questions found for this chapter."
       />
 
-      {/* ── View Detail Modal ── */}
+      {/* ── Modals ── */}
       {viewTarget && (
         <QuestionDetailModal
           q={viewTarget}
@@ -604,9 +714,8 @@ const QuestionManager = ({ chapter, onBack }) => {
         />
       )}
 
-      {/* ── Add Form Modal ── */}
       {showForm && (
-        <Modal title="Add New Question" onClose={() => setShowForm(false)}>
+        <Modal title="Add new question" onClose={() => setShowForm(false)}>
           <QuestionForm
             chapter={chapter}
             initial={null}
@@ -616,9 +725,8 @@ const QuestionManager = ({ chapter, onBack }) => {
         </Modal>
       )}
 
-      {/* ── Edit Form Modal ── */}
       {editTarget && (
-        <Modal title="Edit Question" onClose={() => setEditTarget(null)}>
+        <Modal title="Edit question" onClose={() => setEditTarget(null)}>
           <QuestionForm
             chapter={chapter}
             initial={editTarget}
@@ -628,7 +736,6 @@ const QuestionManager = ({ chapter, onBack }) => {
         </Modal>
       )}
 
-      {/* ── Delete Confirm ── */}
       {deleteId && (
         <DeleteConfirmModal
           onClose={() => setDeleteId(null)}
