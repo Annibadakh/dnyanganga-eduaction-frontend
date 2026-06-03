@@ -30,6 +30,7 @@ const PaymentTable = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [paymentType, setPaymentType] = useState("");
+  const [standard, setStandard] = useState("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,6 +61,11 @@ const PaymentTable = () => {
       header: "Payment Date",
       render: (row) => new Date(row.createdAt).toLocaleDateString("en-GB"),
     },
+    {
+      header: "Register Date",
+      render: (row) =>
+        new Date(row.Student?.createdAt).toLocaleDateString("en-GB"),
+    },
     ...(user.role === "admin"
       ? [
           {
@@ -80,6 +86,10 @@ const PaymentTable = () => {
     {
       header: "Standard",
       render: (row) => row.Student?.standard,
+    },
+    {
+      header: "Application No.",
+      render: (row) => row.Student?.appNo,
     },
     {
       header: "Payment ID",
@@ -172,6 +182,7 @@ const PaymentTable = () => {
       startDate: startDate,
       endDate: endDate,
       paymentType,
+      standard,
     };
 
     api
@@ -201,6 +212,7 @@ const PaymentTable = () => {
     startDate,
     endDate,
     paymentType,
+    standard,
   ]);
 
   // Reset to first page when filters change
@@ -212,6 +224,7 @@ const PaymentTable = () => {
     startDate,
     endDate,
     paymentType,
+    standard,
   ]);
 
   const handlePageChange = (page) => {
@@ -280,6 +293,41 @@ const PaymentTable = () => {
     setCurrentPdfStudent(null);
   };
 
+  const handleDownloadExcel = async () => {
+    try {
+      const response = await api.get("/counsellor/downloadPaymentsExcel", {
+        params: {
+          search: debouncedSearchTerm,
+          counsellor: selectedCounsellor?.value || "",
+          startDate,
+          endDate,
+          paymentType,
+          standard,
+        },
+        responseType: "blob",
+      });
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Payment_Records.xlsx`;
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to download excel");
+    }
+  };
+
   return (
     <div className="p-2 container mx-auto">
       <h1 className="text-3xl text-center font-bold text-primary mb-6">
@@ -317,6 +365,19 @@ const PaymentTable = () => {
             <option value="RECOLLECTION">RECOLLECTION</option>
           </select>
         </div>
+        <div>
+          <select
+            value={standard}
+            onChange={(e) => setStandard(e.target.value)}
+            className="p-3 w-full border border-gray-300"
+          >
+            <option value="">All Standards</option>
+            <option value="9th+10th">9th+10th</option>
+            <option value="10th">10th</option>
+            <option value="11th+12th">11th+12th</option>
+            <option value="12th">12th</option>
+          </select>
+        </div>
 
         <div className="flex flex-nowrap md:flex-row gap-1">
           <div className="bg-white min-w-52 flex flex-row items-center gap-2 border border-gray-300 p-2">
@@ -351,6 +412,12 @@ const PaymentTable = () => {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="mb-2">
+        <Button variant="success" onClick={handleDownloadExcel}>
+          Download Excel
+        </Button>
       </div>
 
       {/* Table */}
