@@ -42,7 +42,7 @@ export const FileUploadHook = () => {
     if (selectedFile.type.startsWith("image/")) {
       try {
         const options = {
-          maxSizeMB: 0.5, // 300 KB target
+          maxSizeMB: 4, // 300 KB target
           useWebWorker: true,
         };
 

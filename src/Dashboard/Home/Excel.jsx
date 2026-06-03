@@ -5,8 +5,8 @@ import { DashboardContext } from "../../Context/DashboardContext";
 import CustomSelect from "../Generic/CustomSelect";
 
 const Excel = () => {
-  const {counsellor, examCenter} = useContext(DashboardContext)
-  
+  const { counsellor, examCenter } = useContext(DashboardContext);
+
   const [users, setUsers] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,34 +23,60 @@ const Excel = () => {
   const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
 
   const allColumns = [
-    "createdAt", "seatNum", "studentId", "studentName", "dob", "motherName", "address", "pincode", "standard", "branch", "schoolCollege", "studentNo",
-    "parentsNo", "appNo", "notificationNo", "amountPaid", "amountRemaining", "dueDate", "examCentre", "examYear", "counsellor", "counsellorBranch",
+    "createdAt",
+    "seatNum",
+    "studentId",
+    "studentName",
+    "dob",
+    "motherName",
+    "address",
+    "pincode",
+    "standard",
+    "branch",
+    "previousYear",
+    "preYearPercent",
+    "schoolCollege",
+    "studentNo",
+    "parentsNo",
+    "appNo",
+    "notificationNo",
+    "email",
+    "amountPaid",
+    "amountRemaining",
+    "dueDate",
+    "examCentre",
+    "examYear",
+    "counsellor",
+    "counsellorBranch",
   ];
 
   const columnDisplayNames = {
-    "createdAt": "Register Date",
-    "registerTime": "Register Time",
-    "seatNum": "Seat No.",
-    "studentId": "Student ID",
-    "studentName": "Student Name",
-    "dob": "Date of Birth",
-    "motherName": "Mother's Name",
-    "address": "Address",
-    "pincode": "Pin Code",
-    "standard": "Standard",
-    "branch": "Grp/Med",
-    "schoolCollege": "School/College",
-    "studentNo": "Student Phone",
-    "parentsNo": "Parent Phone",
-    "appNo": "Application No",
-    "notificationNo": "Notification No",
-    "amountPaid": "Amount Paid",
-    "amountRemaining": "Amount Remaining",
-    "dueDate": "Due Date",
-    "examCentre": "Exam Centre",
-    "examYear": "Exam Year",
-    "counsellor": "Counsellor",
-    "counsellorBranch": "Branch",
+    createdAt: "Register Date",
+    registerTime: "Register Time",
+    seatNum: "Seat No.",
+    studentId: "Student ID",
+    studentName: "Student Name",
+    dob: "Date of Birth",
+    motherName: "Mother's Name",
+    address: "Address",
+    pincode: "Pin Code",
+    standard: "Standard",
+    branch: "Med/Grp",
+    previousYear: "Previous Year",
+    preYearPercent: "Previous Year %",
+    schoolCollege: "School/College",
+    studentNo: "Student Phone",
+    parentsNo: "Parent Phone",
+    appNo: "Application No.",
+    notificationNo: "Notification No.",
+    email: "Email",
+    amountPaid: "Amount Paid",
+    amountRemaining: "Amount Remaining",
+    dueDate: "Due Date",
+    examCentre: "Exam Centre",
+    examYear: "Exam Year",
+    counsellor: "Counsellor Name",
+    counsellorBranch: "Branch",
   };
 
   // Generate exam year options (current year - 1, and 4 years before that)
@@ -65,13 +91,10 @@ const Excel = () => {
   };
 
   useEffect(() => {
-
-        counsellor && setUsers(counsellor);
-        examCenter && setExamCentres(examCenter);
-
+    counsellor && setUsers(counsellor);
+    examCenter && setExamCentres(examCenter);
   }, [counsellor, examCenter]);
 
-  
   // console.log("Counsellors from context:", counsellor);
   // console.log("Exam Centres from context:", examCenter);
 
@@ -96,10 +119,10 @@ const Excel = () => {
 
   const formatTimeTo12Hour = (dateTimeString) => {
     const date = new Date(dateTimeString);
-    return date.toLocaleTimeString('en-GB', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+    return date.toLocaleTimeString("en-GB", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -113,22 +136,32 @@ const Excel = () => {
   }, [fromDate, toDate]);
 
   const getAutoWidths = (data) => {
-    const headers = ["Sr. No.", ...selectedColumns.flatMap(col => {
-      if (col === "createdAt") return [columnDisplayNames[col], "Register Time"];
-      return [columnDisplayNames[col] || col];
-    })];
+    const headers = [
+      "Sr. No.",
+      ...selectedColumns.flatMap((col) => {
+        if (col === "createdAt")
+          return [columnDisplayNames[col], "Register Time"];
+        return [columnDisplayNames[col] || col];
+      }),
+    ];
 
-    return headers.map(header => {
+    return headers.map((header) => {
       const headerLength = header.length;
-      const maxContentLength = data.length > 0 ? Math.max(
-        ...data.map(row => {
-          const value = row[header];
-          if (value === null || value === undefined) return 0;
-          return String(value).length;
-        })
-      ) : 0;
+      const maxContentLength =
+        data.length > 0
+          ? Math.max(
+              ...data.map((row) => {
+                const value = row[header];
+                if (value === null || value === undefined) return 0;
+                return String(value).length;
+              }),
+            )
+          : 0;
 
-      const optimalWidth = Math.min(Math.max(headerLength, maxContentLength) + 3, 50);
+      const optimalWidth = Math.min(
+        Math.max(headerLength, maxContentLength) + 3,
+        50,
+      );
       return { wch: optimalWidth };
     });
   };
@@ -153,9 +186,12 @@ const Excel = () => {
         toDate: toDate || null,
         onlyZeroRemaining,
         onlyNonZeroRemaining,
-        columns: selectedColumns
+        columns: selectedColumns,
       };
-      const { data: filteredStudents } = await api.post("/counsellor/getFilteredRegister", body);
+      const { data: filteredStudents } = await api.post(
+        "/counsellor/getFilteredRegister",
+        body,
+      );
       if (!filteredStudents || filteredStudents.length === 0) {
         setError("No students found for the selected filters.");
         return;
@@ -166,7 +202,7 @@ const Excel = () => {
 
         row["Sr. No."] = index + 1;
 
-        selectedColumns.forEach(col => {
+        selectedColumns.forEach((col) => {
           let value = student[col];
           if (col === "createdAt" || col === "dueDate" || col === "dob") {
             value = value ? new Date(value).toLocaleDateString("en-GB") : "";
@@ -174,7 +210,9 @@ const Excel = () => {
           row[columnDisplayNames[col] || col] = value;
 
           if (col === "createdAt") {
-            const time = student.createdAt ? formatTimeTo12Hour(student.createdAt) : "";
+            const time = student.createdAt
+              ? formatTimeTo12Hour(student.createdAt)
+              : "";
             row["Register Time"] = time;
           }
         });
@@ -199,13 +237,28 @@ const Excel = () => {
 
   return (
     <div className="p-6 bg-customwhite shadow-custom">
-      <h1 className="text-2xl mb-2 text-center font-bold text-primary">Excel Export Tool</h1>
+      <h1 className="text-2xl mb-2 text-center font-bold text-primary">
+        Excel Export Tool
+      </h1>
 
-      {error && <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
-      {loading && <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">Loading...</div>}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+      {loading && (
+        <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+          Loading...
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <select value={selectedStandard} onChange={(e) => setSelectedStandard(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+        <select
+          value={selectedStandard}
+          onChange={(e) => setSelectedStandard(e.target.value)}
+          className="p-2 border border-gray-300"
+          disabled={loading}
+        >
           <option value="">All Standards</option>
           <option value="9th+10th">9th+10th</option>
           <option value="10th">10th</option>
@@ -213,30 +266,60 @@ const Excel = () => {
           <option value="12th">12th</option>
         </select>
 
-    
         <CustomSelect
-            options={users}
-            value={selectedCounsellor}
-            onChange={setSelectedCounsellor}
-            isRequired={false}
-            placeholder="Select Counsellors"
-          />
+          options={users}
+          value={selectedCounsellor}
+          onChange={setSelectedCounsellor}
+          isRequired={false}
+          placeholder="Select Counsellors"
+        />
 
         <CustomSelect
-            options={examCentres}
-            value={selectedExamCentre}
-            onChange={setSelectedExamCentre}
-            isRequired={false}
-            placeholder="Select Exam Centre"
-          />
+          options={examCentres}
+          value={selectedExamCentre}
+          onChange={setSelectedExamCentre}
+          isRequired={false}
+          placeholder="Select Exam Centre"
+        />
 
-        <select value={selectedExamYear} onChange={(e) => setSelectedExamYear(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading}>
+        <select
+          value={selectedExamYear}
+          onChange={(e) => setSelectedExamYear(e.target.value)}
+          className="p-2 border border-gray-300"
+          disabled={loading}
+        >
           <option value="">All Exam Years</option>
-          {getExamYearOptions().map(year => <option key={year} value={year}>{year}</option>)}
+          {getExamYearOptions().map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
         </select>
 
-        <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading} placeholder="From Date" />
-        <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="p-2 border border-gray-300 rounded-lg" disabled={loading} placeholder="To Date" />
+        <div className="min-w-52 flex flex-row items-center gap-2 border border-gray-300 p-2">
+          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+            From Date:
+          </label>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="flex-1 outline-none"
+            disabled={loading}
+          />
+        </div>
+        <div className="min-w-52 flex flex-row items-center gap-2 border border-gray-300 p-2">
+          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+            To Date:
+          </label>
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="flex-1 outline-none"
+            disabled={loading}
+          />
+        </div>
 
         <div className="flex flex-col space-y-2">
           <label className="flex items-center space-x-2">
@@ -269,20 +352,35 @@ const Excel = () => {
 
       <div>
         <div className="flex gap-12 mb-4">
-          <h2 className="text-xl font-semibold text-secondary">Select Columns</h2>
+          <h2 className="text-xl font-semibold text-secondary">
+            Select Columns
+          </h2>
           <button
-            onClick={() => setSelectedColumns(selectedColumns.length === allColumns.length ? [] : [...allColumns])}
+            onClick={() =>
+              setSelectedColumns(
+                selectedColumns.length === allColumns.length
+                  ? []
+                  : [...allColumns],
+              )
+            }
             className="text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
             disabled={loading}
           >
-            {selectedColumns.length === allColumns.length ? "Unselect All" : "Select All"}
+            {selectedColumns.length === allColumns.length
+              ? "Unselect All"
+              : "Select All"}
           </button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-6">
-          {allColumns.map(col => (
+          {allColumns.map((col) => (
             <label key={col} className="flex items-center space-x-2">
-              <input type="checkbox" checked={selectedColumns.includes(col)} onChange={() => handleColumnChange(col)} disabled={loading} />
+              <input
+                type="checkbox"
+                checked={selectedColumns.includes(col)}
+                onChange={() => handleColumnChange(col)}
+                disabled={loading}
+              />
               <span>{columnDisplayNames[col] || col}</span>
             </label>
           ))}

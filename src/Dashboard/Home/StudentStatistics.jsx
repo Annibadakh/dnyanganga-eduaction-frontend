@@ -51,7 +51,8 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
 
 const StudentStatistics = () => {
   const { user } = useAuth();
-  const { counsellor, examCenter, counsellorBranch } = useContext(DashboardContext);
+  const { counsellor, examCenter, counsellorBranch } =
+    useContext(DashboardContext);
   const [loading, setLoading] = useState(true);
   const [statistics, setStatistics] = useState(null);
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
@@ -64,7 +65,7 @@ const StudentStatistics = () => {
   const [users, setUsers] = useState([]);
   const [branch, setBranch] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
-
+  const [selectedExamYear, setSelectedExamYear] = useState("");
 
   useEffect(() => {
     if (counsellor && (user.role === "admin" || user.role === "followUp")) {
@@ -77,6 +78,15 @@ const StudentStatistics = () => {
     examCenter && setExamCentres(examCenter);
   }, [user.role, examCenter]);
 
+  const getExamYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const startYear = currentYear - 2;
+    const years = [];
+    for (let i = 0; i < 5; i++) {
+      years.push(startYear + i);
+    }
+    return years;
+  };
   const fetchStatistics = () => {
     setLoading(true);
     const params = {
@@ -87,6 +97,7 @@ const StudentStatistics = () => {
       status: selectedStatus,
       dateFrom: dateFrom,
       dateTo: dateTo,
+      examYear: selectedExamYear,
     };
 
     api
@@ -111,8 +122,8 @@ const StudentStatistics = () => {
     selectedStatus,
     dateFrom,
     dateTo,
+    selectedExamYear,
   ]);
-
 
   const clearAllFilters = () => {
     setSelectedCounsellor("");
@@ -122,6 +133,7 @@ const StudentStatistics = () => {
     setSelectedStatus("");
     setDateFrom("");
     setDateTo("");
+    setSelectedExamYear("");
   };
 
   const hasActiveFilters =
@@ -131,7 +143,8 @@ const StudentStatistics = () => {
     selectedStandard ||
     selectedStatus ||
     dateFrom ||
-    dateTo;
+    dateTo ||
+    selectedExamYear;
 
   return (
     <div className="container mx-auto">
@@ -179,8 +192,6 @@ const StudentStatistics = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           {(user.role === "admin" || user.role === "followUp") && (
             <>
-             
-
               <CustomSelect
                 options={users}
                 value={selectedCounsellor}
@@ -218,6 +229,24 @@ const StudentStatistics = () => {
               <option value="10th">10th</option>
               <option value="11th+12th">11th+12th</option>
               <option value="12th">12th</option>
+            </select>
+          </div>
+
+          <div className="w-full md:w-1/4">
+            <label className="text-sm text-gray-600 mb-1 block">
+              Exam Year
+            </label>
+            <select
+              value={selectedExamYear}
+              onChange={(e) => setSelectedExamYear(e.target.value)}
+              className="p-2 w-full border border-gray-300 rounded-lg"
+            >
+              <option value="">All Exam Years</option>
+              {getExamYearOptions().map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
             </select>
           </div>
 

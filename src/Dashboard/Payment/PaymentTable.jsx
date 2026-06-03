@@ -91,11 +91,17 @@ const PaymentTable = () => {
     },
     {
       header: "Amount Paid",
-      render: (row) => (
-        <span className="text-green-500 font-bold">
-          {row.amountPaid.toLocaleString("en-IN")}
-        </span>
-      ),
+      render: (row) => {
+        return row.paymentType === "INITIAL" ? (
+          <span className="text-green-500 font-bold">
+            {row.amountPaid.toLocaleString("en-IN")}
+          </span>
+        ) : (
+          <span className="text-yellow-500 font-bold">
+            {row.amountPaid.toLocaleString("en-IN")}
+          </span>
+        );
+      },
     },
     {
       header: "Payment Mode",
@@ -281,13 +287,14 @@ const PaymentTable = () => {
       </h1>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row justify-between gap-2 mb-4">
+      {/* <div className="flex flex-col md:flex-row flex-wrap justify-between items-center gap-2 mb-4"> */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-center gap-4 mb-6">
         <input
           type="text"
           placeholder="Search by name, student ID, payment ID, or receipt no..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 w-full md:w-1/3 border border-gray-300 rounded-lg"
+          className="p-2 border border-gray-300"
         />
 
         {user.role === "admin" && (
@@ -299,11 +306,11 @@ const PaymentTable = () => {
             placeholder="Select Counsellors"
           />
         )}
-        <div className="w-full md:w-1/4">
+        <div>
           <select
             value={paymentType}
             onChange={(e) => setPaymentType(e.target.value)}
-            className="p-3 w-full border border-gray-300 rounded-lg"
+            className="p-3 w-full border border-gray-300"
           >
             <option value="">All Payment Types</option>
             <option value="INITIAL">INITIAL</option>
@@ -311,29 +318,34 @@ const PaymentTable = () => {
           </select>
         </div>
 
-        <div className="flex flex-wrap md:flex-row gap-1 w-full md:w-1/3">
-          <div className="relative flex-1 min-w-[120px]">
+        <div className="flex flex-nowrap md:flex-row gap-1">
+          <div className="bg-white min-w-52 flex flex-row items-center gap-2 border border-gray-300 p-2">
+            <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+              From Date:
+            </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="p-3 w-full border border-gray-300 rounded-lg text-sm"
-              placeholder="Start Date"
+              className="flex-1 outline-none"
             />
           </div>
-          <div className="relative flex-1 min-w-[120px]">
+          <div className="bg-white min-w-52 flex flex-row items-center gap-2 border border-gray-300 p-2">
+            <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+              To Date:
+            </label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="p-3 w-full border border-gray-300 rounded-lg text-sm"
-              placeholder="End Date"
+              className="flex-1 outline-none"
             />
           </div>
+
           {(startDate || endDate) && (
             <button
               onClick={clearDateFilters}
-              className="px-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm whitespace-nowrap"
+              className="px-3 bg-gray-500 text-white hover:bg-gray-600 text-sm whitespace-nowrap"
             >
               Clear Dates
             </button>
@@ -348,17 +360,17 @@ const PaymentTable = () => {
         loading={loading}
         error={error}
         rowKey="paymentId"
-        getRowClassName={(row) => {
-          if (row.paymentType === "INITIAL") {
-            return "bg-green-50 hover:bg-green-100";
-          }
+        // getRowClassName={(row) => {
+        //   if (row.paymentType === "INITIAL") {
+        //     return "bg-green-50 hover:bg-green-100";
+        //   }
 
-          if (row.paymentType === "RECOLLECTION") {
-            return "bg-yellow-50 hover:bg-yellow-100";
-          }
+        //   if (row.paymentType === "RECOLLECTION") {
+        //     return "bg-yellow-50 hover:bg-yellow-100";
+        //   }
 
-          return "";
-        }}
+        //   return "";
+        // }}
       />
 
       <Pagination
