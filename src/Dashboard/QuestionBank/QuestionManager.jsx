@@ -470,7 +470,10 @@ const QuestionDetailModal = ({ q, onClose }) => (
     </div>
 
     <div className="mb-4">
-      <p className="font-semibold text-gray-800 text-sm leading-relaxed">
+      {/* <p className="font-semibold text-gray-800 text-sm leading-relaxed">
+        {renderMathText(q.questionText)}
+      </p> */}
+      <p className="font-semibold text-gray-800 text-sm leading-relaxed break-words whitespace-normal">
         {renderMathText(q.questionText)}
       </p>
 
@@ -578,8 +581,14 @@ const QuestionManager = ({ chapter, onBack }) => {
         const text = row.questionText || "";
         const truncated = text.length > 80 ? text.slice(0, 80) + "…" : text;
         return (
-          <span className="text-sm text-gray-700">
-            {renderMathText(truncated)}
+          // <span className="text-sm text-gray-700">
+          //   {renderMathText(truncated)}
+          // </span>
+          <span
+            className="text-sm text-gray-700 block max-w-md truncate"
+            title={row.questionText}
+          >
+            {renderMathText(row.questionText || "")}
           </span>
         );
       },
