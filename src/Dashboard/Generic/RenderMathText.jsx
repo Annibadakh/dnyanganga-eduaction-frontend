@@ -8,14 +8,13 @@ const renderMathText = (text) => {
   const content = text.trim();
 
   try {
-    // Not LaTeX
     if (!(content.startsWith("$") && content.endsWith("$"))) {
       return <span>{content}</span>;
     }
 
     let latex = content.slice(1, -1).trim();
 
-    // Convert \displaylines{...} to aligned environment
+    // Convert \displaylines{...} to left-aligned array
     if (
       latex.startsWith("\\displaylines{") &&
       latex.endsWith("}")
@@ -24,20 +23,23 @@ const renderMathText = (text) => {
         .replace(/^\\displaylines\{/, "")
         .replace(/\}$/, "");
 
-      latex = `\\begin{aligned}${latex}\\end{aligned}`;
+      latex = `\\begin{array}{l}${latex}\\end{array}`;
     }
 
     const isBlockMath =
       latex.includes("\\\\") ||
       latex.includes("\\text{") ||
-      latex.includes("\\begin{") ||
-      latex.includes("\\displaylines");
+      latex.includes("\\begin{");
 
-    return isBlockMath ? (
-      <BlockMath math={latex} />
-    ) : (
-      <InlineMath math={latex} />
-    );
+    if (isBlockMath) {
+      return (
+        <div style={{ textAlign: "left" }}>
+          <BlockMath math={latex} />
+        </div>
+      );
+    }
+
+    return <InlineMath math={latex} />;
   } catch (error) {
     console.error("KaTeX Render Error:", error);
     return <span>{text}</span>;
