@@ -1,29 +1,45 @@
+import React from "react";
 import { InlineMath, BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
 
 const renderMathText = (text) => {
   if (!text) return null;
 
-  const math = text.trim();
+  const content = text.trim();
 
   try {
-    if (math.startsWith("$") && math.endsWith("$")) {
-      const latex = math.slice(1, -1).trim();
-
-      // Use BlockMath when multiline text exists
-      if (
-        latex.includes("\\\\") ||
-        latex.includes("\\text{")
-      ) {
-        return <BlockMath math={latex} />;
-      }
-
-      return <InlineMath math={latex} />;
+    // Not LaTeX
+    if (!(content.startsWith("$") && content.endsWith("$"))) {
+      return <span>{content}</span>;
     }
 
-    return <span>{text}</span>;
-  } catch (err) {
-    console.error("KaTeX Error:", err);
+    let latex = content.slice(1, -1).trim();
+
+    // Convert \displaylines{...} to aligned environment
+    if (
+      latex.startsWith("\\displaylines{") &&
+      latex.endsWith("}")
+    ) {
+      latex = latex
+        .replace(/^\\displaylines\{/, "")
+        .replace(/\}$/, "");
+
+      latex = `\\begin{aligned}${latex}\\end{aligned}`;
+    }
+
+    const isBlockMath =
+      latex.includes("\\\\") ||
+      latex.includes("\\text{") ||
+      latex.includes("\\begin{") ||
+      latex.includes("\\displaylines");
+
+    return isBlockMath ? (
+      <BlockMath math={latex} />
+    ) : (
+      <InlineMath math={latex} />
+    );
+  } catch (error) {
+    console.error("KaTeX Render Error:", error);
     return <span>{text}</span>;
   }
 };
