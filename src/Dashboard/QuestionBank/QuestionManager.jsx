@@ -473,9 +473,11 @@ const QuestionDetailModal = ({ q, onClose }) => (
       {/* <p className="font-semibold text-gray-800 text-sm leading-relaxed">
         {renderMathText(q.questionText)}
       </p> */}
-      <p className="font-semibold text-gray-800 text-sm leading-relaxed break-words whitespace-normal">
-        {renderMathText(q.questionText)}
-      </p>
+      <div className="overflow-x-auto">
+        <p className="font-semibold text-gray-800 text-sm leading-relaxed break-words whitespace-normal">
+          {renderMathText(q.questionText)}
+        </p>
+      </div>
 
       <ImagePreview
         imagePath={q.imageUrl}
