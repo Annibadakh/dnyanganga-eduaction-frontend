@@ -43,7 +43,9 @@
             "redux-persist": "^6.0.0",
             "swiper": "^11.2.10",
             "xlsx": "^0.18.5",
-            "yup": "^1.7.1"
+            "yup": "^1.7.1",
+            "katex": "^0.16.22",
+            "react-katex": "^3.1.0"
       },
       "devDependencies": {
             "@eslint/js": "^9.17.0",
