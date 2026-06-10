@@ -4,19 +4,21 @@ import "katex/dist/katex.min.css";
 const renderMathText = (text) => {
   if (!text) return null;
 
+  const math = text.trim();
+
   try {
-    if (text.includes("\\displaylines")) {
-      const latex = text.replace("\\displaylines", "").trim();
+    if (math.startsWith("$") && math.endsWith("$")) {
+      const latex = math.slice(1, -1).trim();
 
-      return (
-        <div className="overflow-x-auto">
-          <BlockMath math={latex} />
-        </div>
-      );
-    }
+      // Use BlockMath when multiline text exists
+      if (
+        latex.includes("\\\\") ||
+        latex.includes("\\text{")
+      ) {
+        return <BlockMath math={latex} />;
+      }
 
-    if (text.startsWith("$") && text.endsWith("$")) {
-      return <InlineMath math={text.slice(1, -1)} />;
+      return <InlineMath math={latex} />;
     }
 
     return <span>{text}</span>;
