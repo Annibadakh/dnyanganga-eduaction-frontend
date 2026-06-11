@@ -559,9 +559,11 @@ const QuestionDetailModal = ({ q, onClose }) => (
         <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">
           Solution
         </p>
-        <p className="text-sm text-blue-800">
-          {renderMathText(q.solutionDescription)}
-        </p>
+        <div className="overflow-x-auto">
+          <p className="font-semibold text-blue-800 text-sm leading-relaxed break-words whitespace-normal">
+            {renderMathText(q.solutionDescription)}
+          </p>
+        </div>
       </div>
     )}
   </Modal>
