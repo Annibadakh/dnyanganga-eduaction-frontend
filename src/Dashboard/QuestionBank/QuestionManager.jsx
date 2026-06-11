@@ -146,7 +146,22 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
       { index: 2, text: "", imageUrl: "" },
     ],
   );
-  const [correctAns, setCorrectAns] = useState(initial?.correctAns ?? []);
+  // const [correctAns, setCorrectAns] = useState(initial?.correctAns ?? []);
+  const [correctAns, setCorrectAns] = useState(() => {
+    if (Array.isArray(initial?.correctAns)) {
+      return initial.correctAns;
+    }
+
+    if (typeof initial?.correctAns === "string") {
+      try {
+        return JSON.parse(initial.correctAns);
+      } catch {
+        return [];
+      }
+    }
+
+    return [];
+  });
   const [saving, setSaving] = useState(false);
   const [questionImageUrl, setQuestionImageUrl] = useState(
     initial?.imageUrl ?? "",
@@ -208,6 +223,8 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
       return;
     }
     setSaving(true);
+    console.log(typeof correctAns);
+    console.log(correctAns);
     try {
       const payload = {
         chapterId: chapter.id,
@@ -426,12 +443,28 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
 
       {/* ── Section 4: Solution ── */}
       <FormSection label="Solution / explanation">
-        <textarea
+        {/* Math editor */}
+        <MathEditor
+          value={solutionDescription}
+          onChange={setSolutionDescription}
+          placeholder="Write your solution using maths…"
+        />
+
+        {/* Preview */}
+        {solutionDescription && (
+          <div className="mt-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+              Preview
+            </p>
+            <div className="text-sm">{renderMathText(solutionDescription)}</div>
+          </div>
+        )}
+        {/* <textarea
           className={inputCls + " min-h-[80px] resize-y"}
           placeholder="Explain the correct answer…"
           value={solutionDescription}
           onChange={(e) => setSolutionDescription(e.target.value)}
-        />
+        /> */}
       </FormSection>
 
       {/* ── Footer ── */}
@@ -526,7 +559,9 @@ const QuestionDetailModal = ({ q, onClose }) => (
         <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">
           Solution
         </p>
-        <p className="text-sm text-blue-800">{q.solutionDescription}</p>
+        <p className="text-sm text-blue-800">
+          {renderMathText(q.solutionDescription)}
+        </p>
       </div>
     )}
   </Modal>

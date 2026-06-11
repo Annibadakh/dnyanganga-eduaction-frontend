@@ -8,21 +8,25 @@ const renderMathText = (text) => {
   const content = text.trim();
 
   try {
+    // Normal text
     if (!(content.startsWith("$") && content.endsWith("$"))) {
-      return <span>{content}</span>;
+      return (
+        <div
+          style={{
+            textAlign: "left",
+            width: "100%",
+          }}
+        >
+          {content}
+        </div>
+      );
     }
 
     let latex = content.slice(1, -1).trim();
 
-    // Convert \displaylines{...} to left-aligned array
-    if (
-      latex.startsWith("\\displaylines{") &&
-      latex.endsWith("}")
-    ) {
-      latex = latex
-        .replace(/^\\displaylines\{/, "")
-        .replace(/\}$/, "");
-
+    // Convert \displaylines{...} to a left-aligned array
+    if (latex.startsWith("\\displaylines{") && latex.endsWith("}")) {
+      latex = latex.replace(/^\\displaylines\{/, "").replace(/\}$/, "");
       latex = `\\begin{array}{l}${latex}\\end{array}`;
     }
 
@@ -31,18 +35,43 @@ const renderMathText = (text) => {
       latex.includes("\\text{") ||
       latex.includes("\\begin{");
 
-    if (isBlockMath) {
-      return (
-        <div style={{ textAlign: "left" }}>
-          <BlockMath math={latex} />
-        </div>
-      );
-    }
+    const katexStyles = `
+      .custom-katex-left .katex-display {
+        text-align: left !important;
+        margin: 0 !important;
+      }
 
-    return <InlineMath math={latex} />;
+      .custom-katex-left .katex-display > .katex {
+        text-align: left !important;
+      }
+    `;
+
+    return (
+      <div
+        className="custom-katex-left"
+        style={{
+          textAlign: "left",
+          width: "100%",
+        }}
+      >
+        <style>{katexStyles}</style>
+
+        {isBlockMath ? <BlockMath math={latex} /> : <InlineMath math={latex} />}
+      </div>
+    );
   } catch (error) {
     console.error("KaTeX Render Error:", error);
-    return <span>{text}</span>;
+
+    return (
+      <div
+        style={{
+          textAlign: "left",
+          width: "100%",
+        }}
+      >
+        {text}
+      </div>
+    );
   }
 };
 
