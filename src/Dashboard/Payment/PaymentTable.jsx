@@ -8,7 +8,7 @@ import Pagination from "../Generic/Pagination";
 import ImageViewerModal from "../Generic/ImageViewerModal";
 import PdfViewerModal from "../Generic/PdfViewerModal";
 import Button from "../Generic/Button";
-import { FileText } from "lucide-react";
+import { FileText, IndianRupee } from "lucide-react";
 
 const capitalizeFirstLetter = (string) => {
   if (!string || typeof string !== "string") {
@@ -37,6 +37,7 @@ const PaymentTable = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   // PDF and Receipt states
   const [loadingPdfId, setLoadingPdfId] = useState(null);
@@ -192,6 +193,7 @@ const PaymentTable = () => {
         setPaymentsData(response.data.payments);
         setTotalCount(response.data.totalCount);
         setTotalPages(response.data.totalPages);
+        setTotalAmount(response.data.totalAmount);
         setLoading(false);
       })
       .catch((error) => {
@@ -414,10 +416,25 @@ const PaymentTable = () => {
         </div>
       </div>
 
-      <div className="mb-2">
+      <div className="mb-4 flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
         <Button variant="success" onClick={handleDownloadExcel}>
           Download Excel
         </Button>
+
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm min-w-[280px]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Total Amount Collected</p>
+              <h2 className="text-3xl font-bold text-green-700 mt-1">
+                ₹ {Number(totalAmount || 0).toLocaleString("en-IN")}
+              </h2>
+            </div>
+
+            <div className="bg-green-100 p-3 rounded-full">
+              <IndianRupee size={28} className="text-green-700" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Table */}
