@@ -19,6 +19,10 @@ const JobExecutionSetupStep = ({
   const [error, setError] = useState("");
   const [jobHeaderUrl, setJobHeaderUrl] = useState("");
 
+  const [scheduleHour, setScheduleHour] = useState("12");
+  const [scheduleMinute, setScheduleMinute] = useState("00");
+  const [schedulePeriod, setSchedulePeriod] = useState("AM");
+
   // Initialize mapping
   useEffect(() => {
     if (template?.variables?.length > 0) {
@@ -61,6 +65,35 @@ const JobExecutionSetupStep = ({
     }));
   };
 
+  const getDateTime = () => {
+    let hour24 = parseInt(scheduleHour);
+    if (schedulePeriod === "PM" && hour24 !== 12) {
+      hour24 += 12;
+    }
+    if (schedulePeriod === "AM" && hour24 === 12) {
+      hour24 = 0;
+    }
+    const formattedScheduleDate =
+      `${scheduleDate} ` +
+      `${String(hour24).padStart(2, "0")}:` +
+      `${scheduleMinute}:00`;
+
+    const selectedDateTime = new Date(
+      `${scheduleDate}T${String(hour24).padStart(2, "0")}:${scheduleMinute}:00`,
+    );
+
+    const minAllowedTime = new Date();
+    minAllowedTime.setMinutes(minAllowedTime.getMinutes() + 5);
+
+    if (selectedDateTime < minAllowedTime) {
+      setError(
+        "Schedule date & time must be at least 5 minutes ahead of the current time.",
+      );
+      return null;
+    }
+    return formattedScheduleDate;
+  };
+
   const handleCreatePayload = () => {
     if (!phoneField) {
       setError("Phone column selection is required.");
@@ -74,6 +107,10 @@ const JobExecutionSetupStep = ({
 
     if (!scheduleDate) {
       setError("Schedule date is required.");
+      return;
+    }
+    const dateTime = getDateTime();
+    if (!dateTime) {
       return;
     }
 
@@ -133,7 +170,7 @@ const JobExecutionSetupStep = ({
     const payload = {
       template_id: template.id,
       job_name: jobName,
-      schedule_date: scheduleDate,
+      schedule_date: dateTime,
       receivers_raw: trimmedReceivers,
       phone_field: phoneField,
       variable_mapping: variableMappingArray,
@@ -300,14 +337,64 @@ const JobExecutionSetupStep = ({
         </div>
 
         <div>
-          <label className="block mb-2 font-medium">Schedule Date *</label>
-          <input
-            type="date"
-            value={scheduleDate}
-            min={new Date().toISOString().split("T")[0]}
-            onChange={(e) => setScheduleDate(e.target.value)}
-            className="border p-2 w-full rounded"
-          />
+          <label className="block mb-2 font-medium">
+            Schedule Date & Time *
+          </label>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            {/* Date */}
+            <input
+              type="date"
+              value={scheduleDate}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => setScheduleDate(e.target.value)}
+              className="border p-2 rounded"
+            />
+
+            {/* Hour */}
+            <select
+              value={scheduleHour}
+              onChange={(e) => setScheduleHour(e.target.value)}
+              className="border p-2 rounded"
+            >
+              {Array.from({ length: 12 }, (_, i) => {
+                const hour = String(i + 1).padStart(2, "0");
+
+                return (
+                  <option key={hour} value={hour}>
+                    {hour}
+                  </option>
+                );
+              })}
+            </select>
+
+            {/* Minute */}
+            <select
+              value={scheduleMinute}
+              onChange={(e) => setScheduleMinute(e.target.value)}
+              className="border p-2 rounded"
+            >
+              {Array.from({ length: 60 }, (_, i) => {
+                const minute = String(i).padStart(2, "0");
+
+                return (
+                  <option key={minute} value={minute}>
+                    {minute}
+                  </option>
+                );
+              })}
+            </select>
+
+            {/* AM / PM */}
+            <select
+              value={schedulePeriod}
+              onChange={(e) => setSchedulePeriod(e.target.value)}
+              className="border p-2 rounded"
+            >
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
         </div>
       </div>
 
