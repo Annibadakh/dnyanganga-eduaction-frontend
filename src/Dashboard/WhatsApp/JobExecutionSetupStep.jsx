@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { FileUploadHook } from "../FileUpload/FileUploadHook";
+import FileUpload from "../FileUpload/FileUpload";
 
 const JobExecutionSetupStep = ({
   template,
@@ -7,11 +9,15 @@ const JobExecutionSetupStep = ({
   onBack,
   onSubmit,
 }) => {
+  // console.log(template);
+  const jobHeaderFile = FileUploadHook();
+
   const [mapping, setMapping] = useState({});
   const [phoneField, setPhoneField] = useState("");
   const [jobName, setJobName] = useState("");
   const [scheduleDate, setScheduleDate] = useState("");
   const [error, setError] = useState("");
+  const [jobHeaderUrl, setJobHeaderUrl] = useState("");
 
   // Initialize mapping
   useEffect(() => {
@@ -26,6 +32,20 @@ const JobExecutionSetupStep = ({
       setMapping(initial);
     }
   }, [template]);
+
+  const handleJobHeaderUpload = async () => {
+    const uploadedUrl = await jobHeaderFile.uploadImage(
+      template.header_type === "image"
+        ? "template"
+        : template.header_type === "video"
+          ? "video"
+          : "document",
+    );
+
+    if (uploadedUrl) {
+      setJobHeaderUrl(uploadedUrl);
+    }
+  };
 
   const handleTypeChange = (varIndex, type) => {
     setMapping((prev) => ({
@@ -117,6 +137,8 @@ const JobExecutionSetupStep = ({
       receivers_raw: trimmedReceivers,
       phone_field: phoneField,
       variable_mapping: variableMappingArray,
+      job_header_type: template.header_type,
+      job_header_url: jobHeaderUrl || null,
     };
 
     onSubmit(payload);
@@ -153,6 +175,46 @@ const JobExecutionSetupStep = ({
           ))}
         </select>
       </div>
+
+      {/* Header File Upload */}
+      {template.header_type !== "none" && (
+        <div className="mb-6 border rounded p-4 bg-blue-50">
+          <h3 className="font-semibold text-blue-800 mb-3">
+            {template.header_type === "image"
+              ? "🖼 Upload Job Image"
+              : template.header_type === "video"
+                ? "🎥 Upload Job Video"
+                : "📄 Upload Job Document"}
+          </h3>
+
+          <FileUpload
+            title={
+              template.header_type === "image"
+                ? "Job Header Image"
+                : template.header_type === "video"
+                  ? "Job Header Video"
+                  : "Job Header Document"
+            }
+            imageUrl={jobHeaderFile.imageUrl || jobHeaderUrl}
+            error={jobHeaderFile.error}
+            loader={jobHeaderFile.loader}
+            isSaved={jobHeaderFile.isSaved || !!jobHeaderUrl}
+            imageType={
+              template.header_type === "image"
+                ? "template"
+                : template.header_type === "video"
+                  ? "video"
+                  : "document"
+            }
+            onFileUpload={jobHeaderFile.handleFileUpload}
+            onUploadImage={handleJobHeaderUpload}
+            onRemovePhoto={() => {
+              jobHeaderFile.removePhoto();
+              setJobHeaderUrl("");
+            }}
+          />
+        </div>
+      )}
 
       {/* Variable Mapping */}
       <div className="space-y-5 mb-6">

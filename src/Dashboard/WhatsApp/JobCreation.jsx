@@ -127,8 +127,18 @@ const JobCreation = () => {
         />
       )}
 
-      {step === 3 && dataSource === "candidates" && <><p>Not implemented yet</p><button onClick={() => setStep(2)}>Back</button></>}
-      {step === 3 && dataSource === "visiting" && <><p>Not implemented yet</p><button onClick={() => setStep(2)}>Back</button></>}
+      {step === 3 && dataSource === "candidates" && (
+        <>
+          <p>Not implemented yet</p>
+          <button onClick={() => setStep(2)}>Back</button>
+        </>
+      )}
+      {step === 3 && dataSource === "visiting" && (
+        <>
+          <p>Not implemented yet</p>
+          <button onClick={() => setStep(2)}>Back</button>
+        </>
+      )}
 
       {/* STEP 4: Just Preview (Next Step Later) */}
       {step === 4 && (
