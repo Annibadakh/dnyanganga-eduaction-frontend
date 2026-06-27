@@ -8,6 +8,7 @@ const JobsList = () => {
   const [error, setError] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [retryingJobId, setRetryingJobId] = useState(null);
 
   useEffect(() => {
     fetchJobs();
@@ -51,17 +52,45 @@ const JobsList = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "pending":
+  const handleRetryScheduler = async (jobId) => {
+    try {
+      setRetryingJobId(jobId);
+
+      const response = await api.post(`/jobs/${jobId}/retry-scheduler`);
+
+      if (response.data.success) {
+        alert("Scheduler retried successfully!");
+        fetchJobs();
+      } else {
+        alert(response.data.message || "Failed to retry scheduler");
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to retry scheduler");
+      console.error(err);
+    } finally {
+      setRetryingJobId(null);
+    }
+  };
+
+  // job_status from backend: "scheduled" | "sending" | "done" | "scheduler_failed"
+  const getStatusColor = (jobStatus) => {
+    switch (jobStatus) {
+      case "scheduled":
         return "bg-yellow-100 text-yellow-800";
-      case "processing":
+      case "sending":
         return "bg-blue-100 text-blue-800";
-      case "completed":
+      case "done":
         return "bg-green-100 text-green-800";
+      case "scheduler_failed":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const formatStatusLabel = (jobStatus) => {
+    if (!jobStatus) return "-";
+    return jobStatus.replace(/_/g, " ").toUpperCase();
   };
 
   const formatDate = (dateString) => {
@@ -145,6 +174,9 @@ const JobsList = () => {
                   Total Records
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Delivered
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Pending
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -152,6 +184,9 @@ const JobsList = () => {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Scheduler
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created
@@ -186,8 +221,13 @@ const JobsList = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
+                      <div className="text-sm font-semibold text-green-600">
+                        {job.delivered_count ?? 0}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="text-sm font-semibold text-yellow-600">
-                        {job.Receivers?.length}
+                        {job.pending_count ?? 0}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -197,10 +237,40 @@ const JobsList = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.status)}`}
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.job_status)}`}
                       >
-                        {job.status.toUpperCase()}
+                        {formatStatusLabel(job.job_status)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-gray-600">
+                          {job.scheduler_status || "-"}
+                        </span>
+
+                        {job.scheduler_status === "failed" && (
+                          <>
+                            {job.scheduler_error && (
+                              <span
+                                className="text-xs text-red-600 max-w-[160px] truncate"
+                                title={job.scheduler_error}
+                              >
+                                {job.scheduler_error}
+                              </span>
+                            )}
+
+                            <button
+                              onClick={() => handleRetryScheduler(job.id)}
+                              disabled={retryingJobId === job.id}
+                              className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200 font-medium disabled:opacity-50 w-fit"
+                            >
+                              {retryingJobId === job.id
+                                ? "Retrying..."
+                                : "Retry Scheduler"}
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-500">
@@ -220,7 +290,7 @@ const JobsList = () => {
                   {/* Delete Confirmation Row */}
                   {deleteConfirm === job.id && (
                     <tr>
-                      <td colSpan="8" className="px-6 py-4 bg-red-50">
+                      <td colSpan="10" className="px-6 py-4 bg-red-50">
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-red-800 font-medium">
                             Are you sure you want to delete "{job.job_name}"?

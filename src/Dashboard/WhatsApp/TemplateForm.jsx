@@ -143,6 +143,8 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
 
     if (!formData.name.trim()) newErrors.name = "Template name is required";
     if (!formData.body.trim()) newErrors.body = "Template body is required";
+    if (!formData.provider_template_id)
+      newErrors.provider_template_id = "Provider template ID is required";
 
     if (
       formData.header_type !== "none" &&
@@ -213,6 +215,8 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
             name="name"
             value={formData.name}
             onChange={handleChange}
+            required
+            placeholder="Enter template name"
             className={`border p-2 w-full rounded ${
               errors.name ? "border-red-500" : ""
             }`}
@@ -231,6 +235,7 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
             name="language"
             value={formData.language}
             onChange={handleChange}
+            required
             className="border p-2 w-full rounded"
           >
             <option value="en">English</option>
@@ -246,6 +251,7 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
           </label>
           <select
             name="header_type"
+            required
             value={formData.header_type}
             onChange={handleHeaderTypeChange}
             className="border p-2 w-full rounded"
@@ -299,6 +305,7 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
             value={formData.body}
             onChange={handleBodyChange}
             rows={6}
+            required
             className={`border p-2 w-full rounded font-mono text-sm ${
               errors.body ? "border-red-500" : ""
             }`}
@@ -320,7 +327,14 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
             value={formData.provider_template_id}
             onChange={handleChange}
             className="border p-2 w-full rounded"
+            required
+            placeholder="Enter provider template ID"
           />
+          {errors.provider_template_id && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.provider_template_id}
+            </p>
+          )}
         </div>
 
         {/* Variable Labels */}
@@ -341,6 +355,8 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
                 <input
                   value={variableLabels[varIndex] || ""}
                   onChange={(e) => handleLabelChange(varIndex, e.target.value)}
+                  required
+                  placeholder={`Enter label for {{${varIndex}}}`}
                   className={`border p-2 w-full rounded ${
                     errors[`label_${varIndex}`] ? "border-red-500" : ""
                   }`}
