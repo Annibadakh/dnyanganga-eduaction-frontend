@@ -4,34 +4,57 @@ import { useNavigate, useParams } from "react-router-dom";
 import Button from "../Generic/Button";
 import {
   Printer,
+  ArrowLeft,
   CheckCircle2,
   XCircle,
   MinusCircle,
-  BarChart2,
   BookOpen,
   Award,
 } from "lucide-react";
 import ImagePreview from "../Generic/ImagePreview";
 import renderMathText from "../Generic/RenderMathText";
 
+// Admin-facing view of a single student's quiz attempt.
+// Layout mirrors the student-facing StudentQuizResult page 1:1,
+// with a Back button (to the analytics table) added alongside Print.
 const StudentQuizResult = () => {
   const navigate = useNavigate();
-  const { studentQuizId } = useParams();
+  const { quizId, studentQuizId } = useParams();
   const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
 
   const fetchResult = async () => {
     try {
       const res = await api.get(`/quiz/student/result/${studentQuizId}`);
       setData(res.data);
     } catch (err) {
-      navigate("../history");
-      alert(err.response?.data?.message || "Error");
+      setError(err.response?.data?.message || "Error loading result");
     }
   };
 
   useEffect(() => {
     fetchResult();
   }, []);
+
+  const handleBack = () => {
+    if (quizId) navigate(`/quiz/${quizId}/analytics`);
+    else navigate(-1);
+  };
+
+  if (error) {
+    return (
+      <div className="p-2 container mx-auto">
+        <Button
+          variant="secondary"
+          startIcon={<ArrowLeft size={16} />}
+          onClick={handleBack}
+        >
+          Back
+        </Button>
+        <p className="text-center text-red-500 py-10">{error}</p>
+      </div>
+    );
+  }
 
   if (!data)
     return (
@@ -40,17 +63,7 @@ const StudentQuizResult = () => {
       </div>
     );
 
-  const { summary, questions } = data;
-
-  const percentage =
-    summary.total > 0
-      ? Math.round(
-          (summary.marksObtained /
-            (summary.total *
-              (summary.marksObtained / (summary.correct || 1)))) *
-            100,
-        )
-      : 0;
+  const { summary, questions, student } = data;
 
   const handlePrint = () => window.print();
 
@@ -59,7 +72,6 @@ const StudentQuizResult = () => {
       {/* ── Print styles injected into <head> ── */}
       <style>{`
         @media print {
-          /* hide everything that is not the printable result */
           body * { visibility: hidden; }
           #quiz-result-printable,
           #quiz-result-printable * { visibility: visible; }
@@ -70,22 +82,34 @@ const StudentQuizResult = () => {
             padding: 24px;
           }
 
-          /* allow content to flow naturally across pages */
           .no-print { display: none !important; }
-
-          /* prevent option rows from being cut mid-row */
           .print-avoid-break { break-inside: avoid; }
-
-          /* each question block stays together where possible */
           .question-block { break-inside: avoid; }
         }
       `}</style>
 
       <div className="p-2 container mx-auto" id="quiz-result-printable">
+        {/* ── Back button (admin context only) ── */}
+        <div className="no-print mb-3">
+          <Button
+            variant="secondary"
+            startIcon={<ArrowLeft size={16} />}
+            onClick={handleBack}
+          >
+            Back to Analytics
+          </Button>
+        </div>
+
         {/* ── Page Title ── */}
         <h1 className="text-3xl text-center font-bold text-primary mb-2">
           Quiz Result
         </h1>
+        {student?.studentName ? (
+          <p className="text-center text-sm text-gray-500 mb-1">
+            {student.studentName}
+            {student.studentId ? ` (${student.studentId})` : ""}
+          </p>
+        ) : null}
         <p className="text-center text-sm text-gray-400 mb-6">
           Student Quiz ID: {studentQuizId}
         </p>
@@ -189,8 +213,8 @@ const StudentQuizResult = () => {
               >
                 {/* Question header */}
                 <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex-1 overflow-hidden">
-                    <div className="text-sm font-semibold text-gray-800 leading-relaxed overflow-scroll">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-gray-800 leading-relaxed line-clamp-3">
                       <span className="text-primary font-bold mr-1">
                         Q{index + 1}.
                       </span>

@@ -10,7 +10,7 @@ const DataTable = ({
   getRowClassName = () => "",
 }) => {
   return (
-    <div className="bg-white shadow-custom md:p-6 p-2">
+    <div className="bg-white md:p-6 p-2">
       {loading && <p className="text-customgray text-lg">Loading...</p>}
       {error && <p className="text-red-500 text-lg">{error}</p>}
 

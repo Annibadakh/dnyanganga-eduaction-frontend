@@ -5,6 +5,7 @@ import DataTable from "../Generic/DataTable";
 import Button from "../Generic/Button";
 import AddChapterModal from "./AddChapterModal";
 import QuestionManager from "./QuestionManager";
+import Pagination from "../Generic/Pagination";
 
 const ChapterManager = () => {
   const [standards, setStandards] = useState([]);
@@ -17,6 +18,10 @@ const ChapterManager = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   // ---------------- FETCH STANDARDS ----------------
   const fetchStandards = async () => {
     try {
@@ -51,14 +56,25 @@ const ChapterManager = () => {
   };
 
   // ---------------- FETCH CHAPTERS ----------------
-  const fetchChapters = async (subjectId) => {
+  const fetchChapters = async (
+    subjectId,
+    page = currentPage,
+    limit = itemsPerPage,
+  ) => {
     setLoading(true);
+
     try {
       const res = await api.get("/question-bank/chapter", {
-        params: { subjectId },
+        params: {
+          subjectId,
+          page,
+          limit,
+        },
       });
-      // console.log("Chapters Response:", res.data); // Debug log
-      setChapters(res.data);
+
+      setChapters(res.data.data);
+      setTotalPages(res.data.totalPages);
+      setTotalCount(res.data.totalCount);
     } catch (err) {
       console.error(err);
     } finally {
@@ -72,6 +88,12 @@ const ChapterManager = () => {
   }, []);
 
   useEffect(() => {
+    if (selectedSubject) {
+      setCurrentPage(1);
+    }
+  }, [selectedSubject]);
+
+  useEffect(() => {
     if (selectedStandard) {
       setSelectedSubject(null);
       setChapters([]);
@@ -79,17 +101,22 @@ const ChapterManager = () => {
     }
   }, [selectedStandard]);
 
+  // useEffect(() => {
+  //   if (selectedSubject) {
+  //     fetchChapters(selectedSubject.value);
+  //   }
+  // }, [selectedSubject]);
   useEffect(() => {
     if (selectedSubject) {
       fetchChapters(selectedSubject.value);
     }
-  }, [selectedSubject]);
+  }, [selectedSubject, currentPage, itemsPerPage]);
 
   // ---------------- TABLE ----------------
   const columns = [
     {
       header: "Sr. No.",
-      render: (_, index) => index + 1,
+      render: (_, index) => (currentPage - 1) * itemsPerPage + index + 1,
     },
     {
       header: "Chapter Name",
@@ -167,7 +194,10 @@ const ChapterManager = () => {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         subjectId={selectedSubject?.value}
-        onSuccess={() => fetchChapters(selectedSubject.value)}
+        onSuccess={() => {
+          setCurrentPage(1);
+          fetchChapters(selectedSubject.value, 1, itemsPerPage);
+        }}
       />
       {/* ---------------- TABLE ---------------- */}
       <DataTable
@@ -175,6 +205,18 @@ const ChapterManager = () => {
         data={chapters}
         loading={loading}
         rowKey="id"
+      />
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalCount}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+        onItemsPerPageChange={(value) => {
+          setItemsPerPage(value);
+          setCurrentPage(1);
+        }}
       />
     </div>
   );

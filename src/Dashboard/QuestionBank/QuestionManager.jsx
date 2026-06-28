@@ -5,6 +5,7 @@ import DataTable from "../Generic/DataTable";
 import FileUpload from "../FileUpload/FileUpload";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import OptionImageUpload from "./OptionImageUpload";
+import Pagination from "../Generic/Pagination";
 import {
   Eye,
   Pencil,
@@ -578,14 +579,33 @@ const QuestionManager = ({ chapter, onBack }) => {
   const [viewTarget, setViewTarget] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const fetchQuestions = async () => {
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const [stats, setStats] = useState({
+    EASY: 0,
+    MEDIUM: 0,
+    HARD: 0,
+  });
+  const fetchQuestions = async (page = currentPage, limit = itemsPerPage) => {
     setLoading(true);
+
     try {
       const res = await api.get("/question-bank/question", {
-        params: { chapterId: chapter.id },
+        params: {
+          chapterId: chapter.id,
+          page,
+          limit,
+        },
       });
-      setQuestions(res.data);
+
+      setQuestions(res.data.data);
+      setTotalCount(res.data.totalCount);
+      setTotalPages(res.data.totalPages);
+      setStats(res.data.stats);
     } catch (err) {
       console.error(err);
     } finally {
@@ -595,13 +615,17 @@ const QuestionManager = ({ chapter, onBack }) => {
 
   useEffect(() => {
     fetchQuestions();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const confirmDelete = async () => {
     setDeleting(true);
     try {
       await api.delete(`/question-bank/question/${deleteId}`);
-      setQuestions((prev) => prev.filter((q) => q.id !== deleteId));
+      if (questions.length === 1 && currentPage > 1) {
+        setCurrentPage((p) => p - 1);
+      } else {
+        await fetchQuestions();
+      }
       if (viewTarget?.id === deleteId) setViewTarget(null);
     } catch (err) {
       console.error(err);
@@ -613,7 +637,10 @@ const QuestionManager = ({ chapter, onBack }) => {
   };
 
   const columns = [
-    { header: "Sr. No.", render: (_, i) => i + 1 },
+    {
+      header: "Sr. No.",
+      render: (_, i) => (currentPage - 1) * itemsPerPage + i + 1,
+    },
     {
       header: "Question",
       render: (row) => {
@@ -740,17 +767,17 @@ const QuestionManager = ({ chapter, onBack }) => {
           {[
             {
               label: "Easy",
-              count: questions.filter((q) => q.difficulty === "EASY").length,
+              count: stats.EASY,
               cls: "bg-green-50  border-green-200  text-green-700",
             },
             {
               label: "Medium",
-              count: questions.filter((q) => q.difficulty === "MEDIUM").length,
+              count: stats.MEDIUM,
               cls: "bg-yellow-50 border-yellow-200 text-yellow-700",
             },
             {
               label: "Hard",
-              count: questions.filter((q) => q.difficulty === "HARD").length,
+              count: stats.HARD,
               cls: "bg-red-50    border-red-200    text-red-700",
             },
           ].map((s) => (
@@ -774,6 +801,17 @@ const QuestionManager = ({ chapter, onBack }) => {
         loading={loading}
         rowKey="id"
         emptyMessage="No questions found for this chapter."
+      />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalCount}
+        itemsPerPage={itemsPerPage}
+        onPageChange={setCurrentPage}
+        onItemsPerPageChange={(value) => {
+          setItemsPerPage(value);
+          setCurrentPage(1);
+        }}
       />
 
       {/* ── Modals ── */}

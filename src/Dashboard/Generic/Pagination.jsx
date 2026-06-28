@@ -46,7 +46,7 @@ const Pagination = ({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+    <div className="bg-white md:p-4 p-2 flex flex-col md:flex-row justify-between items-center mt-2 gap-4">
       {/* Left Section */}
       <div className="flex items-center gap-4 flex-wrap">
         {showPerPage && (

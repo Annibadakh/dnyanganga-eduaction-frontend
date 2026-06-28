@@ -1,29 +1,153 @@
 import React, { useState, useEffect } from "react";
 import api from "../../Api";
 import JobCreation from "./JobCreation";
+import ReceiverList from "./ReceiverList";
+import DataTable from "../Generic/DataTable";
+import Pagination from "../Generic/Pagination";
+import Button from "../Generic/Button";
 
 const JobsList = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [retryingJobId, setRetryingJobId] = useState(null);
+  const [viewingJobId, setViewingJobId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    job: null,
+  });
+
+  const columns = [
+    {
+      header: "Sr. No.",
+      render: (_, index) => (currentPage - 1) * itemsPerPage + index + 1,
+    },
+    {
+      header: "Job Name",
+      accessor: "job_name",
+    },
+    {
+      header: "Template",
+      render: (row) => row.Template?.name || "-",
+    },
+    {
+      header: "Language",
+      render: (row) => row.Template?.language?.toUpperCase() || "-",
+    },
+    {
+      header: "Total Records",
+      accessor: "total_receivers",
+    },
+    {
+      header: "Delivered",
+      accessor: "delivered_count",
+    },
+    {
+      header: "Pending",
+      accessor: "pending_count",
+    },
+    {
+      header: "Scheduled Date",
+      render: (row) => formatDate(row.schedule_date),
+    },
+    {
+      header: "Job Status",
+      render: (row) => (
+        <span
+          className={`inline-flex px-2 py-1 text-xs rounded-full ${getStatusColor(
+            row.job_status,
+          )}`}
+        >
+          {formatStatusLabel(row.job_status)}
+        </span>
+      ),
+    },
+    {
+      header: "Scheduler Status",
+      render: (row) => row.scheduler_status || "-",
+    },
+    {
+      header: "Scheduler Failed Reason",
+      render: (row) =>
+        row.scheduler_status === "failed" ? row.scheduler_error || "-" : "-",
+    },
+    {
+      header: "Created",
+      render: (row) => formatDate(row.createdAt),
+    },
+    {
+      header: "Action",
+      render: (row) => (
+        <div className="flex items-center gap-2 flex-nowrap">
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => setViewingJobId(row.id)}
+          >
+            View
+          </Button>
+
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() =>
+              setDeleteDialog({
+                open: true,
+                job: row,
+              })
+            }
+          >
+            Delete
+          </Button>
+
+          {row.scheduler_status === "failed" && (
+            <Button
+              size="sm"
+              variant="warning"
+              loading={retryingJobId === row.id}
+              onClick={() => handleRetryScheduler(row.id)}
+            >
+              Retry
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  const closeDeleteDialog = () => {
+    setDeleteDialog({
+      open: false,
+      job: null,
+    });
+  };
 
   useEffect(() => {
     fetchJobs();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const fetchJobs = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await api.get("/jobs");
+      const response = await api.get("/jobs", {
+        params: {
+          page: currentPage,
+          limit: itemsPerPage,
+        },
+      });
 
       if (response.data.success) {
         setJobs(response.data.data);
-        // console.log('Fetched jobs:', response.data.data);
+        setTotalPages(response.data.totalPages);
+        setTotalCount(response.data.totalCount);
       }
     } catch (err) {
       setError("Failed to load jobs");
@@ -33,15 +157,17 @@ const JobsList = () => {
     }
   };
 
-  const handleDelete = async (jobId) => {
+  const handleDelete = async () => {
+    if (!deleteDialog.job) return;
+
     try {
       setLoading(true);
 
-      const response = await api.delete(`/jobs/${jobId}`);
+      const response = await api.delete(`/jobs/${deleteDialog.job.id}`);
 
       if (response.data.success) {
         alert("Job deleted successfully!");
-        setDeleteConfirm(null);
+        closeDeleteDialog();
         fetchJobs();
       }
     } catch (err) {
@@ -118,6 +244,12 @@ const JobsList = () => {
     );
   }
 
+  if (viewingJobId) {
+    return (
+      <ReceiverList jobId={viewingJobId} onBack={() => setViewingJobId(null)} />
+    );
+  }
+
   if (loading && jobs.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -127,22 +259,16 @@ const JobsList = () => {
   }
 
   return (
-    <div className="p-6 bg-white shadow-custom max-w-7xl mx-auto">
+    <div className="p-2 shadow-custom max-w-7xl mx-auto">
       <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-secondary">WhatsApp Jobs</h1>
-          <p className="text-gray-600 text-sm mt-1">
-            View all scheduled messaging jobs
-          </p>
-        </div>
+        <h1 className="text-3xl text-center font-bold text-primary">
+          WhatsApp Jobs
+        </h1>
 
         {/* ✅ Create Job Button */}
-        <button
-          onClick={() => setShowCreate(true)}
-          className="px-6 py-2 bg-primary text-white rounded hover:bg-primary/90"
-        >
+        <Button variant="primary" onClick={() => setShowCreate(true)}>
           + Create Job
-        </button>
+        </Button>
       </div>
 
       {error && (
@@ -161,164 +287,62 @@ const JobsList = () => {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Job Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Template
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total Records
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Delivered
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Pending
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Scheduled Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Scheduler
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {jobs.map((job) => (
-                <React.Fragment key={job.id}>
-                  <tr className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {job.job_name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-600">
-                        {job.Template?.name || "-"}
-                      </div>
-                      {job.Template?.language && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded mt-1 inline-block">
-                          {job.Template.language.toUpperCase()}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-primary">
-                        {job.total_receivers}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-green-600">
-                        {job.delivered_count ?? 0}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-yellow-600">
-                        {job.pending_count ?? 0}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
-                        {formatDate(job.schedule_date)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.job_status)}`}
-                      >
-                        {formatStatusLabel(job.job_status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs text-gray-600">
-                          {job.scheduler_status || "-"}
-                        </span>
+          <DataTable
+            columns={columns}
+            data={jobs}
+            loading={loading}
+            error={error}
+            rowKey="id"
+          />
 
-                        {job.scheduler_status === "failed" && (
-                          <>
-                            {job.scheduler_error && (
-                              <span
-                                className="text-xs text-red-600 max-w-[160px] truncate"
-                                title={job.scheduler_error}
-                              >
-                                {job.scheduler_error}
-                              </span>
-                            )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(value) => {
+              setItemsPerPage(value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+      )}
+      {deleteDialog.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
+            <div className="border-b px-6 py-4">
+              <h2 className="text-lg font-semibold text-gray-800">
+                Delete Job
+              </h2>
+            </div>
 
-                            <button
-                              onClick={() => handleRetryScheduler(job.id)}
-                              disabled={retryingJobId === job.id}
-                              className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200 font-medium disabled:opacity-50 w-fit"
-                            >
-                              {retryingJobId === job.id
-                                ? "Retrying..."
-                                : "Retry Scheduler"}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500">
-                        {formatDate(job.createdAt)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => setDeleteConfirm(job.id)}
-                        className="text-sm text-red-600 hover:text-red-800 font-medium"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
+            <div className="px-6 py-5">
+              <p className="text-gray-700">
+                Are you sure you want to delete
+                <span className="font-semibold">
+                  {" "}
+                  "{deleteDialog.job?.job_name}"
+                </span>
+                ?
+              </p>
 
-                  {/* Delete Confirmation Row */}
-                  {deleteConfirm === job.id && (
-                    <tr>
-                      <td colSpan="10" className="px-6 py-4 bg-red-50">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-red-800 font-medium">
-                            Are you sure you want to delete "{job.job_name}"?
-                            This will also delete all pending receivers.
-                          </p>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleDelete(job.id)}
-                              className="px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700"
-                              disabled={loading}
-                            >
-                              {loading ? "Deleting..." : "Yes, Delete"}
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirm(null)}
-                              className="px-4 py-2 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
+              <p className="mt-2 text-sm text-red-600">
+                This action will permanently delete the job and all pending
+                receivers. This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t px-6 py-4">
+              <Button variant="secondary" onClick={closeDeleteDialog}>
+                Cancel
+              </Button>
+
+              <Button variant="danger" loading={loading} onClick={handleDelete}>
+                Delete
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

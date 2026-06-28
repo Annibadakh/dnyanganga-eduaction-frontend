@@ -8,20 +8,20 @@ const QuizCreate = () => {
   const navigate = useNavigate();
 
   // ---------------- STATE ----------------
-  const [title, setTitle]                   = useState("");
-  const [selectionType, setSelectionType]   = useState("DYNAMIC");
-  const [standards, setStandards]           = useState([]);
-  const [subjects, setSubjects]             = useState([]);
-  const [chapters, setChapters]             = useState([]);
+  const [title, setTitle] = useState("");
+  const [selectionType, setSelectionType] = useState("DYNAMIC");
+  const [standards, setStandards] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [chapters, setChapters] = useState([]);
   const [selectedStandard, setSelectedStandard] = useState(null);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
-  const [chapterData, setChapterData]       = useState([]);
-  const [marksPerQue, setMarksPerQue]       = useState(1);
-  const [duration, setDuration]             = useState(60);
-  const [quizDate, setQuizDate]             = useState("");
-  const [startTime, setStartTime]           = useState("");
-  const [endTime, setEndTime]               = useState("");
-  const [submitting, setSubmitting]         = useState(false);
+  const [chapterData, setChapterData] = useState([]);
+  const [marksPerQue, setMarksPerQue] = useState(1);
+  const [duration, setDuration] = useState(60);
+  const [quizDate, setQuizDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   // ---------------- FETCH ----------------
   const fetchStandards = async () => {
@@ -29,7 +29,7 @@ const QuizCreate = () => {
     setStandards(
       res.data.data
         .filter((std) => !std.baseStandardId)
-        .map((std) => ({ label: std.name, value: std.id }))
+        .map((std) => ({ label: std.name, value: std.id })),
     );
   };
 
@@ -39,22 +39,29 @@ const QuizCreate = () => {
       res.data.data.subjects.map((sub) => ({
         label: sub.subjectName,
         value: sub.subjectCode,
-      }))
+      })),
     );
   };
 
   const fetchChapters = async (subjectIds) => {
     let all = [];
     for (let id of subjectIds) {
-      const res = await api.get("/question-bank/chapter", { params: { subjectId: id } });
-      all = [...all, ...res.data];
+      const res = await api.get("/question-bank/chapter", {
+        params: { subjectId: id },
+      });
+      console.log(res.data);
+      all = [...all, ...res.data.data];
     }
     setChapters(all);
-    setChapterData(all.map((ch) => ({ chapterId: ch.id, name: ch.name, queCount: 0 })));
+    setChapterData(
+      all.map((ch) => ({ chapterId: ch.id, name: ch.name, queCount: 0 })),
+    );
   };
 
   // ---------------- EFFECTS ----------------
-  useEffect(() => { fetchStandards(); }, []);
+  useEffect(() => {
+    fetchStandards();
+  }, []);
 
   useEffect(() => {
     if (selectedStandard) {
@@ -74,12 +81,12 @@ const QuizCreate = () => {
   const updateCount = (chapterId, value) =>
     setChapterData((prev) =>
       prev.map((ch) =>
-        ch.chapterId === chapterId ? { ...ch, queCount: Number(value) } : ch
-      )
+        ch.chapterId === chapterId ? { ...ch, queCount: Number(value) } : ch,
+      ),
     );
 
   const totalQuestions = chapterData.reduce((sum, ch) => sum + ch.queCount, 0);
-  const totalMarks     = totalQuestions * marksPerQue;
+  const totalMarks = totalQuestions * marksPerQue;
 
   // ---------------- SUBMIT ----------------
   const handleSubmit = async () => {
@@ -109,12 +116,12 @@ const QuizCreate = () => {
     }
   };
 
-  const inputCls = "w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition";
+  const inputCls =
+    "w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition";
   const labelCls = "block text-sm text-gray-600 mb-1";
 
   return (
     <div className="p-2 container mx-auto">
-
       {/* ── Page Title ── */}
       <h1 className="text-3xl text-center font-bold text-primary mb-6">
         Create Quiz
@@ -136,6 +143,7 @@ const QuizCreate = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className={inputCls}
+              required
             />
           </div>
 
@@ -147,7 +155,7 @@ const QuizCreate = () => {
               value={selectedStandard}
               onChange={setSelectedStandard}
               placeholder="Select Standard"
-              isRequired={false}
+              isRequired={true}
             />
           </div>
 
@@ -158,6 +166,7 @@ const QuizCreate = () => {
               value={selectionType}
               onChange={(e) => setSelectionType(e.target.value)}
               className={inputCls}
+              required
             >
               <option value="DYNAMIC">Dynamic</option>
               <option value="FIXED">Fixed</option>
@@ -173,7 +182,7 @@ const QuizCreate = () => {
               onChange={setSelectedSubjects}
               placeholder="Select Subjects"
               isMulti
-              isRequired={false}
+              isRequired={true}
             />
           </div>
         </div>
@@ -297,7 +306,6 @@ const QuizCreate = () => {
           Create Quiz
         </Button>
       </div>
-
     </div>
   );
 };
