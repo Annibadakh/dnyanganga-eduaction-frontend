@@ -7,7 +7,7 @@ import { useAuth } from "../Context/AuthContext";
 import { DashboardContext } from "../Context/DashboardContext";
 import CustomSelect from "./Generic/CustomSelect";
 import DataTable from "./Generic/DataTable";
-import { Users, DollarSign, TrendingUp, Clock } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Clock, PlayCircle } from "lucide-react";
 
 const StatCard = ({ title, value, icon: Icon }) => (
   <div className="bg-white border rounded-lg p-4 shadow-sm flex justify-between">
@@ -119,16 +119,17 @@ const CounsellorReport = () => {
 
     // Transform data for Excel
     const excelData = data.map((row) => ({
-      Counsellor: row.counsellorName,
-      Students: row.students.registered,
+      "Counsellor Name": row.counsellorName,
+      Admissions: row.students.registered,
+      Visiting: row.visiting.total,
       Booking: row.students.booking,
-      Half_Paid: row.students.halfCash,
-      Full_Paid: row.students.fullCash,
-      Total_Collection: row.payments.totalCollection,
-      Initial_Collection: row.payments.initialCollection,
+      "Half Cash": row.students.halfCash,
+      "Full Cash": row.students.fullCash,
+      "Initial Collection": row.payments.initialCollection,
       Recollection: row.payments.recollection,
-      Total_Due: row.dues.totalDue,
-      Visits: row.visiting.total,
+      "Total Collection": row.payments.totalCollection,
+      "Total Due": row.dues.totalDue,
+      "Total Demo": row.visiting.total + row.students.registered, // Assuming demo is sum of visits and students, adjust as needed
     }));
 
     // Create worksheet
@@ -154,32 +155,32 @@ const CounsellorReport = () => {
   // Table columns
   const columns = [
     {
-      header: "Sr No",
+      header: "Sr No.",
       render: (row, index) => index + 1,
     },
     {
-      header: "Counsellor",
+      header: "Counsellor Name",
       render: (row) => row.counsellorName,
     },
     {
-      header: "Students",
+      header: "Admissions",
       render: (row) => row.students.registered,
+    },
+    {
+      header: "Visiting",
+      render: (row) => row.visiting.total,
     },
     {
       header: "Booking",
       render: (row) => row.students.booking,
     },
     {
-      header: "Half Paid",
+      header: "Half Cash",
       render: (row) => row.students.halfCash,
     },
     {
-      header: "Full Paid",
+      header: "Full Cash",
       render: (row) => row.students.fullCash,
-    },
-    {
-      header: "Collection",
-      render: (row) => `₹${row.payments.totalCollection}`,
     },
     {
       header: "Initial",
@@ -190,12 +191,16 @@ const CounsellorReport = () => {
       render: (row) => `₹${row.payments.recollection}`,
     },
     {
+      header: "Collection",
+      render: (row) => `₹${row.payments.totalCollection}`,
+    },
+    {
       header: "Due",
       render: (row) => `₹${row.dues.totalDue}`,
     },
     {
-      header: "Visits",
-      render: (row) => row.visiting.total,
+      header: "Demo",
+      render: (row) => row.visiting.total + row.students.registered, // Assuming demo is sum of visits and students, adjust as needed
     },
   ];
 
@@ -214,48 +219,70 @@ const CounsellorReport = () => {
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap gap-3 justify-start">
-        <input
-          type="number"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-          className="border p-2 rounded"
-          placeholder="Year"
-        />
+        {/* Year */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600">Year</label>
+          <input
+            type="number"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            className="border p-2 rounded"
+            placeholder="Year"
+          />
+        </div>
 
-        <CustomSelect
-          options={monthOptions}
-          value={monthOptions.find((m) => m.value === month) || null}
-          onChange={(val) => setMonth(val?.value || "")}
-          placeholder="Select Month"
-        />
+        {/* Month */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600">Month</label>
+          <CustomSelect
+            options={monthOptions}
+            value={monthOptions.find((m) => m.value === month) || null}
+            onChange={(val) => setMonth(val?.value || "")}
+            placeholder="Select Month"
+          />
+        </div>
 
-        <CustomSelect
-          options={weekOptions}
-          value={weekOptions.find((w) => w.value === week) || null}
-          onChange={(val) => setWeek(val?.value || "")}
-          placeholder="Select Week"
-        />
+        {/* Week */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600">Week</label>
+          <CustomSelect
+            options={weekOptions}
+            value={weekOptions.find((w) => w.value === week) || null}
+            onChange={(val) => setWeek(val?.value || "")}
+            placeholder="Select Week"
+          />
+        </div>
 
-        <input
-          type="number"
-          min={1}
-          max={31}
-          value={day}
-          onChange={(e) => setDay(e.target.value)}
-          className="border p-2 rounded w-40"
-          placeholder="Day"
-        />
+        {/* Day */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600">Day</label>
+          <input
+            type="number"
+            min={1}
+            max={31}
+            value={day}
+            onChange={(e) => setDay(e.target.value)}
+            className="border p-2 rounded w-40"
+            placeholder="Day"
+          />
+        </div>
 
         {/* Admin Counsellor Filter */}
         {user.role === "admin" && (
-          <CustomSelect
-            options={counsellor}
-            value={selectedCounsellor}
-            onChange={setSelectedCounsellor}
-            placeholder="Select Counsellor"
-          />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-600">
+              Counsellor
+            </label>
+            <CustomSelect
+              options={counsellor}
+              value={selectedCounsellor}
+              onChange={setSelectedCounsellor}
+              placeholder="Select Counsellor"
+            />
+          </div>
         )}
-        <div className="flex justify-end mb-4">
+
+        <div className="flex items-end mb-0">
           <button
             onClick={handleExportExcel}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
@@ -266,15 +293,24 @@ const CounsellorReport = () => {
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Total Students" value={totalStudents} icon={Users} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <StatCard title="Total Admissions" value={totalStudents} icon={Users} />
+        <StatCard
+          title="Total Visiting"
+          value={totalVisits}
+          icon={TrendingUp}
+        />
+        <StatCard
+          title="Total Demo"
+          value={totalVisits + totalStudents} // Assuming demo is sum of visits and students, adjust as needed
+          icon={PlayCircle}
+        />
         <StatCard
           title="Total Collection"
           value={`₹${totalCollection}`}
           icon={DollarSign}
         />
         <StatCard title="Total Due" value={`₹${totalDue}`} icon={Clock} />
-        <StatCard title="Total Visits" value={totalVisits} icon={TrendingUp} />
       </div>
 
       {/* Table */}

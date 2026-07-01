@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import api from "../../Api";
 import { DashboardContext } from "../../Context/DashboardContext";
 import CustomSelect from "../Generic/CustomSelect";
+import DateField from "../Generic/DateField";
 
 const Excel = () => {
   const { counsellor, examCenter } = useContext(DashboardContext);
@@ -21,6 +22,7 @@ const Excel = () => {
   const [toDate, setToDate] = useState("");
   const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
   const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
   const allColumns = [
     "createdAt",
@@ -82,7 +84,7 @@ const Excel = () => {
   // Generate exam year options (current year - 1, and 4 years before that)
   const getExamYearOptions = () => {
     const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 1;
+    const startYear = currentYear - 2;
     const years = [];
     for (let i = 0; i < 5; i++) {
       years.push(startYear + i);
@@ -165,6 +167,46 @@ const Excel = () => {
       return { wch: optimalWidth };
     });
   };
+
+  const getFilteredCount = useCallback(async () => {
+    try {
+      if (!validateDateRange()) return;
+
+      const body = {
+        standard: selectedStandard || null,
+        counsellor: selectedCounsellor?.value || null,
+        examCentre: selectedExamCentre?.value || null,
+        examYear: selectedExamYear || null,
+        fromDate: fromDate || null,
+        toDate: toDate || null,
+        onlyZeroRemaining,
+        onlyNonZeroRemaining,
+      };
+
+      const { data } = await api.post(
+        "/counsellor/getFilteredRegisterCount",
+        body,
+      );
+
+      setTotalCount(data.totalCount);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [
+    selectedStandard,
+    selectedCounsellor,
+    selectedExamCentre,
+    selectedExamYear,
+    fromDate,
+    toDate,
+    onlyZeroRemaining,
+    onlyNonZeroRemaining,
+    validateDateRange,
+  ]);
+
+  useEffect(() => {
+    getFilteredCount();
+  }, [getFilteredCount]);
 
   const handleGenerateExcel = async () => {
     if (!validateDateRange()) return;
@@ -296,30 +338,21 @@ const Excel = () => {
           ))}
         </select>
 
-        <div className="min-w-52 flex flex-row items-center gap-2 border border-gray-300 p-2">
-          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
-            From Date:
-          </label>
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="flex-1 outline-none"
-            disabled={loading}
-          />
-        </div>
-        <div className="min-w-52 flex flex-row items-center gap-2 border border-gray-300 p-2">
-          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
-            To Date:
-          </label>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="flex-1 outline-none"
-            disabled={loading}
-          />
-        </div>
+        <DateField
+          id="fromDate"
+          label="From Date:"
+          value={fromDate}
+          onChange={setFromDate}
+          disabled={loading}
+        />
+
+        <DateField
+          id="toDate"
+          label="To Date:"
+          value={toDate}
+          onChange={setToDate}
+          disabled={loading}
+        />
 
         <div className="flex flex-col space-y-2">
           <label className="flex items-center space-x-2">
@@ -388,6 +421,9 @@ const Excel = () => {
       </div>
 
       <div className="flex gap-7 items-center">
+        <span className="text-lg font-semibold text-primary">
+          Total Students: {totalCount}
+        </span>
         <button
           onClick={handleGenerateExcel}
           className="bg-green-600 text-white px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg hover:bg-green-700 transition"

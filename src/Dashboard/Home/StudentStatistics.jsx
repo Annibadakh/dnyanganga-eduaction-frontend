@@ -17,9 +17,12 @@ import {
   School,
   Calendar,
   AlertTriangle,
+  Banknote,
 } from "lucide-react";
 import { DashboardContext } from "../../Context/DashboardContext";
 import CustomSelect from "../Generic/CustomSelect";
+import DateField from "../Generic/DateField";
+import SelectField from "../Generic/SelectField";
 
 const StatCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
   const colorClasses = {
@@ -146,6 +149,41 @@ const StudentStatistics = () => {
     dateTo ||
     selectedExamYear;
 
+  const downloadDueStudents = async (type) => {
+    try {
+      const params = {
+        type,
+        counsellor: selectedCounsellor?.value || "",
+        branch: selectedBranch?.value || "",
+        examCentre: selectedExamCentre?.value || "",
+        standard: selectedStandard,
+        status: selectedStatus,
+        dateFrom,
+        dateTo,
+        examYear: selectedExamYear,
+      };
+
+      const response = await api.get("/counsellor/downloadDueStudents", {
+        params,
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      const link = document.createElement("a");
+
+      link.href = url;
+
+      link.download = `${type}_students.xlsx`;
+
+      link.click();
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="container mx-auto">
       <h1 className="text-3xl text-center font-bold text-primary mb-6">
@@ -159,37 +197,26 @@ const StudentStatistics = () => {
         {/* Date Range Filters */}
         <div className="flex flex-col md:flex-row justify-start gap-4 mb-4">
           <div className="flex flex-col md:flex-row gap-4 items-end">
-            <div className="flex flex-col">
-              <label htmlFor="dateFrom" className="text-sm text-gray-600 mb-1">
-                From Date
-              </label>
-              <input
-                id="dateFrom"
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                max={dateTo || undefined}
-                className="p-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label htmlFor="dateTo" className="text-sm text-gray-600 mb-1">
-                To Date
-              </label>
-              <input
-                id="dateTo"
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                min={dateFrom || undefined}
-                className="p-2 border border-gray-300 rounded-lg"
-              />
-            </div>
+            <DateField
+              id="dateFrom"
+              label="From Date"
+              value={dateFrom}
+              onChange={setDateFrom}
+              max={dateTo || undefined}
+            />
+
+            <DateField
+              id="dateTo"
+              label="To Date"
+              value={dateTo}
+              onChange={setDateTo}
+              min={dateFrom || undefined}
+            />
           </div>
         </div>
 
         {/* Other Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <div className="flex flex-col md:flex-row gap-4 mb-4 flex-wrap">
           {(user.role === "admin" || user.role === "followUp") && (
             <>
               <CustomSelect
@@ -217,51 +244,46 @@ const StudentStatistics = () => {
             placeholder="Select Exam Centre"
           />
 
-          <div className="w-full md:w-1/4">
-            <label className="text-sm text-gray-600 mb-1 block">Standard</label>
-            <select
-              value={selectedStandard}
-              onChange={(e) => setSelectedStandard(e.target.value)}
-              className="p-2 w-full border border-gray-300 rounded-lg"
-            >
-              <option value="">All Standards</option>
-              <option value="9th+10th">9th+10th</option>
-              <option value="10th">10th</option>
-              <option value="11th+12th">11th+12th</option>
-              <option value="12th">12th</option>
-            </select>
-          </div>
+          <SelectField
+            id="standard"
+            label="Standard"
+            value={selectedStandard}
+            onChange={setSelectedStandard}
+            placeholder="All Standards"
+            options={[
+              { label: "9th+10th", value: "9th+10th" },
+              { label: "10th", value: "10th" },
+              { label: "11th+12th", value: "11th+12th" },
+              { label: "12th", value: "12th" },
+            ]}
+            className="w-full md:w-1/4"
+          />
 
-          <div className="w-full md:w-1/4">
-            <label className="text-sm text-gray-600 mb-1 block">
-              Exam Year
-            </label>
-            <select
-              value={selectedExamYear}
-              onChange={(e) => setSelectedExamYear(e.target.value)}
-              className="p-2 w-full border border-gray-300 rounded-lg"
-            >
-              <option value="">All Exam Years</option>
-              {getExamYearOptions().map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SelectField
+            id="examYear"
+            label="Exam Year"
+            value={selectedExamYear}
+            onChange={setSelectedExamYear}
+            placeholder="All Exam Years"
+            options={getExamYearOptions().map((year) => ({
+              label: year,
+              value: year,
+            }))}
+            className="w-full md:w-1/4"
+          />
 
-          <div className="w-full md:w-1/4">
-            <label className="text-sm text-gray-600 mb-1 block">Status</label>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="p-2 w-full border border-gray-300 rounded-lg"
-            >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
+          <SelectField
+            id="status"
+            label="Status"
+            value={selectedStatus}
+            onChange={setSelectedStatus}
+            placeholder="All Status"
+            options={[
+              { label: "Active", value: "active" },
+              { label: "Inactive", value: "inactive" },
+            ]}
+            className="w-full md:w-1/4"
+          />
         </div>
 
         {hasActiveFilters && (
@@ -331,7 +353,7 @@ const StudentStatistics = () => {
             <h2 className="text-xl font-semibold mb-4 text-gray-700">
               Financial Overview
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard
                 title="Total Amount"
                 value={`₹${statistics.totalAmount?.toLocaleString("en-IN") || 0}`}
@@ -351,6 +373,12 @@ const StudentStatistics = () => {
                 subtitle={`${statistics.remainingPercentage || 0}% pending`}
                 icon={Clock}
                 color="orange"
+              />
+              <StatCard
+                title="Collection Amount"
+                value={`₹${statistics.totalCollectionPaid?.toLocaleString("en-IN") || 0}`}
+                icon={Banknote}
+                color="purple"
               />
             </div>
           </div>
@@ -439,34 +467,49 @@ const StudentStatistics = () => {
                 Due Dates Overview
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <StatCard
-                  title="Overdue Payments"
-                  value={
-                    statistics.dueStatus.overdue?.toLocaleString("en-IN") || 0
-                  }
-                  subtitle="Past due date"
-                  icon={AlertTriangle}
-                  color="red"
-                />
-                <StatCard
-                  title="Due This Week"
-                  value={
-                    statistics.dueStatus.dueThisWeek?.toLocaleString("en-IN") ||
-                    0
-                  }
-                  icon={Calendar}
-                  color="yellow"
-                />
-                <StatCard
-                  title="Due This Month"
-                  value={
-                    statistics.dueStatus.dueThisMonth?.toLocaleString(
-                      "en-IN",
-                    ) || 0
-                  }
-                  icon={Calendar}
-                  color="orange"
-                />
+                <div
+                  className="cursor-pointer"
+                  onClick={() => downloadDueStudents("overdue")}
+                >
+                  <StatCard
+                    title="Overdue Payments"
+                    value={
+                      statistics.dueStatus.overdue?.toLocaleString("en-IN") || 0
+                    }
+                    icon={AlertTriangle}
+                    color="red"
+                  />
+                </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => downloadDueStudents("week")}
+                >
+                  <StatCard
+                    title="Due This Week"
+                    value={
+                      statistics.dueStatus.dueThisWeek?.toLocaleString(
+                        "en-IN",
+                      ) || 0
+                    }
+                    icon={Calendar}
+                    color="yellow"
+                  />
+                </div>
+                <div
+                  className="cursor-pointer"
+                  onClick={() => downloadDueStudents("month")}
+                >
+                  <StatCard
+                    title="Due This Month"
+                    value={
+                      statistics.dueStatus.dueThisMonth?.toLocaleString(
+                        "en-IN",
+                      ) || 0
+                    }
+                    icon={Calendar}
+                    color="orange"
+                  />
+                </div>
               </div>
             </div>
           )}
