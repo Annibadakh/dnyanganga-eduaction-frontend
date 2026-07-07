@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import api from "../../Api";
 import { DashboardContext } from "../../Context/DashboardContext";
 import { useToast } from "../../useToast";
+import Pagination from "../Generic/Pagination";
+import DataTable from "../Generic/DataTable";
 
 const AddUser = () => {
   const { getCounsellor } = useContext(DashboardContext);
@@ -27,8 +29,9 @@ const AddUser = () => {
     counsellorBranch: "",
     commission: "",
     dob: "",
+    joiningDate: "",
     password: "",
-    reenterPassword: ""
+    reenterPassword: "",
   });
 
   const [formData, setFormData] = useState({
@@ -39,20 +42,52 @@ const AddUser = () => {
     counsellorBranch: "",
     commission: "",
     dob: "",
+    joiningDate: "",
     password: "",
-    reenterPassword: ""
+    reenterPassword: "",
   });
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [currentPage, itemsPerPage, debouncedSearch]);
 
   const fetchUsers = () => {
-    api.get("/admin/getUserWithDetails").then((res) => {
-      setUsers(res.data.data);
-    }).catch((err) => {
-      console.error("Error fetching users", err);
-    });
+    api
+      .get("/admin/getUserWithDetails", {
+        params: {
+          page: currentPage,
+          limit: itemsPerPage,
+          search: debouncedSearch,
+        },
+      })
+      .then((res) => {
+        setUsers(res.data.data);
+
+        setCurrentPage(res.data.pagination.currentPage);
+        setTotalPages(res.data.pagination.totalPages);
+        setTotalCount(res.data.pagination.totalItems);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   const handleChange = (e) => {
@@ -62,7 +97,8 @@ const AddUser = () => {
 
     if (name === "password" || name === "reenterPassword") {
       const password = name === "password" ? value : formData.password;
-      const reenterPassword = name === "reenterPassword" ? value : formData.reenterPassword;
+      const reenterPassword =
+        name === "reenterPassword" ? value : formData.reenterPassword;
       if (reenterPassword && password !== reenterPassword) {
         setPasswordError("Passwords do not match");
       } else if (password && password.length < 6) {
@@ -80,7 +116,8 @@ const AddUser = () => {
 
     if (name === "password" || name === "reenterPassword") {
       const password = name === "password" ? value : editFormData.password;
-      const reenterPassword = name === "reenterPassword" ? value : editFormData.reenterPassword;
+      const reenterPassword =
+        name === "reenterPassword" ? value : editFormData.reenterPassword;
       if (reenterPassword && password !== reenterPassword) {
         setPasswordError("Passwords do not match");
       } else if (password && password.length < 6) {
@@ -121,11 +158,16 @@ const AddUser = () => {
     e.preventDefault();
     if (!validatePasswords()) return;
 
-    const newUser = { ...formData, counsellorBranch: formData.role === "counsellor" ? formData.counsellorBranch : null };
+    const newUser = {
+      ...formData,
+      counsellorBranch:
+        formData.role === "counsellor" ? formData.counsellorBranch : null,
+    };
     delete newUser.reenterPassword;
 
     setSubmitLoader(true);
-    api.post("/auth/register", newUser)
+    api
+      .post("/auth/register", newUser)
       .then((res) => {
         successToast(res.data.message);
         fetchUsers();
@@ -139,8 +181,9 @@ const AddUser = () => {
           counsellorBranch: "",
           commission: "",
           dob: "",
+          joiningDate: "",
           password: "",
-          reenterPassword: ""
+          reenterPassword: "",
         });
       })
       .catch((err) => {
@@ -164,7 +207,8 @@ const AddUser = () => {
       contactNum: editFormData.contactNum,
       counsellorBranch: editFormData.counsellorBranch,
       commission: editFormData.commission,
-      dob: editFormData.dob
+      dob: editFormData.dob,
+      joiningDate: editFormData.joiningDate,
     };
 
     // Only include password if it's being changed
@@ -172,7 +216,8 @@ const AddUser = () => {
       updateData.password = editFormData.password;
     }
 
-    api.put(`/admin/editUser/${selectedUser.uuid}`, updateData)
+    api
+      .put(`/admin/editUser/${selectedUser.uuid}`, updateData)
       .then((res) => {
         successToast(res.data.message);
         fetchUsers();
@@ -189,16 +234,24 @@ const AddUser = () => {
   };
 
   const handleDelete = (uuid) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this user?\nIf user has no registration then user get deleted else deactivated !!",
+    );
+
+    if (!confirmed) return;
     setUpdateLoader(uuid);
-    api.delete(`/admin/deleteUser/${uuid}`).then((res) => {
-      fetchUsers();
-      getCounsellor();
-      setUpdateLoader(null);
-      infoToast(res.data.message);
-    }).catch((err) => {
-      console.error("Error deleting user", err);
-      setUpdateLoader(null);
-    });
+    api
+      .delete(`/admin/deleteUser/${uuid}`)
+      .then((res) => {
+        fetchUsers();
+        getCounsellor();
+        setUpdateLoader(null);
+        infoToast(res.data.message);
+      })
+      .catch((err) => {
+        console.error("Error deleting user", err);
+        setUpdateLoader(null);
+      });
   };
 
   const openEditForm = (user) => {
@@ -210,9 +263,9 @@ const AddUser = () => {
       contactNum: user.contactNum || "",
       counsellorBranch: user.counsellorBranch || "",
       commission: user.commission || "",
-      dob: user.dob ? user.dob.split('T')[0] : "",
+      dob: user.dob ? user.dob.split("T")[0] : "",
       password: "",
-      reenterPassword: ""
+      reenterPassword: "",
     });
     setIsEditingPassword(false);
     setShowEditForm(true);
@@ -230,7 +283,7 @@ const AddUser = () => {
       commission: "",
       dob: "",
       password: "",
-      reenterPassword: ""
+      reenterPassword: "",
     });
     setPasswordError("");
     setShowPassword(false);
@@ -238,9 +291,102 @@ const AddUser = () => {
     setIsEditingPassword(false);
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (size) => {
+    setItemsPerPage(size);
+    setCurrentPage(1);
+  };
+  const columns = [
+    {
+      header: "Sr. No.",
+      render: (_, index) => (currentPage - 1) * itemsPerPage + index + 1,
+    },
+    {
+      header: "Name",
+      accessor: "name",
+    },
+    {
+      header: "Email",
+      accessor: "email",
+    },
+    {
+      header: "Role",
+      render: (row) => row.role?.toUpperCase(),
+    },
+    {
+      header: "Contact No.",
+      accessor: "contactNum",
+    },
+    {
+      header: "Date Of Birth",
+      render: (row) =>
+        row.dob ? new Date(row.dob).toLocaleDateString("en-GB") : "-",
+    },
+    {
+      header: "Joining Date",
+      render: (row) =>
+        row.joiningDate
+          ? new Date(row.joiningDate).toLocaleDateString("en-GB")
+          : "-",
+    },
+    {
+      header: "Branch",
+      render: (row) => row.counsellorBranch || "-",
+    },
+    {
+      header: "Status",
+      render: (row) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-semibold ${
+            row.isActive
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {row.isActive ? "Active" : "Inactive"}
+        </span>
+      ),
+    },
+    {
+      header: "Actions",
+      render: (row) => (
+        <div className="flex justify-left gap-2">
+          <button
+            onClick={() => openEditForm(row)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDelete(row.uuid)}
+            disabled={updateLoader === row.uuid}
+            className={`px-3 py-1 rounded-md text-white ${
+              row.isActive
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-green-500 hover:bg-green-600"
+            } disabled:opacity-50`}
+          >
+            {updateLoader === row.uuid ? (
+              <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full inline-block"></span>
+            ) : row.isActive ? (
+              "Deactivate"
+            ) : (
+              "Activate"
+            )}
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="p-2 container mx-auto">
-      <h1 className="text-3xl font-bold text-center text-primary mb-6">User Management</h1>
+      <h1 className="text-3xl font-bold text-center text-primary mb-6">
+        User Management
+      </h1>
 
       {!showForm && (
         <button
@@ -253,7 +399,9 @@ const AddUser = () => {
 
       {showForm && (
         <div className="mt-6 bg-white md:p-6 p-2 shadow-custom">
-          <h2 className="text-xl font-semibold mb-4 text-secondary">Add New User</h2>
+          <h2 className="text-xl font-semibold mb-4 text-secondary">
+            Add New User
+          </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input
@@ -318,7 +466,9 @@ const AddUser = () => {
                 >
                   {showReenterPassword ? "👁️" : "👁️‍🗨️"}
                 </button>
-                {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
+                {passwordError && (
+                  <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+                )}
               </div>
               <select
                 name="role"
@@ -339,6 +489,18 @@ const AddUser = () => {
                   name="dob"
                   placeholder="Date of Birth"
                   value={formData.dob}
+                  onChange={handleChange}
+                  required
+                  className="p-2 border w-full rounded-md"
+                />
+              </div>
+              <div className="flex flex-row items-center gap-2">
+                <p>Joining Date:</p>
+                <input
+                  type="date"
+                  name="joiningDate"
+                  placeholder="Joining Date"
+                  value={formData.joiningDate}
                   onChange={handleChange}
                   required
                   className="p-2 border w-full rounded-md"
@@ -386,7 +548,8 @@ const AddUser = () => {
           <div className="bg-white m-2 p-4 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl text-secondary font-bold mb-4">Edit User</h2>
             <p className="text-sm mb-4 text-gray-700">
-              Editing user: <strong className="text-primary">{selectedUser?.name}</strong>
+              Editing user:{" "}
+              <strong className="text-primary">{selectedUser?.name}</strong>
             </p>
 
             <form onSubmit={handleEditSubmit} className="space-y-4">
@@ -438,15 +601,30 @@ const AddUser = () => {
                     className="p-2 border rounded-md"
                   />
                 )}
-                <input
-                  type="date"
-                  name="dob"
-                  placeholder="Date of Birth"
-                  value={editFormData.dob}
-                  onChange={handleEditChange}
-                  required
-                  className="p-2 border rounded-md"
-                />
+                <div className="flex flex-row items-center gap-2">
+                  <p>DOB:</p>
+                  <input
+                    type="date"
+                    name="dob"
+                    placeholder="Date of Birth"
+                    value={editFormData.dob}
+                    onChange={handleEditChange}
+                    required
+                    className="p-2 border rounded-md"
+                  />
+                </div>
+                <div className="flex flex-row items-center gap-2">
+                  <p>Joining Date:</p>
+                  <input
+                    type="date"
+                    name="joiningDate"
+                    placeholder="Joining Date"
+                    value={editFormData.joiningDate}
+                    onChange={handleEditChange}
+                    required
+                    className="p-2 border rounded-md"
+                  />
+                </div>
               </div>
 
               {/* Password Change Section */}
@@ -459,7 +637,10 @@ const AddUser = () => {
                     onChange={(e) => setIsEditingPassword(e.target.checked)}
                     className="w-4 h-4"
                   />
-                  <label htmlFor="changePassword" className="text-sm font-medium">
+                  <label
+                    htmlFor="changePassword"
+                    className="text-sm font-medium"
+                  >
                     Change Password
                   </label>
                 </div>
@@ -494,14 +675,18 @@ const AddUser = () => {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowReenterPassword(!showReenterPassword)}
+                        onClick={() =>
+                          setShowReenterPassword(!showReenterPassword)
+                        }
                         className="absolute right-2 top-2 text-gray-500"
                       >
                         {showReenterPassword ? "👁️" : "👁️‍🗨️"}
                       </button>
                     </div>
                     {passwordError && (
-                      <p className="text-red-500 text-sm col-span-full">{passwordError}</p>
+                      <p className="text-red-500 text-sm col-span-full">
+                        {passwordError}
+                      </p>
                     )}
                   </div>
                 )}
@@ -534,60 +719,31 @@ const AddUser = () => {
 
       <div className="mt-6 md:p-6 p-2 bg-white shadow-custom">
         <div className="overflow-x-auto">
-          <table className="table-auto w-full text-center text-sm border border-gray-300 overflow-hidden">
-            <thead className="bg-primary text-white">
-              <tr>
-                <th className="p-3 whitespace-nowrap border">Sr. No.</th>
-                <th className="p-3 whitespace-nowrap border">Name</th>
-                <th className="p-3 whitespace-nowrap border">Email</th>
-                <th className="p-3 whitespace-nowrap border">Role</th>
-                <th className="p-3 whitespace-nowrap border">Contact No.</th>
-                <th className="p-3 whitespace-nowrap border">Date Of Birth</th>
-                <th className="p-3 whitespace-nowrap border">Branch</th>
-                <th className="p-3 whitespace-nowrap border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length > 0 ? users.map((user, i) => (
-                <tr key={user.uuid} className="hover:bg-gray-100 border-b">
-                  <td className="p-3 whitespace-nowrap border">{i + 1}</td>
-                  <td className="p-3 whitespace-nowrap border">{user.name}</td>
-                  <td className="p-3 whitespace-nowrap border">{user.email}</td>
-                  <td className="p-3 whitespace-nowrap border">{user.role.toUpperCase()}</td>
-                  <td className="p-3 whitespace-nowrap border">{user.contactNum}</td>
-                  <td className="p-3 whitespace-nowrap border">
-                    {user.dob ? new Date(user.dob).toLocaleDateString("en-GB") : ""}
-                  </td>
-                  <td className="p-3 whitespace-nowrap border">{user.counsellorBranch}</td>
-                  <td className="p-3 whitespace-nowrap border">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleDelete(user.uuid)}
-                        disabled={updateLoader === user.uuid}
-                        className={`${user.isActive ? "bg-red-500" : "bg-green-500"} text-white px-3 py-1 rounded-md hover:${user.isActive ? "bg-red-600" : "bg-green-600"} disabled:opacity-50`}
-                      >
-                        {updateLoader === user.uuid ? (
-                          <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                        ) : (
-                          user.isActive ? "Deactivate" : "Activate"
-                        )}
-                      </button>
-                      <button
-                        onClick={() => openEditForm(user)}
-                        className="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )) : (
-                <tr>
-                  <td colSpan="8" className="p-4 text-center text-gray-500">No users found</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <div className="flex justify-start">
+            <input
+              type="text"
+              placeholder="Search by name, email, contact..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border rounded-md px-3 py-2 w-full md:w-80"
+            />
+          </div>
+          <DataTable
+            columns={columns}
+            data={users}
+            loading={false}
+            error={null}
+            rowKey="uuid"
+          />
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
         </div>
       </div>
     </div>
