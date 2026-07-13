@@ -15,7 +15,7 @@ import {
 import renderMathText from "../Generic/RenderMathText";
 import ImagePreview from "../Generic/ImagePreview";
 
-const BATCH_SIZE = 2;
+const BATCH_SIZE = 10;
 
 // ─── Fullscreen helpers (cross-browser) ──────────────────────────────────────
 const fsApi = {
