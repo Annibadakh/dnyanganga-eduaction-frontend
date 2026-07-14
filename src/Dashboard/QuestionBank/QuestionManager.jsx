@@ -561,9 +561,10 @@ const QuestionDetailModal = ({ q, onClose }) => (
           Solution
         </p>
         <div className="overflow-x-auto">
-          <p className="font-semibold text-blue-800 text-sm leading-relaxed break-words whitespace-normal">
-            {renderMathText(q.solutionDescription)}
-          </p>
+          {renderMathText(q.solutionDescription)}
+          {/* <p className="font-semibold text-blue-800 text-sm leading-relaxed break-words whitespace-normal">
+            {q.solutionDescription}
+          </p> */}
         </div>
       </div>
     )}
@@ -717,13 +718,13 @@ const QuestionManager = ({ chapter, onBack }) => {
           >
             Edit
           </Button>
-          <Button
+          {/* <Button
             variant="danger"
             startIcon={<Trash2 size={15} />}
             onClick={() => setDeleteId(row.id)}
           >
             Delete
-          </Button>
+          </Button> */}
         </div>
       ),
     },

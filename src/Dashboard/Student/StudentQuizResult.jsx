@@ -189,8 +189,8 @@ const StudentQuizResult = () => {
               >
                 {/* Question header */}
                 <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex-1 overflow-hidden">
-                    <div className="text-sm font-semibold text-gray-800 leading-relaxed overflow-scroll">
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-gray-800">
                       <span className="text-primary font-bold mr-1">
                         Q{index + 1}.
                       </span>
@@ -287,9 +287,10 @@ const StudentQuizResult = () => {
                     <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">
                       Solution
                     </p>
-                    <p className="text-sm text-blue-800">
+                    <div>{renderMathText(question.solutionDescription)}</div>
+                    {/* <p className="text-sm text-blue-800">
                       {question.solutionDescription}
-                    </p>
+                    </p> */}
                   </div>
                 )}
               </div>

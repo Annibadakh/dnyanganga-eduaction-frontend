@@ -1,6 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Users, TrendingUp, ArrowRight, Landmark, House, School, School2 } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  MapPin,
+  Users,
+  TrendingUp,
+  ArrowRight,
+  Landmark,
+  House,
+  School,
+  School2,
+} from "lucide-react";
 import api from "../Api";
 
 const ExamCentersPreview = () => {
@@ -21,14 +30,13 @@ const ExamCentersPreview = () => {
   return (
     <section className="py-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
         {/* Heading */}
         <div className="text-center mb-12">
-          <div className='mb-10'>
-            <h1 className='md:w-72 w-52 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>
+          <div className="mb-10">
+            <h1 className="md:w-72 w-52 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary">
               Exam Centres
             </h1>
-            <div className='md:w-48 w-40 h-2 bg-secondary'></div>
+            <div className="md:w-48 w-40 h-2 bg-secondary"></div>
           </div>
 
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -70,7 +78,6 @@ const ExamCentersPreview = () => {
                   )}
                 </div> */}
 
-
                 {/* Content */}
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-customblack mb-2 text-center">
@@ -78,7 +85,6 @@ const ExamCentersPreview = () => {
                   </h3>
 
                   <div className="space-y-3 mt-4">
-
                     {/* Location */}
                     <div className="flex items-center gap-2 text-gray-600">
                       <MapPin className="w-4 h-4 text-primary" />
@@ -88,12 +94,12 @@ const ExamCentersPreview = () => {
                     </div>
 
                     {/* Students */}
-                    <div className="flex items-center gap-2 text-gray-600">
+                    {/* <div className="flex items-center gap-2 text-gray-600">
                       <Users className="w-4 h-4 text-green-600" />
                       <span className="text-sm">
                         {center.studentCount} Students
                       </span>
-                    </div>
+                    </div> */}
 
                     {/* Capacity */}
                     {/* <div className="flex items-center gap-2 text-gray-600">
@@ -110,7 +116,6 @@ const ExamCentersPreview = () => {
                         Remaining: {remaining >= 0 ? remaining : 0}
                       </span>
                     </div> */}
-
                   </div>
                 </div>
               </div>
@@ -128,7 +133,6 @@ const ExamCentersPreview = () => {
             <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
-
       </div>
     </section>
   );

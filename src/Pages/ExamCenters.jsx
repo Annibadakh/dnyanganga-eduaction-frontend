@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { MapPin, Users, Award, School2 } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { MapPin, Users, Award, School2 } from "lucide-react";
 import api from "../Api";
 
 import img7 from "../Images/gallery/img7.jpg";
@@ -11,7 +11,6 @@ import img12 from "../Images/gallery/img12.jpg";
 import img13 from "../Images/gallery/img13.jpg";
 import img14 from "../Images/gallery/img14.jpg";
 
-
 const ExamCenters = () => {
   const [centers, setCenters] = useState([]);
   const [page, setPage] = useState(1);
@@ -19,12 +18,14 @@ const ExamCenters = () => {
 
   const fetchCenters = async (pageNumber = 1) => {
     try {
-      const res = await api.get(`/simple/examCenter?limit=6&page=${pageNumber}`);
+      const res = await api.get(
+        `/simple/examCenter?limit=6&page=${pageNumber}`,
+      );
 
       if (pageNumber === 1) {
         setCenters(res.data.data);
       } else {
-        setCenters(prev => [...prev, ...res.data.data]); // 🔥 append
+        setCenters((prev) => [...prev, ...res.data.data]); // 🔥 append
       }
 
       setHasMore(res.data.pagination.hasMore);
@@ -42,23 +43,23 @@ const ExamCenters = () => {
     setPage(nextPage);
     fetchCenters(nextPage);
   };
-  const galleryImages = [
-    img7, img8, img9, img10, img11, img12, img13, img14
-  ];
+  const galleryImages = [img7, img8, img9, img10, img11, img12, img13, img14];
 
   const testimonials = [
     {
-      name: 'Amit Sharma',
-      center: 'Mumbai Central Campus',
-      feedback: 'Excellent infrastructure and supportive staff. The mock exams here helped me score 95% in boards.',
-      rating: 5
+      name: "Amit Sharma",
+      center: "Mumbai Central Campus",
+      feedback:
+        "Excellent infrastructure and supportive staff. The mock exams here helped me score 95% in boards.",
+      rating: 5,
     },
     {
-      name: 'Priya Desai',
-      center: 'Pune Education Hub',
-      feedback: 'The environment is very conducive to learning. Teachers are always available for doubt resolution.',
-      rating: 5
-    }
+      name: "Priya Desai",
+      center: "Pune Education Hub",
+      feedback:
+        "The environment is very conducive to learning. Teachers are always available for doubt resolution.",
+      rating: 5,
+    },
   ];
 
   return (
@@ -66,9 +67,12 @@ const ExamCenters = () => {
       {/* Hero Section */}
       <section className="hero-gradient py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-customwhite">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 font-custom">Exam Centers</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 font-custom">
+            Exam Centers
+          </h1>
           <p className="text-xl md:text-2xl max-w-3xl mx-auto">
-            State-of-the-art facilities designed to provide the best examination experience
+            State-of-the-art facilities designed to provide the best examination
+            experience
           </p>
         </div>
       </section>
@@ -77,15 +81,18 @@ const ExamCenters = () => {
       <section className="py-16 bg-customwhite">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className='mb-10'>
-              <h1 className='md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Our Exam Centers</h1>
-              <div className='md:w-48 w-40 h-2 bg-secondary'></div>
+            <div className="mb-10">
+              <h1 className="md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary">
+                Our Exam Centers
+              </h1>
+              <div className="md:w-48 w-40 h-2 bg-secondary"></div>
             </div>
             {/* <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
               Our Exam Centers
             </h2> */}
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Strategically located centers with modern facilities and expert supervision
+              Strategically located centers with modern facilities and expert
+              supervision
             </p>
           </div>
 
@@ -122,7 +129,6 @@ const ExamCenters = () => {
                             )}
                           </div> */}
 
-
                   {/* Content */}
                   <div className="p-6">
                     <h3 className="text-xl font-bold text-customblack mb-2 text-center">
@@ -130,7 +136,6 @@ const ExamCenters = () => {
                     </h3>
 
                     <div className="space-y-3 mt-4">
-
                       {/* Location */}
                       <div className="flex items-center gap-2 text-gray-600">
                         <MapPin className="w-4 h-4 text-primary" />
@@ -140,12 +145,12 @@ const ExamCenters = () => {
                       </div>
 
                       {/* Students */}
-                      <div className="flex items-center gap-2 text-gray-600">
+                      {/* <div className="flex items-center gap-2 text-gray-600">
                         <Users className="w-4 h-4 text-green-600" />
                         <span className="text-sm">
                           {center.studentCount} Students
                         </span>
-                      </div>
+                      </div> */}
 
                       {/* Capacity */}
                       {/* <div className="flex items-center gap-2 text-gray-600">
@@ -162,7 +167,6 @@ const ExamCenters = () => {
                                   Remaining: {remaining >= 0 ? remaining : 0}
                                 </span>
                               </div> */}
-
                     </div>
                   </div>
                 </div>
@@ -186,9 +190,11 @@ const ExamCenters = () => {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className='mb-10'>
-              <h1 className='md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Exam Center Gallery</h1>
-              <div className='md:w-48 w-40 h-2 bg-secondary'></div>
+            <div className="mb-10">
+              <h1 className="md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary">
+                Exam Center Gallery
+              </h1>
+              <div className="md:w-48 w-40 h-2 bg-secondary"></div>
             </div>
             {/* <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
               Exam Center Gallery
@@ -200,7 +206,10 @@ const ExamCenters = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {galleryImages.map((image, index) => (
-              <div key={index} className="relative group overflow-hidden rounded-lg shadow-custom">
+              <div
+                key={index}
+                className="relative group overflow-hidden rounded-lg shadow-custom"
+              >
                 <img
                   src={image}
                   alt={`Exam center facility ${index + 1}`}
@@ -217,9 +226,11 @@ const ExamCenters = () => {
       <section className="py-16 bg-customwhite">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className='mb-10'>
-              <h1 className='md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary'>Student Feedback</h1>
-              <div className='md:w-48 w-40 h-2 bg-secondary'></div>
+            <div className="mb-10">
+              <h1 className="md:w-72 w-60 p-2 capitalize text-white text-xl md:text-2xl font-semibold md:pr-10 pr-5 text-end mb-2 bg-primary">
+                Student Feedback
+              </h1>
+              <div className="md:w-48 w-40 h-2 bg-secondary"></div>
             </div>
             {/* <h2 className="text-3xl md:text-4xl font-bold text-customblack mb-4 font-custom">
               Student Feedback
@@ -234,12 +245,19 @@ const ExamCenters = () => {
               <div key={index} className="bg-gray-50 rounded-xl p-6">
                 <div className="flex items-center space-x-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <Award key={i} className="w-5 h-5 text-secondary fill-current" />
+                    <Award
+                      key={i}
+                      className="w-5 h-5 text-secondary fill-current"
+                    />
                   ))}
                 </div>
-                <p className="text-gray-600 mb-4 italic">"{testimonial.feedback}"</p>
+                <p className="text-gray-600 mb-4 italic">
+                  "{testimonial.feedback}"
+                </p>
                 <div>
-                  <p className="font-bold text-customblack">{testimonial.name}</p>
+                  <p className="font-bold text-customblack">
+                    {testimonial.name}
+                  </p>
                   <p className="text-sm text-secondary">{testimonial.center}</p>
                 </div>
               </div>
