@@ -396,7 +396,7 @@ const renderMathError = (source) => (error) => {
   console.error("KaTeX render error:", error?.message, "in:", source);
   return (
     <span
-      className="text-red-500 bg-red-50 px-1 rounded text-xs font-mono break-all"
+      className="text-black bg-yellow-100 p-2 rounded text-xs font-mono break-all"
       title={error?.message}
     >
       {source}

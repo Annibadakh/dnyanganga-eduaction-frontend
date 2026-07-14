@@ -311,9 +311,10 @@ const StudentQuizResult = () => {
                     <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">
                       Solution
                     </p>
-                    <p className="text-sm text-blue-800">
+                    <div>{renderMathText(question.solutionDescription)}</div>
+                    {/* <p className="text-sm text-blue-800">
                       {question.solutionDescription}
-                    </p>
+                    </p> */}
                   </div>
                 )}
               </div>
