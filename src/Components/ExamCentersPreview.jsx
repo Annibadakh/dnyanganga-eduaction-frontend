@@ -86,12 +86,12 @@ const ExamCentersPreview = () => {
 
                   <div className="space-y-3 mt-4">
                     {/* Location */}
-                    <div className="flex items-center gap-2 text-gray-600">
+                    {/* <div className="flex items-center gap-2 text-gray-600">
                       <MapPin className="w-4 h-4 text-primary" />
                       <span className="text-sm">
                         {center.collegeName || "N/A"}
                       </span>
-                    </div>
+                    </div> */}
 
                     {/* Students */}
                     {/* <div className="flex items-center gap-2 text-gray-600">

@@ -26,7 +26,6 @@ const LandingLayout = () => {
 
       {/* WhatsApp Floating Button */}
       <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end group">
-
         {/* Tooltip */}
         <span className="mb-4 opacity-0 group-hover:opacity-100 transition bg-primary text-white text-xs px-3 py-2 rounded-md shadow">
           Chat with us 👋

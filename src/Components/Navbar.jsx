@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import logo from "../Images/logo3.png";
+import logo from "../Images/logo4.png";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,8 +16,6 @@ const Navbar = () => {
       ? "text-primary font-bold border-b-2 border-primary"
       : "hover:text-primary";
 
- 
-
   // Close mobile menu on route change
   useEffect(() => {
     setMenuOpen(false);
@@ -29,7 +27,7 @@ const Navbar = () => {
         className={`sticky top-0 left-0 right-0 z-50 flex items-center justify-between px-6 h-[70px] transition-all duration-300 bg-gray-200`}
       >
         {/* Logo */}
-        <img src={logo} alt="logo" className="h-14" />
+        <img src={logo} alt="logo" className="h-12" />
 
         {/* Desktop Menu */}
         <ul className="hidden sm:flex gap-6 font-semibold">
@@ -41,7 +39,6 @@ const Navbar = () => {
             <Link to="/about">About</Link>
           </li>
 
-  
           <li className={getLinkClasses("/courses")}>
             <Link to="/courses">Courses</Link>
           </li>
@@ -57,7 +54,6 @@ const Navbar = () => {
           <li className={getLinkClasses("/gallery")}>
             <Link to="/gallery">Gallery</Link>
           </li>
-
 
           {/* <li>
             <button
@@ -97,7 +93,7 @@ const Navbar = () => {
             <Link to="/courses">Courses</Link>
           </li>
 
-            <li className={getLinkClasses("/achievements")}>
+          <li className={getLinkClasses("/achievements")}>
             <Link to="/achievements">Achievement</Link>
           </li>
 
