@@ -90,58 +90,45 @@ const LeaderboardTable = ({ leaderboard }) => {
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
-      <div className="min-w-[640px]">
-      {/* Table Header */}
-      <div className="grid grid-cols-[60px_80px_1fr_140px_140px] gap-2 px-5 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap">
-        <span>Badge</span>
-        <span>Rank</span>
-        <span>Student Name</span>
-        <span className="text-center">Marks Obtained</span>
-        <span className="text-center">Division</span>
-      </div>
-
-      {/* Table Rows */}
-      {leaderboard.map((entry) => {
-        const badge = getRankBadge(entry.rank);
-        return (
-          <div
-            key={entry.rank}
-            className={`grid grid-cols-[60px_80px_1fr_140px_140px] gap-2 px-5 py-3 items-center border-b border-gray-50 last:border-b-0 transition-colors hover:bg-gray-50 whitespace-nowrap ${
-              badge ? badge.cellCls : "bg-white"
-            }`}
-          >
-            {/* Badge */}
-            <span className="text-2xl text-center leading-none">
-              {badge ? badge.emoji : ""}
-            </span>
-
-            {/* Rank */}
-            <span
-              className={`text-sm font-bold ${
-                badge ? badge.rankCls : "text-gray-500"
-              }`}
-            >
-              #{entry.rank}
-            </span>
-
-            {/* Student Name */}
-            <span className="font-medium text-gray-800 text-sm whitespace-nowrap">
-              {entry.studentName}
-            </span>
-
-            {/* Marks */}
-            <span className="text-center font-bold text-gray-700 text-sm whitespace-nowrap">
-              {entry.marks}
-            </span>
-
-            {/* Division */}
-            <span className="text-center text-sm text-gray-600 whitespace-nowrap">
-              {entry.branch || "\u2014"}
-            </span>
-          </div>
-        );
-      })}
-      </div>
+      <table className="w-full text-sm whitespace-nowrap">
+        <thead>
+          <tr className="bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <th className="w-16 px-5 py-3 text-center">Badge</th>
+            <th className="w-20 px-5 py-3 text-left">Rank</th>
+            <th className="px-5 py-3 text-left">Student Name</th>
+            <th className="w-36 px-5 py-3 text-center">Marks Obtained</th>
+            <th className="w-36 px-5 py-3 text-center">Division</th>
+          </tr>
+        </thead>
+        <tbody>
+          {leaderboard.map((entry) => {
+            const badge = getRankBadge(entry.rank);
+            const bgClass = badge ? badge.cellCls : "";
+            return (
+              <tr
+                key={entry.rank}
+                className={`border-b border-gray-50 last:border-b-0 transition-colors hover:bg-gray-50 ${bgClass}`}
+              >
+                <td className="px-5 py-3 text-center text-2xl leading-none">
+                  {badge ? badge.emoji : ""}
+                </td>
+                <td className={`px-5 py-3 font-bold text-sm ${badge ? badge.rankCls : "text-gray-500"}`}>
+                  #{entry.rank}
+                </td>
+                <td className="px-5 py-3 font-medium text-gray-800">
+                  {entry.studentName}
+                </td>
+                <td className="px-5 py-3 text-center font-bold text-gray-700">
+                  {entry.marks}
+                </td>
+                <td className="px-5 py-3 text-center text-gray-600">
+                  {entry.branch || "\u2014"}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 };
