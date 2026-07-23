@@ -169,9 +169,17 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
   );
   const questionImage = FileUploadHook();
 
+  const [solutionImageUrl, setSolutionImageUrl] = useState(
+    initial?.solutionUrl ?? "",
+  );
+  const solutionImage = FileUploadHook();
+
   useEffect(() => {
     if (initial?.imageUrl) {
       setQuestionImageUrl(initial.imageUrl);
+    }
+    if (initial?.solutionUrl) {
+      setSolutionImageUrl(initial.solutionUrl);
     }
   }, [initial]);
 
@@ -180,6 +188,14 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
 
     if (imageUrl) {
       setQuestionImageUrl(imageUrl);
+    }
+  };
+
+  const handleSolutionImageUpload = async (type) => {
+    const imageUrl = await solutionImage.uploadImage(type);
+
+    if (imageUrl) {
+      setSolutionImageUrl(imageUrl);
     }
   };
 
@@ -237,6 +253,7 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
         difficulty,
         marks: marks ? Number(marks) : undefined,
         solutionDescription,
+        solutionUrl: solutionImageUrl,
         correctAns,
         imageUrl: questionImageUrl,
         options,
@@ -460,6 +477,21 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
             <div className="text-sm">{renderMathText(solutionDescription)}</div>
           </div>
         )}
+
+        {/* ── File upload — solution image ── */}
+        <div className="flex-shrink-0">
+          <FileUpload
+            title=""
+            imageUrl={solutionImage.imageUrl}
+            error={solutionImage.error}
+            loader={solutionImage.loader}
+            isSaved={solutionImage.isSaved}
+            imageType="solution"
+            onFileUpload={solutionImage.handleFileUpload}
+            onUploadImage={handleSolutionImageUpload}
+            onRemovePhoto={solutionImage.removePhoto}
+          />
+        </div>
         {/* <textarea
           className={inputCls + " min-h-[80px] resize-y"}
           placeholder="Explain the correct answer…"
@@ -566,6 +598,11 @@ const QuestionDetailModal = ({ q, onClose }) => (
             {q.solutionDescription}
           </p> */}
         </div>
+        <ImagePreview
+          imagePath={q.solutionUrl}
+          alt="Solution Image"
+          className="mt-3 max-h-30"
+        />
       </div>
     )}
   </Modal>

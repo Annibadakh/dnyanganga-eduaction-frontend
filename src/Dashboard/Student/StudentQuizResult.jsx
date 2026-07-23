@@ -291,6 +291,11 @@ const StudentQuizResult = () => {
                     {/* <p className="text-sm text-blue-800">
                       {question.solutionDescription}
                     </p> */}
+                    <ImagePreview
+                      imagePath={question.solutionUrl}
+                      alt="Solution Image"
+                      className="mt-3 max-h-30"
+                    />
                   </div>
                 )}
               </div>

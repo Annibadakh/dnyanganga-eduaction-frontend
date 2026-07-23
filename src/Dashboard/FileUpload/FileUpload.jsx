@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Camera, Upload, X, FileText } from "lucide-react";
 import ImageFrameEditor from "./ImageFrameEditor";
 
@@ -104,15 +105,17 @@ const FileUpload = ({
 
   return (
     <>
-      {/* ── Frame Editor overlay ── */}
-      {editorSrc && (
-        <ImageFrameEditor
-          imageSrc={editorSrc}
-          imageType={imageType}
-          onConfirm={handleEditorConfirm}
-          onCancel={handleEditorCancel}
-        />
-      )}
+      {/* ── Frame Editor overlay (ported to body to escape modal scroll) ── */}
+      {editorSrc &&
+        createPortal(
+          <ImageFrameEditor
+            imageSrc={editorSrc}
+            imageType={imageType}
+            onConfirm={handleEditorConfirm}
+            onCancel={handleEditorCancel}
+          />,
+          document.body,
+        )}
 
       <div className="mb-6">
         <h4 className="text-md font-bold mb-3 text-gray-700">{title}</h4>
