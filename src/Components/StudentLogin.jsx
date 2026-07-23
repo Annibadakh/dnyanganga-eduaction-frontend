@@ -14,18 +14,16 @@ function StudentLogin() {
 
   const from = location.state?.from || "/student";
 
-  const [studentId, setStudentId] = useState("");
-  const [dob, setDob] = useState("");
+  const searchParams = new URLSearchParams(location.search);
+  const paramStudentId = searchParams.get("studentID") || "";
+  const paramDob = searchParams.get("DOB") || "";
+
+  const [studentId, setStudentId] = useState(paramStudentId);
+  const [dob, setDob] = useState(paramDob);
   const [loginLoader, setLoginLoader] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      navigate(from, { replace: true });
-    }
-  }, [user, navigate, from]);
-
   const handleLogin = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoginLoader(true);
 
     try {
@@ -47,6 +45,33 @@ function StudentLogin() {
       setLoginLoader(false);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, from]);
+
+  useEffect(() => {
+    if (paramStudentId && paramDob) {
+      (async () => {
+        setLoginLoader(true);
+        try {
+          const response = await axios.post(`${apiUrl}/auth/student-login`, {
+            studentId: paramStudentId,
+            dob: paramDob,
+          });
+          await login(response.data);
+          successToast("Login successful !!");
+        } catch (error) {
+          console.error(error);
+          errorToast(error.response?.data?.message || "Login failed");
+        } finally {
+          setLoginLoader(false);
+        }
+      })();
+    }
+  }, []);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">

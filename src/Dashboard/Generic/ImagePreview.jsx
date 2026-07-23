@@ -1,5 +1,6 @@
 // components/QuestionBank/ImagePreview.jsx
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { ZoomIn, X } from "lucide-react";
 
 const imgUrl = import.meta.env.VITE_IMG_URL;
@@ -28,30 +29,32 @@ const ImagePreview = ({ imagePath, alt = "Preview", className = "" }) => {
         </div>
       </div>
 
-      {/* Full-screen Modal */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
-          onClick={() => setIsOpen(false)}
-        >
+      {/* Full-screen Modal (ported to body to escape modal scroll) */}
+      {isOpen &&
+        createPortal(
           <div
-            className="relative max-w-4xl max-h-full"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999] p-4"
+            onClick={() => setIsOpen(false)}
           >
-            <img
-              src={fullSrc}
-              alt={alt}
-              className="max-w-full max-h-[90vh] object-contain rounded-lg"
-            />
-            <button
-              onClick={() => setIsOpen(false)}
-              className="absolute -top-4 -right-4 bg-white rounded-full p-1 text-gray-800 hover:text-red-500 transition-colors shadow-lg"
+            <div
+              className="relative max-w-4xl max-h-full"
+              onClick={(e) => e.stopPropagation()}
             >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+              <img
+                src={fullSrc}
+                alt={alt}
+                className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              />
+              <button
+                onClick={() => setIsOpen(false)}
+                className="absolute -top-4 -right-4 bg-white rounded-full p-1 text-gray-800 hover:text-red-500 transition-colors shadow-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 };
