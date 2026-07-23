@@ -163,7 +163,7 @@ const Poster = ({ quiz, leaderboard, posterRef }) => {
         top: 0,
         width: 800,
         height: 800,
-        fontFamily: "'Segoe UI', 'Arial', sans-serif",
+        fontFamily: "'Be Vietnam Pro', 'Times New Roman', 'serif'",
         background: "#fafafa",
         color: "#1e293b",
         overflow: "hidden",
