@@ -89,9 +89,10 @@ const LeaderboardTable = ({ leaderboard }) => {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-x-auto">
+      <div className="min-w-[640px]">
       {/* Table Header */}
-      <div className="grid grid-cols-[60px_80px_1fr_140px_140px] gap-2 px-5 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wider text-gray-500">
+      <div className="grid grid-cols-[60px_80px_1fr_140px_140px] gap-2 px-5 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap">
         <span>Badge</span>
         <span>Rank</span>
         <span>Student Name</span>
@@ -105,7 +106,7 @@ const LeaderboardTable = ({ leaderboard }) => {
         return (
           <div
             key={entry.rank}
-            className={`grid grid-cols-[60px_80px_1fr_140px_140px] gap-2 px-5 py-3 items-center border-b border-gray-50 last:border-b-0 transition-colors hover:bg-gray-50 ${
+            className={`grid grid-cols-[60px_80px_1fr_140px_140px] gap-2 px-5 py-3 items-center border-b border-gray-50 last:border-b-0 transition-colors hover:bg-gray-50 whitespace-nowrap ${
               badge ? badge.cellCls : "bg-white"
             }`}
           >
@@ -124,22 +125,23 @@ const LeaderboardTable = ({ leaderboard }) => {
             </span>
 
             {/* Student Name */}
-            <span className="font-medium text-gray-800 text-sm">
+            <span className="font-medium text-gray-800 text-sm whitespace-nowrap">
               {entry.studentName}
             </span>
 
             {/* Marks */}
-            <span className="text-center font-bold text-gray-700 text-sm">
+            <span className="text-center font-bold text-gray-700 text-sm whitespace-nowrap">
               {entry.marks}
             </span>
 
             {/* Division */}
-            <span className="text-center text-sm text-gray-600">
+            <span className="text-center text-sm text-gray-600 whitespace-nowrap">
               {entry.branch || "\u2014"}
             </span>
           </div>
         );
       })}
+      </div>
     </div>
   );
 };
