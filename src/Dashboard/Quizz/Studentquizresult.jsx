@@ -3,7 +3,6 @@ import api from "../../Api";
 import { useNavigate, useParams } from "react-router-dom";
 import Button from "../Generic/Button";
 import {
-  Printer,
   ArrowLeft,
   CheckCircle2,
   XCircle,
@@ -16,7 +15,7 @@ import renderMathText from "../Generic/RenderMathText";
 
 // Admin-facing view of a single student's quiz attempt.
 // Layout mirrors the student-facing StudentQuizResult page 1:1,
-// with a Back button (to the analytics table) added alongside Print.
+// with a Back button (to the analytics table) added.
 const StudentQuizResult = () => {
   const navigate = useNavigate();
   const { quizId, studentQuizId } = useParams();
@@ -65,32 +64,11 @@ const StudentQuizResult = () => {
 
   const { summary, questions, student } = data;
 
-  const handlePrint = () => window.print();
-
   return (
     <>
-      {/* ── Print styles injected into <head> ── */}
-      <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          #quiz-result-printable,
-          #quiz-result-printable * { visibility: visible; }
-
-          #quiz-result-printable {
-            position: absolute;
-            inset: 0;
-            padding: 24px;
-          }
-
-          .no-print { display: none !important; }
-          .print-avoid-break { break-inside: avoid; }
-          .question-block { break-inside: avoid; }
-        }
-      `}</style>
-
-      <div className="p-2 container mx-auto" id="quiz-result-printable">
+      <div className="p-2 container mx-auto">
         {/* ── Back button (admin context only) ── */}
-        <div className="no-print mb-3">
+        <div className="mb-3">
           <Button
             variant="secondary"
             startIcon={<ArrowLeft size={16} />}
@@ -144,7 +122,7 @@ const StudentQuizResult = () => {
           ].map((s) => (
             <div
               key={s.label}
-              className={`flex flex-col gap-1 px-4 py-3 rounded-xl border ${s.cls} print-avoid-break`}
+              className={`flex flex-col gap-1 px-4 py-3 rounded-xl border ${s.cls}`}
             >
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide opacity-70">
                 {s.icon} {s.label}
@@ -155,7 +133,7 @@ const StudentQuizResult = () => {
         </div>
 
         {/* ── Score Card ── */}
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 mb-6 flex flex-col md:flex-row items-center justify-between gap-4 print-avoid-break">
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Award size={24} className="text-primary" />
@@ -187,17 +165,6 @@ const StudentQuizResult = () => {
               />
             </div>
           </div>
-
-          {/* Print button – hidden during print */}
-          <div className="no-print">
-            <Button
-              variant="primary"
-              startIcon={<Printer size={16} />}
-              onClick={handlePrint}
-            >
-              Print / Download PDF
-            </Button>
-          </div>
         </div>
 
         {/* ── Questions ── */}
@@ -209,7 +176,7 @@ const StudentQuizResult = () => {
             return (
               <div
                 key={q.id}
-                className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 question-block"
+                className="bg-white border border-gray-200 rounded-xl shadow-sm p-5"
               >
                 {/* Question header */}
                 <div className="flex items-start justify-between gap-4 mb-3">
@@ -254,7 +221,7 @@ const StudentQuizResult = () => {
                 </div>
 
                 {/* Options */}
-                <div className="space-y-1.5 print-avoid-break">
+                <div className="space-y-1.5">
                   {question.options.map((opt) => {
                     const isCorrect = question.correctAns.includes(opt.index);
                     const isSelected = q.selectedAns?.includes(opt.index);
@@ -307,7 +274,7 @@ const StudentQuizResult = () => {
 
                 {/* Solution */}
                 {question.solutionDescription && (
-                  <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3 print-avoid-break">
+                  <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
                     <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">
                       Solution
                     </p>

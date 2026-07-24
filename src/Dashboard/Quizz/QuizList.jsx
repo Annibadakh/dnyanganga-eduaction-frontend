@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../Api";
+import { useAuth } from "../../Context/AuthContext";
 import DataTable from "../Generic/DataTable";
 import Button from "../Generic/Button";
 import CustomSelect from "../Generic/CustomSelect";
@@ -7,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 const QuizList = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -112,9 +114,11 @@ const QuizList = () => {
       render: (row) => (
         <div className="flex gap-2">
           <Button onClick={() => handleView(row)}>View</Button>
-          <Button variant="primary" onClick={() => handleEdit(row)}>
-            Edit
-          </Button>
+          {user.role === "admin" && (
+            <Button variant="primary" onClick={() => handleEdit(row)}>
+              Edit
+            </Button>
+          )}
           <Button variant="secondary" onClick={() => handleAnalytics(row)}>
             Stats
           </Button>
@@ -127,7 +131,7 @@ const QuizList = () => {
     navigate(`${quiz.id}`);
   };
 
-  const handleEdit = (quiz) => {
+  const handleEdit = () => {
     // console.log("Edit Quiz:", quiz);
   };
 
@@ -148,11 +152,13 @@ const QuizList = () => {
       </div>
 
       {/* ---------------- ADD BUTTON ---------------- */}
-      <div className="flex justify-end mb-4">
-        <Button variant="success" onClick={() => navigate("create")}>
-          + Create Quiz
-        </Button>
-      </div>
+      {user.role === "admin" && (
+        <div className="flex justify-end mb-4">
+          <Button variant="success" onClick={() => navigate("create")}>
+            + Create Quiz
+          </Button>
+        </div>
+      )}
 
       {/* ---------------- TABLE ---------------- */}
       <DataTable

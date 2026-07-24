@@ -147,7 +147,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     {
       path: "quizz",
       label: "Quizz",
-      role: ["admin"],
+      role: ["admin", "counsellor"],
       icon: <FaClipboardCheck className="text-lg" />,
     },
     {

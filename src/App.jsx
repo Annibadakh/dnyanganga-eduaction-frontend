@@ -218,7 +218,7 @@ function App() {
                 </Route>
 
                 <Route
-                  element={<ProtectedRoleBasedRoute allowedRoles={["admin"]} />}
+                  element={<ProtectedRoleBasedRoute allowedRoles={["admin", "counsellor"]} />}
                 >
                   <Route path="user" element={<AddUser />} />
                   <Route path="subject" element={<SubjectManagement />} />

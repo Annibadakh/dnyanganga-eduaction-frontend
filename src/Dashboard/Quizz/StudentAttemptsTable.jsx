@@ -1,8 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, FileSpreadsheet, Eye, ListChecks } from "lucide-react";
 import api from "../../Api";
+import { useAuth } from "../../Context/AuthContext";
+import { DashboardContext } from "../../Context/DashboardContext";
 import Button from "../Generic/Button";
+import CustomSelect from "../Generic/CustomSelect";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
 
@@ -21,8 +24,22 @@ const StatusBadge = ({ status }) => (
   </span>
 );
 
+const STATUS_OPTIONS = [
+  { value: "", label: "All Status" },
+  { value: "SUBMITTED", label: "Submitted" },
+  { value: "AUTO_SUBMITTED", label: "Auto Submitted" },
+];
+
+const SORT_OPTIONS = [
+  { value: "", label: "Sort By Marks" },
+  { value: "desc", label: "Highest First" },
+  { value: "asc", label: "Lowest First" },
+];
+
 const StudentAttemptsTable = ({ quizId }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { counsellor, counsellorBranch } = useContext(DashboardContext);
 
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,13 +47,16 @@ const StudentAttemptsTable = ({ quizId }) => {
 
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [selectedCounsellor, setSelectedCounsellor] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [sortOrder, setSortOrder] = useState(SORT_OPTIONS[0]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // debounce search input -> search
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput);
@@ -56,6 +76,10 @@ const StudentAttemptsTable = ({ quizId }) => {
           page: currentPage,
           limit: itemsPerPage,
           search: search || undefined,
+          branch: selectedBranch?.value || undefined,
+          counsellor: selectedCounsellor?.value || undefined,
+          status: selectedStatus?.value || undefined,
+          sortOrder: sortOrder?.value || undefined,
         },
       });
 
@@ -67,7 +91,16 @@ const StudentAttemptsTable = ({ quizId }) => {
     } finally {
       setLoading(false);
     }
-  }, [quizId, currentPage, itemsPerPage, search]);
+  }, [
+    quizId,
+    currentPage,
+    itemsPerPage,
+    search,
+    selectedCounsellor,
+    selectedBranch,
+    selectedStatus,
+    sortOrder,
+  ]);
 
   useEffect(() => {
     fetchStudents();
@@ -81,35 +114,34 @@ const StudentAttemptsTable = ({ quizId }) => {
   };
 
   const handleViewResult = (row) => {
-    // StudentQuizResult route - update path once that page is built
     navigate(`../${quizId}/attempt/${row.studentQuizId}`);
   };
 
-  // NOTE: this exports only the current page, since listing is server-paginated.
-  // If a full export is needed, add a dedicated backend export endpoint
-  // (e.g. GET /quiz/:quizId/analytics/export) instead of fetching all pages client-side.
-  const handleExportExcel = () => {
-    const csv = [
-      ["Student ID", "Student Name", "Marks", "Status", "Date"],
-      ...students.map((s) => [
-        s.studentId,
-        s.studentName,
-        s.marks,
-        s.status,
-        new Date(s.date).toLocaleDateString("en-GB"),
-      ]),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
+  const handleExportExcel = async () => {
+    try {
+      const res = await api.get(`/quiz/${quizId}/analytics/students/export`, {
+        params: {
+          search: search || undefined,
+          branch: selectedBranch?.value || undefined,
+          counsellor: selectedCounsellor?.value || undefined,
+          status: selectedStatus?.value || undefined,
+          sortOrder: sortOrder?.value || undefined,
+        },
+        responseType: "blob",
+      });
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "quiz_attempts.csv";
-    link.click();
-    window.URL.revokeObjectURL(url);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `quiz_attempts_${quizId}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert("Failed to export. Please try again.");
+    }
   };
 
   const columns = [
@@ -125,6 +157,18 @@ const StudentAttemptsTable = ({ quizId }) => {
       header: "Student Name",
       render: (row) => (
         <span className="font-medium text-gray-800">{row.studentName}</span>
+      ),
+    },
+    {
+      header: "Counsellor",
+      render: (row) => (
+        <span className="text-gray-600">{row.counsellor || "\u2014"}</span>
+      ),
+    },
+    {
+      header: "Branch",
+      render: (row) => (
+        <span className="text-gray-600">{row.branch || "\u2014"}</span>
       ),
     },
     {
@@ -162,20 +206,6 @@ const StudentAttemptsTable = ({ quizId }) => {
         </h2>
 
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={16}
-            />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by name or ID..."
-              className="pl-9 pr-3 py-2 border rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-
           <Button
             onClick={handleExportExcel}
             variant="success"
@@ -185,6 +215,70 @@ const StudentAttemptsTable = ({ quizId }) => {
           </Button>
         </div>
       </div>
+
+      {/* Filters */}
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4"
+      >
+        <div className="relative">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={16}
+          />
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search by name or ID..."
+            className="pl-9 pr-3 py-2 border rounded-lg text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        {(user.role === "admin" || user.role === "followUp") && (
+          <>
+            <div>
+              <CustomSelect
+                options={counsellor}
+                value={selectedCounsellor}
+                onChange={setSelectedCounsellor}
+                isRequired={false}
+                placeholder="Select Counsellor"
+              />
+            </div>
+
+            <div>
+              <CustomSelect
+                options={counsellorBranch}
+                value={selectedBranch}
+                onChange={setSelectedBranch}
+                isRequired={false}
+                placeholder="Select Branch"
+              />
+            </div>
+          </>
+        )}
+
+        <div>
+          <CustomSelect
+            options={STATUS_OPTIONS}
+            value={selectedStatus}
+            onChange={setSelectedStatus}
+            isRequired={false}
+            placeholder="Status"
+          />
+        </div>
+
+        <div>
+          <CustomSelect
+            options={SORT_OPTIONS}
+            value={sortOrder}
+            onChange={(val) => setSortOrder(val)}
+            isRequired={false}
+            placeholder="Sort by Marks"
+          />
+        </div>
+      </form>
 
       <DataTable
         columns={columns}
