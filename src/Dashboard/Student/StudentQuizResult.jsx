@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../Api";
 import { useNavigate, useParams } from "react-router-dom";
+import Pagination from "../Generic/Pagination";
 import {
   CheckCircle2,
   XCircle,
@@ -11,15 +12,24 @@ import {
 import ImagePreview from "../Generic/ImagePreview";
 import renderMathText from "../Generic/RenderMathText";
 
+const QUESTIONS_PER_PAGE = 5;
+
 const StudentQuizResult = () => {
   const navigate = useNavigate();
   const { studentQuizId } = useParams();
   const [data, setData] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalQuestions, setTotalQuestions] = useState(0);
 
-  const fetchResult = async () => {
+  const fetchResult = async (page = 1) => {
     try {
-      const res = await api.get(`/quiz/student/result/${studentQuizId}`);
+      const res = await api.get(`/quiz/student/result/${studentQuizId}`, {
+        params: { page, limit: QUESTIONS_PER_PAGE },
+      });
       setData(res.data);
+      setTotalPages(res.data.totalPages);
+      setTotalQuestions(res.data.totalQuestions);
     } catch (err) {
       navigate("../history");
       alert(err.response?.data?.message || "Error");
@@ -27,8 +37,8 @@ const StudentQuizResult = () => {
   };
 
   useEffect(() => {
-    fetchResult();
-  }, []);
+    fetchResult(currentPage);
+  }, [studentQuizId, currentPage]);
 
   if (!data)
     return (
@@ -130,6 +140,7 @@ const StudentQuizResult = () => {
           {questions.map((q, index) => {
             const question = q.Question;
             const isNotAttempted = !q.selectedAns || q.selectedAns.length === 0;
+            const questionNumber = (currentPage - 1) * QUESTIONS_PER_PAGE + index + 1;
 
             return (
               <div
@@ -141,14 +152,14 @@ const StudentQuizResult = () => {
                   <div className="flex-1">
                     <div className="text-sm font-semibold text-gray-800">
                       <span className="text-primary font-bold mr-1">
-                        Q{index + 1}.
+                        Q{questionNumber}.
                       </span>
                       {renderMathText(question.questionText)}
                     </div>
 
                     <ImagePreview
                       imagePath={question.imageUrl}
-                      alt={`Question ${index + 1}`}
+                      alt={`Question ${questionNumber}`}
                       className="mt-3 max-h-40"
                     />
                   </div>
@@ -237,9 +248,6 @@ const StudentQuizResult = () => {
                       Solution
                     </p>
                     <div>{renderMathText(question.solutionDescription)}</div>
-                    {/* <p className="text-sm text-blue-800">
-                      {question.solutionDescription}
-                    </p> */}
                     <ImagePreview
                       imagePath={question.solutionUrl}
                       alt="Solution Image"
@@ -250,6 +258,18 @@ const StudentQuizResult = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* ── Pagination ── */}
+        <div className="mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalQuestions}
+            itemsPerPage={QUESTIONS_PER_PAGE}
+            onPageChange={setCurrentPage}
+            showPerPage={false}
+          />
         </div>
       </div>
     </>
