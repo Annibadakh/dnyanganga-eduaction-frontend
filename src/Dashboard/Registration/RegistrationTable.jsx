@@ -11,7 +11,18 @@ import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
 import PdfViewerModal from "../Generic/PdfViewerModal";
 import Button from "../Generic/Button";
-import { FileText, Edit, Trash2, Power } from "lucide-react";
+import QuizAnalyticsCharts from "../Generic/QuizAnalyticsCharts";
+import {
+  FileText,
+  Edit,
+  Trash2,
+  Power,
+  ClipboardList,
+  Trophy,
+  Target,
+  Award,
+  X,
+} from "lucide-react";
 
 const RegistrationTable = () => {
   const { user } = useAuth();
@@ -49,6 +60,10 @@ const RegistrationTable = () => {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
   const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
+  const [showQuizDetails, setShowQuizDetails] = useState(false);
+  const [quizData, setQuizData] = useState(null);
+  const [quizLoading, setQuizLoading] = useState(false);
+  const [quizStudentName, setQuizStudentName] = useState("");
 
   const currentYear = new Date().getFullYear();
   const [selectedExamYear, setSelectedExamYear] = useState(currentYear);
@@ -155,6 +170,15 @@ const RegistrationTable = () => {
             onClick={() => handleViewPDF(row)}
           >
             PDF
+          </Button>
+
+          {/* QUIZ DETAILS */}
+          <Button
+            variant="secondary"
+            startIcon={<ClipboardList size={16} />}
+            onClick={() => handleQuizDetails(row)}
+          >
+            Quiz
           </Button>
 
           {user.role === "admin" && (
@@ -316,6 +340,24 @@ const RegistrationTable = () => {
     };
     setPaymentData(newStudent);
     setShowPayment(true);
+  };
+
+  const handleQuizDetails = async (student) => {
+    setQuizStudentName(student.studentName);
+    setShowQuizDetails(true);
+    setQuizLoading(true);
+    setQuizData(null);
+    try {
+      const res = await api.get("/quiz/student/dashboard", {
+        params: { studentId: student.studentId },
+      });
+      setQuizData(res.data);
+    } catch (err) {
+      console.error(err);
+      setQuizData(null);
+    } finally {
+      setQuizLoading(false);
+    }
   };
 
   const handleEditStudent = (student) => {
@@ -653,6 +695,65 @@ const RegistrationTable = () => {
           onClose={handleCloseDeleteDialog}
           onConfirm={handleConfirmDelete}
         />
+      )}
+
+      {/* Quiz Details Modal */}
+      {showQuizDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Quiz Statistics</h2>
+                <p className="text-sm text-gray-500">{quizStudentName}</p>
+              </div>
+              <button
+                onClick={() => setShowQuizDetails(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-5">
+              {quizLoading ? (
+                <p className="text-center text-gray-400 py-10">Loading...</p>
+              ) : !quizData ? (
+                <p className="text-center text-gray-400 py-10">No data found</p>
+              ) : (
+                <>
+                  {/* Stats Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                    {[
+                      { title: "Total Attempts", value: quizData.totalAttempts, icon: ClipboardList, bg: "bg-blue-50", border: "border-blue-100", iconBg: "bg-blue-100", iconColor: "text-blue-600" },
+                      { title: "Total Marks", value: quizData.totalMarks, icon: Trophy, bg: "bg-yellow-50", border: "border-yellow-100", iconBg: "bg-yellow-100", iconColor: "text-yellow-600" },
+                      { title: "Average Score", value: quizData.avgScore, icon: Target, bg: "bg-purple-50", border: "border-purple-100", iconBg: "bg-purple-100", iconColor: "text-purple-600" },
+                      { title: "Best Score", value: quizData.bestScore, icon: Award, bg: "bg-amber-50", border: "border-amber-100", iconBg: "bg-amber-100", iconColor: "text-amber-600" },
+                    ].map((card) => (
+                      <div
+                        key={card.title}
+                        className={`relative overflow-hidden rounded-2xl border shadow-sm p-4 ${card.bg} ${card.border}`}
+                      >
+                        <div className="absolute -right-5 -top-5 w-20 h-20 rounded-full bg-white/20" />
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-xs font-medium text-gray-600">{card.title}</p>
+                            <h3 className="text-2xl font-bold mt-1 text-gray-800">{card.value ?? 0}</h3>
+                          </div>
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.iconBg}`}>
+                            <card.icon className={`w-5 h-5 ${card.iconColor}`} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Charts */}
+                  <QuizAnalyticsCharts data={quizData} />
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
