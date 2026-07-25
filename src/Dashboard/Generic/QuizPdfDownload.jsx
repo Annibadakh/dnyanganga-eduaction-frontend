@@ -5,12 +5,33 @@ import html2pdf from "html2pdf.js";
 import StudentQuizPdf from "../Quizz/StudentQuizPdf";
 
 const PDF_CAPTURE_WIDTH = 800;
+const IMG_BASE_URL = import.meta.env.VITE_IMG_URL || "";
 
-const waitForRender = () =>
+/** Wait for the browser to paint the hidden node, then for every
+ *  <img> inside it to finish loading. KaTeX also renders async so
+ *  we keep the short rAF buffer on top. */
+const waitForRender = (node) =>
   new Promise((resolve) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        setTimeout(resolve, 150);
+        setTimeout(() => {
+          if (!node) return resolve();
+          const imgs = Array.from(node.querySelectorAll("img"));
+          if (imgs.length === 0) return resolve();
+
+          let settled = 0;
+          const check = () => {
+            settled += 1;
+            if (settled >= imgs.length) resolve();
+          };
+          imgs.forEach((img) => {
+            if (img.complete) return check();
+            img.onload = check;
+            img.onerror = check; // don't block on broken images
+          });
+          // Hard timeout so a stale image never hangs the download
+          setTimeout(resolve, 5000);
+        }, 150);
       });
     });
   });
@@ -28,10 +49,13 @@ const QuizPdfDownload = ({ studentQuizId, className = "" }) => {
       const res = await api.get(`/quiz/student/result/${studentQuizId}/pdf`);
       setPdfData(res.data);
 
-      await waitForRender();
+      // Wait a tick so the hidden node + images mount
+      await new Promise((r) => setTimeout(r, 50));
 
       const node = pdfRef.current;
       if (!node) throw new Error("PDF layout did not mount");
+
+      await waitForRender(node);
 
       const fileNameBase =
         res.data?.student?.studentName?.replace(/\s+/g, "_") || studentQuizId;
@@ -44,13 +68,18 @@ const QuizPdfDownload = ({ studentQuizId, className = "" }) => {
           html2canvas: {
             scale: 2,
             useCORS: true,
+            allowTaint: false,
+            imageTimeout: 15000,
             windowWidth: PDF_CAPTURE_WIDTH,
             width: PDF_CAPTURE_WIDTH,
             scrollX: 0,
             scrollY: 0,
           },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["css", "legacy"] },
+          pagebreak: {
+            mode: ["css", "legacy"],
+            avoid: [".pdf-avoid-break"],
+          },
         })
         .from(node)
         .save();
@@ -82,7 +111,7 @@ const QuizPdfDownload = ({ studentQuizId, className = "" }) => {
             top: 0,
           }}
         >
-          <StudentQuizPdf ref={pdfRef} data={pdfData} />
+          <StudentQuizPdf ref={pdfRef} data={pdfData} imgBaseUrl={IMG_BASE_URL} />
         </div>
       )}
     </>

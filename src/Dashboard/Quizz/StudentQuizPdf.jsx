@@ -11,18 +11,32 @@ import renderMathText from "../Generic/RenderMathText";
  *  - no Back / Download buttons
  *  - no ImagePreview modal — plain <img> tags only
  *
- * Wrapping note: every container in this file that can hold text is
- * explicitly `boxSizing: "border-box"` + `overflowWrap/wordBreak: break-word`.
- * renderMathText() already wraps its own output correctly (see its
- * `rowStyle`), but that only matters if the *ancestor* boxes here don't
- * silently grow past their intended width when html2canvas captures them —
- * a fixed width combined with content-box sizing (the default) makes the
- * true rendered width = width + padding, which is what caused the earlier
- * clipped/un-wrapped text in the PDF.
+ * Page-break safety: we inject a <style> block with
+ * `page-break-inside: avoid` (the legacy property html2pdf actually
+ * reads via getComputedStyle) via a single `.pdf-avoid-break` class.
+ *
+ * That class is applied at TWO levels for every question:
+ *  1. Group level — question header+image, each option, and the
+ *     solution block are each wrapped as a whole, so related content
+ *     (e.g. solution text + its diagram) is pushed to the next page
+ *     together rather than being separated.
+ *  2. Element level — the question text, each option's text, the
+ *     solution text, and every <img> individually also carry the
+ *     class. This is what actually stops a single long paragraph or
+ *     image from being sliced in half at a page boundary: if it
+ *     won't fit in the remaining space, html2pdf pushes that whole
+ *     element (and, per point 1, everything grouped with it) down
+ *     to the next page instead of cutting through it.
+ *
+ * NOTE: this only works if the html2pdf() call that consumes this
+ * markup has `pagebreak: { mode: [...] }` configured to include
+ * 'css' (the html2pdf default does). If a custom html2canvas+jsPDF
+ * slicing routine is used instead of html2pdf.js's own pagination,
+ * these classes are inert and the slicing logic itself needs to
+ * account for avoid-elements.
  *
  * Props:
- *  data: { summary, student, questions }  // same shape returned by
- *        GET /quiz/student/result/:studentQuizId/pdf
+ *  data: { summary, student, questions }
  *  imgBaseUrl: optional base URL to prefix relative image paths
  */
 const StudentQuizPdf = forwardRef(({ data, imgBaseUrl = "" }, ref) => {
@@ -45,6 +59,14 @@ const StudentQuizPdf = forwardRef(({ data, imgBaseUrl = "" }, ref) => {
         wordBreak: "break-word",
       }}
     >
+      {/* Real CSS — html2pdf reads page-break-inside via getComputedStyle */}
+      <style>{`
+        .pdf-avoid-break {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+      `}</style>
+
       {/* ── Title ── */}
       <h1
         style={{
@@ -77,6 +99,7 @@ const StudentQuizPdf = forwardRef(({ data, imgBaseUrl = "" }, ref) => {
 
       {/* ── Summary ── */}
       <table
+        className="pdf-avoid-break"
         style={{
           width: "100%",
           borderCollapse: "collapse",
@@ -119,60 +142,64 @@ const StudentQuizPdf = forwardRef(({ data, imgBaseUrl = "" }, ref) => {
               marginBottom: "20px",
               paddingBottom: "16px",
               borderBottom: "1px solid #e5e7eb",
-              breakInside: "avoid",
             }}
           >
-            {/* Question header */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: "10px",
-                marginBottom: "8px",
-              }}
-            >
+            {/* Question header + image — keep together as a group,
+                and each also individually break-safe */}
+            <div className="pdf-avoid-break">
               <div
+                className="pdf-avoid-break"
                 style={{
-                  flex: 1,
-                  minWidth: 0,
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  overflowWrap: "break-word",
-                  wordBreak: "break-word",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: "10px",
+                  marginBottom: "8px",
                 }}
               >
-                <span style={{ marginRight: "4px" }}>Q{questionNumber}.</span>
-                {renderMathText(question.questionText)}
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    overflowWrap: "break-word",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  <span style={{ marginRight: "4px" }}>Q{questionNumber}.</span>
+                  {renderMathText(question.questionText)}
+                </div>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                  }}
+                >
+                  {isNotAttempted
+                    ? "Skipped"
+                    : q.marksObtained > 0
+                      ? `+${q.marksObtained}`
+                      : `${q.marksObtained}`}
+                </span>
               </div>
-              <span
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                }}
-              >
-                {isNotAttempted
-                  ? "Skipped"
-                  : q.marksObtained > 0
-                    ? `+${q.marksObtained}`
-                    : `${q.marksObtained}`}
-              </span>
-            </div>
 
-            {question.imageUrl && (
-              <img
-                src={`${imgBaseUrl}${question.imageUrl}`}
-                alt=""
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "220px",
-                  marginBottom: "10px",
-                  display: "block",
-                }}
-              />
-            )}
+              {question.imageUrl && (
+                <img
+                  className="pdf-avoid-break"
+                  src={`${imgBaseUrl}${question.imageUrl}`}
+                  alt=""
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "220px",
+                    marginBottom: "10px",
+                    display: "block",
+                  }}
+                />
+              )}
+            </div>
 
             {/* Options */}
             <div style={{ width: "100%", boxSizing: "border-box" }}>
@@ -196,6 +223,7 @@ const StudentQuizPdf = forwardRef(({ data, imgBaseUrl = "" }, ref) => {
                 return (
                   <div
                     key={opt.id}
+                    className="pdf-avoid-break"
                     style={{
                       width: "100%",
                       boxSizing: "border-box",
@@ -222,9 +250,12 @@ const StudentQuizPdf = forwardRef(({ data, imgBaseUrl = "" }, ref) => {
                         wordBreak: "break-word",
                       }}
                     >
-                      <div>{renderMathText(opt.text)}</div>
+                      <div className="pdf-avoid-break">
+                        {renderMathText(opt.text)}
+                      </div>
                       {opt.imageUrl && (
                         <img
+                          className="pdf-avoid-break"
                           src={`${imgBaseUrl}${opt.imageUrl}`}
                           alt=""
                           style={{
@@ -263,9 +294,11 @@ const StudentQuizPdf = forwardRef(({ data, imgBaseUrl = "" }, ref) => {
               })}
             </div>
 
-            {/* Solution */}
+            {/* Solution — whole section (label + text + image) moves
+                to the next page as one unit if it won't fit */}
             {question.solutionDescription && (
               <div
+                className="pdf-avoid-break"
                 style={{
                   width: "100%",
                   boxSizing: "border-box",
@@ -289,9 +322,12 @@ const StudentQuizPdf = forwardRef(({ data, imgBaseUrl = "" }, ref) => {
                 >
                   Solution
                 </p>
-                <div>{renderMathText(question.solutionDescription)}</div>
+                <div className="pdf-avoid-break">
+                  {renderMathText(question.solutionDescription)}
+                </div>
                 {question.solutionUrl && (
                   <img
+                    className="pdf-avoid-break"
                     src={`${imgBaseUrl}${question.solutionUrl}`}
                     alt=""
                     style={{
