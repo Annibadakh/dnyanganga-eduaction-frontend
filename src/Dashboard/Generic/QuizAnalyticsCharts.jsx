@@ -50,18 +50,18 @@ const EmptyChart = ({ text = "No data available" }) => (
 // 1. Score Trend — Line Chart
 const ScoreTrend = ({ data }) => {
   if (!data || data.length === 0)
-    return <ChartCard title="Score Trend"><EmptyChart /></ChartCard>;
+    return (
+      <ChartCard title="Score Trend">
+        <EmptyChart />
+      </ChartCard>
+    );
 
   return (
     <ChartCard title="Score Trend">
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-          <XAxis
-            dataKey="date"
-            tick={{ fontSize: 11 }}
-            stroke="#94a3b8"
-          />
+          <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="#94a3b8" />
           <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" />
           <Tooltip
             contentStyle={{
@@ -87,7 +87,12 @@ const ScoreTrend = ({ data }) => {
 
 // 2. Accuracy Donut — Pie Chart
 const AccuracyDonut = ({ data }) => {
-  if (!data) return <ChartCard title="Accuracy"><EmptyChart /></ChartCard>;
+  if (!data)
+    return (
+      <ChartCard title="Accuracy">
+        <EmptyChart />
+      </ChartCard>
+    );
 
   const pieData = [
     { name: "Correct", value: data.correct || 0 },
@@ -96,7 +101,11 @@ const AccuracyDonut = ({ data }) => {
   ].filter((d) => d.value > 0);
 
   if (pieData.length === 0)
-    return <ChartCard title="Accuracy"><EmptyChart /></ChartCard>;
+    return (
+      <ChartCard title="Accuracy">
+        <EmptyChart />
+      </ChartCard>
+    );
 
   const total = pieData.reduce((sum, d) => sum + d.value, 0);
 
@@ -125,7 +134,9 @@ const AccuracyDonut = ({ data }) => {
             ))}
           </Pie>
           <Tooltip
-            formatter={(value) => [`${value} (${((value / total) * 100).toFixed(1)}%)`]}
+            formatter={(value) => [
+              `${value} (${((value / total) * 100).toFixed(1)}%)`,
+            ]}
             contentStyle={{
               borderRadius: "8px",
               border: "1px solid #e2e8f0",
@@ -162,9 +173,24 @@ const SubjectPerformance = ({ data }) => {
             }}
           />
           <Legend wrapperStyle={{ fontSize: 11 }} />
-          <Bar dataKey="correct" fill={COLORS.correct} name="Correct" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="wrong" fill={COLORS.wrong} name="Wrong" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="notAttempted" fill={COLORS.notAttempted} name="Skipped" radius={[4, 4, 0, 0]} />
+          <Bar
+            dataKey="correct"
+            fill={COLORS.correct}
+            name="Correct"
+            radius={[4, 4, 0, 0]}
+          />
+          <Bar
+            dataKey="wrong"
+            fill={COLORS.wrong}
+            name="Wrong"
+            radius={[4, 4, 0, 0]}
+          />
+          <Bar
+            dataKey="notAttempted"
+            fill={COLORS.notAttempted}
+            name="Skipped"
+            radius={[4, 4, 0, 0]}
+          />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>
@@ -182,9 +208,16 @@ const ChapterAccuracy = ({ data }) => {
 
   return (
     <ChartCard title="Chapter-wise Accuracy">
-      <ResponsiveContainer width="100%" height={Math.max(200, data.length * 32)}>
+      <ResponsiveContainer
+        width="100%"
+        height={Math.max(200, data.length * 32)}
+      >
         <BarChart data={data} layout="vertical" barSize={18}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#f1f5f9"
+            horizontal={false}
+          />
           <XAxis
             type="number"
             domain={[0, 100]}
@@ -211,7 +244,13 @@ const ChapterAccuracy = ({ data }) => {
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.accuracy >= 60 ? COLORS.correct : entry.accuracy >= 40 ? COLORS.accent : COLORS.wrong}
+                fill={
+                  entry.accuracy >= 60
+                    ? COLORS.correct
+                    : entry.accuracy >= 40
+                      ? COLORS.accent
+                      : COLORS.wrong
+                }
               />
             ))}
           </Bar>
@@ -242,7 +281,11 @@ const AttemptsTimeline = ({ data }) => {
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
           <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="#94a3b8" />
-          <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" allowDecimals={false} />
+          <YAxis
+            tick={{ fontSize: 11 }}
+            stroke="#94a3b8"
+            allowDecimals={false}
+          />
           <Tooltip
             contentStyle={{
               borderRadius: "8px",
@@ -279,7 +322,11 @@ const ScoreDistribution = ({ data }) => {
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
           <XAxis dataKey="range" tick={{ fontSize: 11 }} stroke="#94a3b8" />
-          <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" allowDecimals={false} />
+          <YAxis
+            tick={{ fontSize: 11 }}
+            stroke="#94a3b8"
+            allowDecimals={false}
+          />
           <Tooltip
             contentStyle={{
               borderRadius: "8px",
@@ -287,7 +334,12 @@ const ScoreDistribution = ({ data }) => {
               fontSize: 12,
             }}
           />
-          <Bar dataKey="count" fill={COLORS.primary} name="Quizzes" radius={[4, 4, 0, 0]} />
+          <Bar
+            dataKey="count"
+            fill={COLORS.primary}
+            name="Quizzes"
+            radius={[4, 4, 0, 0]}
+          />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>
@@ -315,7 +367,11 @@ const PerformanceComparison = ({ data }) => {
         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
           <PolarGrid stroke="#e2e8f0" />
           <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11 }} />
-          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 10 }} />
+          <PolarRadiusAxis
+            angle={30}
+            domain={[0, 100]}
+            tick={{ fontSize: 10 }}
+          />
           <Radar
             name="Score"
             dataKey="value"

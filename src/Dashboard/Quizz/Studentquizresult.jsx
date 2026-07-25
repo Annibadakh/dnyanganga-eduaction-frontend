@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import ImagePreview from "../Generic/ImagePreview";
 import renderMathText from "../Generic/RenderMathText";
+import QuizPdfDownload from "../Generic/QuizPdfDownload";
 
 const QUESTIONS_PER_PAGE = 5;
 
@@ -74,8 +75,8 @@ const StudentQuizResult = () => {
   return (
     <>
       <div className="p-2 container mx-auto">
-        {/* ── Back button (admin context only) ── */}
-        <div className="mb-3">
+        {/* ── Back / Download row ── */}
+        <div className="mb-3 flex items-center justify-between">
           <Button
             variant="secondary"
             startIcon={<ArrowLeft size={16} />}
@@ -83,6 +84,8 @@ const StudentQuizResult = () => {
           >
             Back to Analytics
           </Button>
+
+          <QuizPdfDownload studentQuizId={studentQuizId} />
         </div>
 
         {/* ── Page Title ── */}
@@ -179,7 +182,8 @@ const StudentQuizResult = () => {
           {questions.map((q, index) => {
             const question = q.Question;
             const isNotAttempted = !q.selectedAns || q.selectedAns.length === 0;
-            const questionNumber = (currentPage - 1) * QUESTIONS_PER_PAGE + index + 1;
+            const questionNumber =
+              (currentPage - 1) * QUESTIONS_PER_PAGE + index + 1;
 
             return (
               <div
@@ -311,6 +315,7 @@ const StudentQuizResult = () => {
           />
         </div>
       </div>
+
     </>
   );
 };

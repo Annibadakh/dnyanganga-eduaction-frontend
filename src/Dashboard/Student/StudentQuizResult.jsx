@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import ImagePreview from "../Generic/ImagePreview";
 import renderMathText from "../Generic/RenderMathText";
+import QuizPdfDownload from "../Generic/QuizPdfDownload";
 
 const QUESTIONS_PER_PAGE = 5;
 
@@ -59,6 +60,10 @@ const StudentQuizResult = () => {
         <p className="text-center text-sm text-gray-400 mb-6">
           Student Quiz ID: {studentQuizId}
         </p>
+
+        <div className="flex justify-center mb-6">
+          <QuizPdfDownload studentQuizId={studentQuizId} />
+        </div>
 
         {/* ── Stats Strip ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
