@@ -1,7 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../Api";
 import html2canvas from "html2canvas";
+import { useAuth } from "../../Context/AuthContext";
+import { DashboardContext } from "../../Context/DashboardContext";
 import {
   Users,
   Target,
@@ -12,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import StudentAttemptsTable from "./StudentAttemptsTable";
+import CustomSelect from "../Generic/CustomSelect";
 import logo from "../../Images/logo3.png";
 
 // ---------------- STAT CARD ----------------
@@ -459,17 +462,33 @@ const Poster = ({ quiz, leaderboard, posterRef }) => {
 // ---------------- MAIN COMPONENT ----------------
 const QuizAnalytics = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+  const { counsellor, counsellorBranch } = useContext(DashboardContext);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const posterRef = useRef(null);
 
+  const [selectedCounsellor, setSelectedCounsellor] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState(null);
+
+  const isCounsellor = user.role === "counsellor";
+
+  useEffect(() => {
+    if (isCounsellor) {
+      setSelectedCounsellor({ value: user.uuid, label: user.name });
+    }
+  }, [isCounsellor, user.uuid, user.name]);
+
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await api.get(`/quiz/${id}/analytics`);
+      const params = {};
+      if (selectedCounsellor?.value) params.counsellorId = selectedCounsellor.value;
+      if (selectedBranch?.value) params.branch = selectedBranch.value;
+      const res = await api.get(`/quiz/${id}/analytics`, { params });
       setData(res.data);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load analytics");
@@ -480,7 +499,7 @@ const QuizAnalytics = () => {
 
   useEffect(() => {
     fetchAnalytics();
-  }, [id]);
+  }, [id, selectedCounsellor, selectedBranch]);
 
   const handleDownloadPoster = async () => {
     if (!posterRef.current || !data) return;
@@ -519,6 +538,26 @@ const QuizAnalytics = () => {
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Quiz Analytics</h1>
+
+      {/* ---------------- TOP-LEVEL FILTERS ---------------- */}
+      {(user.role === "admin" || user.role === "followUp") && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <CustomSelect
+            options={counsellor}
+            value={selectedCounsellor}
+            onChange={setSelectedCounsellor}
+            isRequired={false}
+            placeholder="Select Counsellor"
+          />
+          <CustomSelect
+            options={counsellorBranch}
+            value={selectedBranch}
+            onChange={setSelectedBranch}
+            isRequired={false}
+            placeholder="Select Branch"
+          />
+        </div>
+      )}
 
       {/* ---------------- STATS ---------------- */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -579,7 +618,11 @@ const QuizAnalytics = () => {
       <Poster quiz={quiz} leaderboard={leaderboard} posterRef={posterRef} />
 
       {/* ---------------- ATTEMPTS ---------------- */}
-      <StudentAttemptsTable quizId={id} />
+      <StudentAttemptsTable
+        quizId={id}
+        externalCounsellor={selectedCounsellor}
+        externalBranch={selectedBranch}
+      />
     </div>
   );
 };

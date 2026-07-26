@@ -1,15 +1,15 @@
-import { useEffect, useState, useCallback, useContext } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, FileSpreadsheet, Eye, ListChecks } from "lucide-react";
 import api from "../../Api";
-import { useAuth } from "../../Context/AuthContext";
-import { DashboardContext } from "../../Context/DashboardContext";
 import Button from "../Generic/Button";
 import CustomSelect from "../Generic/CustomSelect";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
 
 const STATUS_BADGE = {
+  NOT_STARTED: "bg-gray-100 text-gray-600",
+  STARTED: "bg-blue-100 text-blue-700",
   SUBMITTED: "bg-green-100 text-green-700",
   AUTO_SUBMITTED: "bg-yellow-100 text-yellow-700",
 };
@@ -20,12 +20,14 @@ const StatusBadge = ({ status }) => (
       STATUS_BADGE[status] || "bg-gray-100 text-gray-600"
     }`}
   >
-    {status === "AUTO_SUBMITTED" ? "AUTO SUBMITTED" : status}
+    {status ? status.replace(/_/g, " ") : "NOT STARTED"}
   </span>
 );
 
 const STATUS_OPTIONS = [
   { value: "", label: "All Status" },
+  { value: "NOT_STARTED", label: "Not Started" },
+  { value: "STARTED", label: "In Progress" },
   { value: "SUBMITTED", label: "Submitted" },
   { value: "AUTO_SUBMITTED", label: "Auto Submitted" },
 ];
@@ -36,10 +38,18 @@ const SORT_OPTIONS = [
   { value: "asc", label: "Lowest First" },
 ];
 
-const StudentAttemptsTable = ({ quizId }) => {
+const ATTEMPT_OPTIONS = [
+  { value: "", label: "All Students" },
+  { value: "true", label: "Attempted" },
+  { value: "false", label: "Not Attempted" },
+];
+
+const StudentAttemptsTable = ({
+  quizId,
+  externalCounsellor,
+  externalBranch,
+}) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { counsellor, counsellorBranch } = useContext(DashboardContext);
 
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,10 +57,9 @@ const StudentAttemptsTable = ({ quizId }) => {
 
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [selectedCounsellor, setSelectedCounsellor] = useState("");
-  const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [sortOrder, setSortOrder] = useState(SORT_OPTIONS[0]);
+  const [selectedAttempt, setSelectedAttempt] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -76,10 +85,11 @@ const StudentAttemptsTable = ({ quizId }) => {
           page: currentPage,
           limit: itemsPerPage,
           search: search || undefined,
-          branch: selectedBranch?.value || undefined,
-          counsellor: selectedCounsellor?.value || undefined,
+          branch: externalBranch?.value || undefined,
+          counsellor: externalCounsellor?.value || undefined,
           status: selectedStatus?.value || undefined,
           sortOrder: sortOrder?.value || undefined,
+          isAttempt: selectedAttempt?.value || undefined,
         },
       });
 
@@ -96,8 +106,9 @@ const StudentAttemptsTable = ({ quizId }) => {
     currentPage,
     itemsPerPage,
     search,
-    selectedCounsellor,
-    selectedBranch,
+    externalCounsellor,
+    externalBranch,
+    selectedAttempt,
     selectedStatus,
     sortOrder,
   ]);
@@ -122,10 +133,11 @@ const StudentAttemptsTable = ({ quizId }) => {
       const res = await api.get(`/quiz/${quizId}/analytics/students/export`, {
         params: {
           search: search || undefined,
-          branch: selectedBranch?.value || undefined,
-          counsellor: selectedCounsellor?.value || undefined,
+          branch: externalBranch?.value || undefined,
+          counsellor: externalCounsellor?.value || undefined,
           status: selectedStatus?.value || undefined,
           sortOrder: sortOrder?.value || undefined,
+          isAttempt: selectedAttempt?.value || undefined,
         },
         responseType: "blob",
       });
@@ -173,27 +185,40 @@ const StudentAttemptsTable = ({ quizId }) => {
     },
     {
       header: "Marks",
-      render: (row) => <span className="font-semibold">{row.marks}</span>,
+      render: (row) => (
+        <span className="font-semibold">
+          {row.isAttempt ? row.marks : "\u2014"}
+        </span>
+      ),
     },
     {
       header: "Status",
+      // Always shown — the backend defaults row.status to "NOT_STARTED"
+      // when no StudentQuiz row exists yet, so this stays in sync with
+      // the new status filter options instead of collapsing to a dash.
       render: (row) => <StatusBadge status={row.status} />,
     },
     {
       header: "Date",
-      render: (row) => new Date(row.date).toLocaleDateString("en-GB"),
+      render: (row) =>
+        row.isAttempt
+          ? new Date(row.date).toLocaleDateString("en-GB")
+          : "\u2014",
     },
     {
       header: "Action",
-      render: (row) => (
-        <Button
-          onClick={() => handleViewResult(row)}
-          variant="secondary"
-          startIcon={<Eye size={16} />}
-        >
-          View
-        </Button>
-      ),
+      render: (row) =>
+        row.isAttempt ? (
+          <Button
+            onClick={() => handleViewResult(row)}
+            variant="secondary"
+            startIcon={<Eye size={16} />}
+          >
+            View
+          </Button>
+        ) : (
+          "\u2014"
+        ),
     },
   ];
 
@@ -219,7 +244,7 @@ const StudentAttemptsTable = ({ quizId }) => {
       {/* Filters */}
       <form
         onSubmit={(e) => e.preventDefault()}
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4"
       >
         <div className="relative">
           <Search
@@ -235,29 +260,15 @@ const StudentAttemptsTable = ({ quizId }) => {
           />
         </div>
 
-        {(user.role === "admin" || user.role === "followUp") && (
-          <>
-            <div>
-              <CustomSelect
-                options={counsellor}
-                value={selectedCounsellor}
-                onChange={setSelectedCounsellor}
-                isRequired={false}
-                placeholder="Select Counsellor"
-              />
-            </div>
-
-            <div>
-              <CustomSelect
-                options={counsellorBranch}
-                value={selectedBranch}
-                onChange={setSelectedBranch}
-                isRequired={false}
-                placeholder="Select Branch"
-              />
-            </div>
-          </>
-        )}
+        <div>
+          <CustomSelect
+            options={ATTEMPT_OPTIONS}
+            value={selectedAttempt}
+            onChange={setSelectedAttempt}
+            isRequired={false}
+            placeholder="Attempt Status"
+          />
+        </div>
 
         <div>
           <CustomSelect
@@ -285,7 +296,7 @@ const StudentAttemptsTable = ({ quizId }) => {
         data={students}
         loading={loading}
         error={error}
-        rowKey="studentQuizId"
+        rowKey="studentId"
       />
 
       <Pagination

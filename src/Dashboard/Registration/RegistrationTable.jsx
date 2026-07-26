@@ -173,13 +173,15 @@ const RegistrationTable = () => {
           </Button>
 
           {/* QUIZ DETAILS */}
-          <Button
-            variant="secondary"
-            startIcon={<ClipboardList size={16} />}
-            onClick={() => handleQuizDetails(row)}
-          >
-            Quiz
-          </Button>
+          {row.amountRemaining == 0 && (
+            <Button
+              variant="secondary"
+              startIcon={<ClipboardList size={16} />}
+              onClick={() => handleQuizDetails(row)}
+            >
+              Quiz
+            </Button>
+          )}
 
           {user.role === "admin" && (
             <>
@@ -703,7 +705,9 @@ const RegistrationTable = () => {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div>
-                <h2 className="text-lg font-bold text-gray-800">Quiz Statistics</h2>
+                <h2 className="text-lg font-bold text-gray-800">
+                  Quiz Statistics
+                </h2>
                 <p className="text-sm text-gray-500">{quizStudentName}</p>
               </div>
               <button
@@ -724,10 +728,42 @@ const RegistrationTable = () => {
                   {/* Stats Cards */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
                     {[
-                      { title: "Total Attempts", value: quizData.totalAttempts, icon: ClipboardList, bg: "bg-blue-50", border: "border-blue-100", iconBg: "bg-blue-100", iconColor: "text-blue-600" },
-                      { title: "Total Marks", value: quizData.totalMarks, icon: Trophy, bg: "bg-yellow-50", border: "border-yellow-100", iconBg: "bg-yellow-100", iconColor: "text-yellow-600" },
-                      { title: "Average Score", value: quizData.avgScore, icon: Target, bg: "bg-purple-50", border: "border-purple-100", iconBg: "bg-purple-100", iconColor: "text-purple-600" },
-                      { title: "Best Score", value: quizData.bestScore, icon: Award, bg: "bg-amber-50", border: "border-amber-100", iconBg: "bg-amber-100", iconColor: "text-amber-600" },
+                      {
+                        title: "Total Attempts",
+                        value: quizData.totalAttempts,
+                        icon: ClipboardList,
+                        bg: "bg-blue-50",
+                        border: "border-blue-100",
+                        iconBg: "bg-blue-100",
+                        iconColor: "text-blue-600",
+                      },
+                      {
+                        title: "Total Marks",
+                        value: quizData.totalMarks,
+                        icon: Trophy,
+                        bg: "bg-yellow-50",
+                        border: "border-yellow-100",
+                        iconBg: "bg-yellow-100",
+                        iconColor: "text-yellow-600",
+                      },
+                      {
+                        title: "Average Score",
+                        value: quizData.avgScore,
+                        icon: Target,
+                        bg: "bg-purple-50",
+                        border: "border-purple-100",
+                        iconBg: "bg-purple-100",
+                        iconColor: "text-purple-600",
+                      },
+                      {
+                        title: "Best Score",
+                        value: quizData.bestScore,
+                        icon: Award,
+                        bg: "bg-amber-50",
+                        border: "border-amber-100",
+                        iconBg: "bg-amber-100",
+                        iconColor: "text-amber-600",
+                      },
                     ].map((card) => (
                       <div
                         key={card.title}
@@ -736,11 +772,19 @@ const RegistrationTable = () => {
                         <div className="absolute -right-5 -top-5 w-20 h-20 rounded-full bg-white/20" />
                         <div className="flex items-start justify-between">
                           <div>
-                            <p className="text-xs font-medium text-gray-600">{card.title}</p>
-                            <h3 className="text-2xl font-bold mt-1 text-gray-800">{card.value ?? 0}</h3>
+                            <p className="text-xs font-medium text-gray-600">
+                              {card.title}
+                            </p>
+                            <h3 className="text-2xl font-bold mt-1 text-gray-800">
+                              {card.value ?? 0}
+                            </h3>
                           </div>
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.iconBg}`}>
-                            <card.icon className={`w-5 h-5 ${card.iconColor}`} />
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.iconBg}`}
+                          >
+                            <card.icon
+                              className={`w-5 h-5 ${card.iconColor}`}
+                            />
                           </div>
                         </div>
                       </div>
