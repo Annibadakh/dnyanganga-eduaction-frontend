@@ -2,6 +2,7 @@ import React, { useEffect, useState, Fragment, useRef } from "react";
 import api from "../../Api";
 import { Dialog, Transition } from "@headlessui/react";
 import EditTransactionModal from "./EditTransactionModal";
+import Pagination from "../Generic/Pagination";
 import { useToast } from "../../useToast";
 import { Pencil, Trash2 } from "lucide-react";
 
@@ -11,7 +12,18 @@ const AdminCollection = () => {
   const imgUrl = import.meta.env.VITE_IMG_URL;
   const [users, setUsers] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [filteredTransactions, setFilteredTransactions] = useState([]);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [stats, setStats] = useState({
+    totalAmount: 0,
+    pendingAmount: 0,
+    approvedAmount: 0,
+    rejectedAmount: 0,
+  });
 
   // Filter states
   const [selectedUser, setSelectedUser] = useState("");
@@ -43,14 +55,37 @@ const AdminCollection = () => {
     }
   };
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (page = 1, limitOverride) => {
     try {
-      const res = await api.get(`/counsellor/collection/AllTransactions`);
-      setTransactions(res.data || []);
-      setFilteredTransactions(res.data || []);
+      const limit = limitOverride || itemsPerPage;
+      const params = {
+        page,
+        limit,
+        counsellor: selectedUser || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        status: statusFilter || undefined,
+        remark: remarkFilter || undefined,
+      };
+
+      const res = await api.get(`/counsellor/collection/AllTransactions`, { params });
+      setTransactions(res.data.transactions || []);
+      setCurrentPage(res.data.currentPage);
+      setTotalPages(res.data.totalPages);
+      setTotalCount(res.data.totalCount);
+      setStats(res.data.stats || { totalAmount: 0, pendingAmount: 0, approvedAmount: 0, rejectedAmount: 0 });
     } catch (err) {
       console.error("Error fetching transactions", err);
     }
+  };
+
+  const handlePageChange = (newPage) => {
+    fetchTransactions(newPage);
+  };
+
+  const handleItemsPerPageChange = (newLimit) => {
+    setItemsPerPage(newLimit);
+    fetchTransactions(1, newLimit);
   };
 
   const handleSelectUser = (uuid, name) => {
@@ -58,6 +93,7 @@ const AdminCollection = () => {
     setSelectedUserName(name);
     setIsDropdownOpen(false);
     setUserSearch("");
+    setCurrentPage(1);
   };
 
   const handleUserSearchChange = (e) => {
@@ -85,47 +121,7 @@ const AdminCollection = () => {
     setEndDate("");
     setStatusFilter("");
     setRemarkFilter("");
-    setFilteredTransactions(transactions);
-  };
-
-  const applyFilters = () => {
-    let filtered = [...transactions];
-
-    if (selectedUser) {
-      filtered = filtered.filter((txn) => txn.counsellorId === selectedUser);
-    }
-
-    if (startDate) {
-      filtered = filtered.filter((txn) => {
-        const txnDate = new Date(txn.paymentDate);
-        const start = new Date(startDate);
-        return txnDate >= start;
-      });
-    }
-
-    if (endDate) {
-      filtered = filtered.filter((txn) => {
-        const txnDate = new Date(txn.paymentDate);
-        const end = new Date(endDate);
-        return txnDate <= end;
-      });
-    }
-
-    if (statusFilter) {
-      filtered = filtered.filter((txn) => txn.verifyStatus === statusFilter);
-    }
-
-    if (remarkFilter) {
-      filtered = filtered.filter((txn) => {
-        if (remarkFilter === "Other") {
-          return txn.remark && txn.remark.startsWith("Other:");
-        } else {
-          return txn.remark === remarkFilter;
-        }
-      });
-    }
-
-    setFilteredTransactions(filtered);
+    setCurrentPage(1);
   };
 
   useEffect(() => {
@@ -137,19 +133,13 @@ const AdminCollection = () => {
 
   useEffect(() => {
     fetchUsers();
-    fetchTransactions();
+    fetchTransactions(1);
   }, []);
 
+  // When filters change, reset to page 1 and refetch
   useEffect(() => {
-    applyFilters();
-  }, [
-    selectedUser,
-    startDate,
-    endDate,
-    statusFilter,
-    remarkFilter,
-    transactions,
-  ]);
+    if (users.length > 0) fetchTransactions(1);
+  }, [selectedUser, startDate, endDate, statusFilter, remarkFilter]);
 
   const handleViewProof = (url) => {
     if (url) {
@@ -166,7 +156,7 @@ const AdminCollection = () => {
   };
 
   const handleEditSuccess = () => {
-    fetchTransactions();
+    fetchTransactions(currentPage);
   };
 
   const changeStatus = async (id, status) => {
@@ -175,52 +165,22 @@ const AdminCollection = () => {
         status,
       });
       successToast(res.data.message);
-      fetchTransactions();
+      fetchTransactions(currentPage);
     } catch (err) {
       console.error("Error changing status", err);
       errorToast("Error changing status");
     }
   };
 
-  const calculateStats = () => {
-    const stats = filteredTransactions.reduce(
-      (acc, txn) => {
-        const amount = parseFloat(txn.amountPaid) || 0;
-        acc.totalAmount += amount;
-
-        if (txn.verifyStatus === "verified") {
-          acc.approvedAmount += amount;
-        } else if (txn.verifyStatus === "rejected") {
-          acc.rejectedAmount += amount;
-        } else {
-          acc.pendingAmount += amount;
-        }
-
-        return acc;
-      },
-      {
-        totalAmount: 0,
-        pendingAmount: 0,
-        approvedAmount: 0,
-        rejectedAmount: 0,
-      },
-    );
-
-    return stats;
-  };
-
-  const stats = calculateStats();
-
   const filteredUsers = users.filter((u) =>
     u.name.toLowerCase().includes(userSearch.toLowerCase()),
   );
 
   const handleDelete = async (id) => {
-    // console.log("Delete transaction with ID:", id);
     try {
       await api.delete(`/counsellor/collection/deleteTransaction/${id}`);
       successToast("Transaction deleted successfully");
-      fetchTransactions();
+      fetchTransactions(currentPage);
     } catch (error) {
       console.error("Error deleting transaction:", error);
       errorToast("Error deleting transaction");
@@ -548,10 +508,10 @@ const AdminCollection = () => {
       </div>
 
       {/* Transaction History */}
-      {filteredTransactions.length > 0 ? (
+      {transactions.length > 0 ? (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
-            Transaction History ({filteredTransactions.length} records)
+            Transaction History ({totalCount} records)
           </h2>
           <div className="overflow-x-auto">
             <table className="min-w-full table-auto text-center border border-gray-300">
@@ -570,9 +530,9 @@ const AdminCollection = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredTransactions.map((txn, idx) => (
-                  <tr key={idx} className="hover:bg-gray-100">
-                    <td className="p-2 border whitespace-nowrap">{idx + 1}</td>
+                {transactions.map((txn, idx) => (
+                  <tr key={txn.id} className="hover:bg-gray-100">
+                    <td className="p-2 border whitespace-nowrap">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                     <td className="p-2 border whitespace-nowrap">
                       {new Date(txn.paymentDate).toLocaleDateString("en-GB")}
                     </td>
@@ -645,6 +605,14 @@ const AdminCollection = () => {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
         </div>
       ) : (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6 text-center">
