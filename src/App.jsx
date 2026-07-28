@@ -19,11 +19,14 @@ import Quizz from "./Dashboard/Quizz";
 import CounsellorReport from "./Dashboard/CounsellorReport";
 import StudentLogin from "./Components/StudentLogin";
 import StudentQuizPlay from "./Dashboard/Student/StudentQuizPlay";
-import StudentActiveQuizList from "./Dashboard/Student/StudentActiveQuizList";
-import StudentQuizHistory from "./Dashboard/Student/StudentQuizHistory";
+import StudentAllQuizzes from "./Dashboard/Student/StudentAllQuizzes";
+import StudentQuizView from "./Dashboard/Student/StudentQuizView";
 import StudentQuizResult from "./Dashboard/Student/StudentQuizResult";
 import StudentQuizzDashboard from "./Dashboard/Student/StudentQuizzDashboard";
 import ChapterManager from "./Dashboard/QuestionBank/ChapterManager";
+import StudentSubjects from "./Dashboard/Student/QuestionBank/StudentSubjects";
+import StudentChapters from "./Dashboard/Student/QuestionBank/StudentChapters";
+import StudentQuestions from "./Dashboard/Student/QuestionBank/StudentQuestions";
 
 // Landing
 const About = lazy(() => import("./Pages/About"));
@@ -251,8 +254,11 @@ function App() {
               <Route element={<Dashboard />}>
                 <Route index element={<Navigate to="home" replace />} />
                 <Route path="home" element={<StudentQuizzDashboard />} />
-                <Route path="active" element={<StudentActiveQuizList />} />
-                <Route path="history" element={<StudentQuizHistory />} />
+                <Route path="question-bank" element={<StudentSubjects />} />
+                <Route path="question-bank/:subjectId" element={<StudentChapters />} />
+                <Route path="question-bank/:subjectId/:chapterId" element={<StudentQuestions />} />
+                <Route path="quizzes" element={<StudentAllQuizzes />} />
+                <Route path="view-quiz/:quizId" element={<StudentQuizView />} />
                 <Route
                   path="result/:studentQuizId"
                   element={<StudentQuizResult />}

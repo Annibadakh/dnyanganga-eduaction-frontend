@@ -141,7 +141,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     {
       path: "question-bank",
       label: "Question Bank",
-      role: ["admin"],
+      role: ["admin", "student"],
       icon: <FaDatabase className="text-lg" />,
     },
     {
@@ -151,16 +151,10 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       icon: <FaClipboardCheck className="text-lg" />,
     },
     {
-      path: "active",
-      label: "Active Quizz",
+      path: "quizzes",
+      label: "Quizzes",
       role: ["student"],
-      icon: <FaPlayCircle className="text-lg" />,
-    },
-    {
-      path: "history",
-      label: "Quizz History",
-      role: ["student"],
-      icon: <FaHistory className="text-lg" />,
+      icon: <FaListAlt className="text-lg" />,
     },
   ];
   // console.log(userRole)
