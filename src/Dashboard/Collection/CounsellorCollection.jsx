@@ -1,9 +1,10 @@
-import React, { useEffect, useState, Fragment, useMemo } from "react";
+import React, { useEffect, useState, Fragment } from "react";
 import api from "../../Api";
 import { useAuth } from "../../Context/AuthContext";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
 import { Dialog, Transition } from "@headlessui/react";
+import Pagination from "../Generic/Pagination";
 import {useToast} from "../../useToast";
 
 const CounsellorCollection = () => {
@@ -12,6 +13,18 @@ const CounsellorCollection = () => {
   const [collection, setCollection] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [stats, setStats] = useState({
+    totalAmount: 0,
+    pendingAmount: 0,
+    approvedAmount: 0,
+    rejectedAmount: 0,
+  });
 
   const [settleAmount, setSettleAmount] = useState("");
   const [remark, setRemark] = useState("");
@@ -37,61 +50,6 @@ const CounsellorCollection = () => {
 
   const imgUrl = import.meta.env.VITE_IMG_URL;
 
-  // Filter transactions based on status and date
-  const filteredTransactions = useMemo(() => {
-    let filtered = transactions;
-
-    // Filter by status
-    if (statusFilter) {
-      filtered = filtered.filter(txn => txn.verifyStatus === statusFilter);
-    }
-
-    // Filter by date range
-    if (dateFrom) {
-      filtered = filtered.filter(txn => new Date(txn.paymentDate) >= new Date(dateFrom));
-    }
-    if (dateTo) {
-      filtered = filtered.filter(txn => new Date(txn.paymentDate) <= new Date(dateTo));
-    }
-
-    return filtered;
-  }, [transactions, statusFilter, dateFrom, dateTo]);
-
-  // Calculate statistics from date-filtered transactions only (ignore status filter)
-  const statsTransactions = useMemo(() => {
-    let filtered = transactions;
-
-    // Filter by date range only for statistics
-    if (dateFrom) {
-      filtered = filtered.filter(txn => new Date(txn.paymentDate) >= new Date(dateFrom));
-    }
-    if (dateTo) {
-      filtered = filtered.filter(txn => new Date(txn.paymentDate) <= new Date(dateTo));
-    }
-
-    return filtered;
-  }, [transactions, dateFrom, dateTo]);
-
-  const stats = useMemo(() => {
-    const totalAmount = statsTransactions.reduce((sum, txn) => sum + parseFloat(txn.amountPaid || 0), 0);
-    const pendingAmount = statsTransactions
-      .filter(txn => txn.verifyStatus === 'pending')
-      .reduce((sum, txn) => sum + parseFloat(txn.amountPaid || 0), 0);
-    const approvedAmount = statsTransactions
-      .filter(txn => txn.verifyStatus === 'verified')
-      .reduce((sum, txn) => sum + parseFloat(txn.amountPaid || 0), 0);
-    const rejectedAmount = statsTransactions
-      .filter(txn => txn.verifyStatus === 'rejected')
-      .reduce((sum, txn) => sum + parseFloat(txn.amountPaid || 0), 0);
-
-    return {
-      totalAmount,
-      pendingAmount,
-      approvedAmount,
-      rejectedAmount
-    };
-  }, [statsTransactions]);
-
   // Fetch collection summary
   const fetchCollection = async () => {
     setLoading(true);
@@ -105,20 +63,46 @@ const CounsellorCollection = () => {
     }
   };
 
-  // Fetch settlement history
-  const fetchTransactions = async () => {
+  // Fetch transaction history with server-side pagination + filters
+  const fetchTransactions = async (page = 1, limitOverride) => {
     try {
-      const res = await api.get(`/counsellor/collection/payments/${user.uuid}`);
-      setTransactions(res.data || []);
+      const limit = limitOverride || itemsPerPage;
+      const params = {
+        page,
+        limit,
+        status: statusFilter || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+      };
+      const res = await api.get(`/counsellor/collection/payments/${user.uuid}`, { params });
+      setTransactions(res.data.transactions || []);
+      setCurrentPage(res.data.currentPage);
+      setTotalPages(res.data.totalPages);
+      setTotalCount(res.data.totalCount);
+      setStats(res.data.stats || { totalAmount: 0, pendingAmount: 0, approvedAmount: 0, rejectedAmount: 0 });
     } catch (err) {
       console.error("Error fetching transactions", err);
     }
   };
 
+  const handlePageChange = (newPage) => {
+    fetchTransactions(newPage);
+  };
+
+  const handleItemsPerPageChange = (newLimit) => {
+    setItemsPerPage(newLimit);
+    fetchTransactions(1, newLimit);
+  };
+
   useEffect(() => {
     fetchCollection();
-    fetchTransactions();
+    fetchTransactions(1);
   }, []);
+
+  // Refetch when filters change
+  useEffect(() => {
+    if (dateFrom || dateTo || statusFilter) fetchTransactions(1);
+  }, [statusFilter, dateFrom, dateTo]);
 
   const handleProofUpload = async (type) => {
     const imageUrl = await paymentProof.uploadImage(type);
@@ -169,7 +153,7 @@ const CounsellorCollection = () => {
       setShowForm(false); // Hide form after successful submission
       paymentProof.removePhoto();
       fetchCollection();
-      fetchTransactions();
+      fetchTransactions(1);
     } catch (err) {
       console.error("Error settling:", err);
       setError("Failed to settle. Please try again.");
@@ -337,7 +321,6 @@ const CounsellorCollection = () => {
         </div>
 
       {/* Transaction History */}
-      {transactions.length > 0 ? (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <h2 className="text-xl font-semibold text-secondary mb-4">
             Collection History
@@ -395,14 +378,13 @@ const CounsellorCollection = () => {
                 Clear Filters
               </button>
               <span className="ml-2 text-sm text-gray-600">
-                Showing {filteredTransactions.length} of {transactions.length} transactions
+                Showing {transactions.length} of {totalCount} transactions
               </span>
             </div>
           )}
           </div>
 
-          {/* Statistics Section - positioned after filters */}
-          
+          {/* Statistics Section */}
           <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-secondary">
@@ -476,7 +458,9 @@ const CounsellorCollection = () => {
             </div>
           </div>
         </div>
-          
+
+      {totalCount > 0 ? (
+        <>          
           <div className="overflow-x-auto">
             <table className="table-auto min-w-full text-center border border-gray-300">
               <thead className="bg-primary text-white">
@@ -490,9 +474,9 @@ const CounsellorCollection = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredTransactions.map((txn, idx) => (
-                  <tr key={idx} className="hover:bg-gray-100">
-                    <td className="p-2 border">{idx+1}</td>
+                {transactions.map((txn, idx) => (
+                  <tr key={txn.id} className="hover:bg-gray-100">
+                    <td className="p-2 border">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                     <td className="p-2 border">{new Date(txn.paymentDate).toLocaleDateString("en-GB") }</td>
                     <td className="p-2 border">₹ {txn.amountPaid}</td>
                     <td className="p-2 border">{txn.remark}</td>
@@ -519,14 +503,19 @@ const CounsellorCollection = () => {
             </table>
           </div>
 
-          {/* No results message */}
-          {filteredTransactions.length === 0 && transactions.length > 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <p>No transactions match the selected filters.</p>
-            </div>
-          )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
+        </>
+      ) : (
+        <p className="text-gray-600 text-center py-8">No transaction found.</p>
+      )}
         </div>
-      ) : (<p>No transaction Found !!</p>)}
 
       {/* Proof Modal */}
       <Transition appear show={showReceiptModal} as={Fragment}>
