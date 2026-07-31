@@ -246,7 +246,7 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
       const payload = {
         chapterId: chapter.id,
         subjectId: chapter.subjectId,
-        standardId: chapter.Subject?.standardId,
+        standardId: chapter.standardId ?? chapter.Subject?.standardId,
         questionText,
         topic,
         type,

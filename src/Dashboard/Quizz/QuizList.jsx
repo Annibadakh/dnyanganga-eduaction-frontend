@@ -25,12 +25,10 @@ const QuizList = () => {
     try {
       const res = await api.get("/simple/standards");
 
-      const options = res.data.data
-        .filter((std) => !std.baseStandardId)
-        .map((std) => ({
-          label: std.name,
-          value: std.id,
-        }));
+      const options = res.data.data.map((std) => ({
+        label: std.normalizeName,
+        value: std.id,
+      }));
 
       setStandards(options);
     } catch (err) {

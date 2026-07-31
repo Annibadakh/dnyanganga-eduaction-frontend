@@ -26,12 +26,10 @@ const ChapterManager = () => {
   const fetchStandards = async () => {
     try {
       const res = await api.get("/simple/standards");
-      const options = res.data.data
-        .filter((std) => !std.baseStandardId)
-        .map((std) => ({
-          label: std.name,
-          value: std.id,
-        }));
+      const options = res.data.data.map((std) => ({
+        label: std.normalizeName,
+        value: std.id,
+      }));
 
       setStandards(options);
     } catch (err) {
@@ -67,6 +65,7 @@ const ChapterManager = () => {
       const res = await api.get("/question-bank/chapter", {
         params: {
           subjectId,
+          standardId: selectedStandard?.value,
           page,
           limit,
         },
@@ -194,6 +193,7 @@ const ChapterManager = () => {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         subjectId={selectedSubject?.value}
+        standardId={selectedStandard?.value}
         onSuccess={() => {
           setCurrentPage(1);
           fetchChapters(selectedSubject.value, 1, itemsPerPage);

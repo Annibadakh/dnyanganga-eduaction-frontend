@@ -27,9 +27,7 @@ const QuizCreate = () => {
   const fetchStandards = async () => {
     const res = await api.get("/simple/standards");
     setStandards(
-      res.data.data
-        .filter((std) => !std.baseStandardId)
-        .map((std) => ({ label: std.name, value: std.id })),
+      res.data.data.map((std) => ({ label: std.normalizeName, value: std.id })),
     );
   };
 
@@ -47,7 +45,7 @@ const QuizCreate = () => {
     let all = [];
     for (let id of subjectIds) {
       const res = await api.get("/question-bank/chapter", {
-        params: { subjectId: id },
+        params: { subjectId: id, standardId: selectedStandard?.value },
       });
       console.log(res.data);
       all = [...all, ...res.data.data];

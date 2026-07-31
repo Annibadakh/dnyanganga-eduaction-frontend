@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../../Api";
 import Button from "../Generic/Button";
 
-const AddChapterModal = ({ isOpen, onClose, subjectId, onSuccess }) => {
+const AddChapterModal = ({ isOpen, onClose, subjectId, standardId, onSuccess }) => {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -17,6 +17,7 @@ const AddChapterModal = ({ isOpen, onClose, subjectId, onSuccess }) => {
       await api.post("/question-bank/chapter", {
         name,
         subjectId,
+        standardId,
       });
 
       setName("");

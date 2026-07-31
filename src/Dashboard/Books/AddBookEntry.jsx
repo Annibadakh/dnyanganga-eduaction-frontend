@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../../Api";
+import { FileUploadHook } from "../FileUpload/FileUploadHook";
+import FileUpload from "../FileUpload/FileUpload";
 
 
 const AddBookEntry = () => {
@@ -21,6 +23,9 @@ const AddBookEntry = () => {
   
   // Challan details
   const [chalanDate, setChalanDate] = useState(new Date().toISOString().split('T')[0]);
+  const [manualChalanNo, setManualChalanNo] = useState("");
+  const senderReceipt = FileUploadHook();
+  const [senderReceiptUrl, setSenderReceiptUrl] = useState("");
   
   // Dropdown states for form
   const [isFormDropdownOpen, setIsFormDropdownOpen] = useState(false);
@@ -169,6 +174,7 @@ const AddBookEntry = () => {
     const payload = {
       chalanDate,
       counsellorId: selectedCounsellor,
+      manualChalanNo: manualChalanNo.trim() || null,
       items: []
     };
 
@@ -218,9 +224,20 @@ const AddBookEntry = () => {
 
   const resetForm = () => {
     setChalanDate(new Date().toISOString().split('T')[0]);
+    setManualChalanNo("");
+    setSenderReceiptUrl("");
+    senderReceipt.removePhoto();
     initializeBookEntries();
     setPamphletEntry({ count: "" });
     setReceiptBookEntries([{ bookNo: "", range: "" }]);
+  };
+
+  // Handle sender receipt upload same as PaymentForm pattern
+  const handleSenderReceiptUpload = async (type) => {
+    const imageUrl = await senderReceipt.uploadImage(type);
+    if (imageUrl) {
+      setSenderReceiptUrl(imageUrl);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -231,7 +248,11 @@ const AddBookEntry = () => {
 
     try {
       setSubmitLoader(true);
-      // console.log("Payload to be sent:", payload);
+
+      // Attach uploaded sender receipt URL if provided
+      if (senderReceiptUrl) {
+        payload.senderReceiptUrl = senderReceiptUrl;
+      }
       
       await api.post("/admin/addBooksWithChalan", payload);
       
@@ -565,9 +586,33 @@ const AddBookEntry = () => {
                 onChange={(e) => setChalanDate(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              {/* <p className="text-sm text-gray-500 mt-1">
-                Challan number will be auto-generated (4-digit unique number)
-              </p> */}
+            </div>
+
+            {/* Manual Challan No. */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">Manual Challan No. <span className="text-gray-400 font-normal text-sm">(optional)</span></label>
+              <input
+                type="text"
+                placeholder="Enter physical/manual challan number"
+                value={manualChalanNo}
+                onChange={(e) => setManualChalanNo(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Sender Receipt Upload */}
+            <div>
+              <FileUpload
+                title="Sender Receipt (optional)"
+                imageUrl={senderReceipt.imageUrl}
+                error={senderReceipt.error}
+                loader={senderReceipt.loader}
+                isSaved={senderReceipt.isSaved}
+                imageType="challan"
+                onFileUpload={senderReceipt.handleFileUpload}
+                onUploadImage={handleSenderReceiptUpload}
+                onRemovePhoto={senderReceipt.removePhoto}
+              />
             </div>
 
             {/* Entry Type Selection */}

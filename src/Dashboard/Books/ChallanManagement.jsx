@@ -7,6 +7,8 @@ import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
 import Button from "../Generic/Button";
 import { Eye } from "lucide-react";
+import { FileUploadHook } from "../FileUpload/FileUploadHook";
+import FileUpload from "../FileUpload/FileUpload";
 
 const ChallanManagement = () => {
   const { user } = useAuth();
@@ -18,6 +20,10 @@ const ChallanManagement = () => {
   const [loading, setLoading] = useState(false);
   const [selectedChallan, setSelectedChallan] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [receiptChallan, setReceiptChallan] = useState(null); // challan being uploaded receiver receipt
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [imageViewerUrl, setImageViewerUrl] = useState("");
+  const receiverReceipt = FileUploadHook();
 
   // Filter states
   const [filterCounsellor, setFilterCounsellor] = useState("");
@@ -49,6 +55,10 @@ const ChallanManagement = () => {
     {
       header: "Challan No",
       render: (row) => row.chalanNo || "N/A",
+    },
+    {
+      header: "Manual Challan No",
+      render: (row) => row.manualChalanNo || <span className="text-gray-400">—</span>,
     },
     {
       header: "Date",
@@ -104,13 +114,30 @@ const ChallanManagement = () => {
     {
       header: "Actions",
       render: (row) => (
-        <Button
-          variant="info"
-          startIcon={<Eye size={16} />}
-          onClick={() => viewChallanDetails(row)}
-        >
-          View
-        </Button>
+        <div className="flex gap-2 items-center flex-wrap">
+          <Button
+            variant="info"
+            startIcon={<Eye size={16} />}
+            onClick={() => viewChallanDetails(row)}
+          >
+            View
+          </Button>
+          {user.role === "counsellor" && (
+            <button
+              type="button"
+              onClick={() => openReceiptModal(row)}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition ${
+                row.receiverReceiptUrl
+                  ? "bg-green-100 text-green-700 border border-green-300 hover:bg-green-200"
+                  : "bg-orange-500 text-white hover:bg-orange-600"
+              }`}
+            >
+              {row.receiverReceiptUrl
+                ? "✓ View Receipt"
+                : "Upload Receipt"}
+            </button>
+          )}
+        </div>
       ),
     },
   ];
@@ -271,7 +298,6 @@ const ChallanManagement = () => {
     setFilterDateFrom("");
     setFilterDateTo("");
     setSearchChallanNo("");
-    setInternalSearch("");
   };
 
   const formatDate = (dateString) => {
@@ -286,6 +312,101 @@ const ChallanManagement = () => {
   const viewChallanDetails = (challan) => {
     setSelectedChallan(challan);
     setShowDetails(true);
+  };
+
+  const openReceiptModal = (challan) => {
+    // If a receipt is already saved, show it in the view-only image viewer
+    // instead of allowing the counsellor to edit/overwrite it again.
+    if (challan.receiverReceiptUrl) {
+      setImageViewerUrl(
+        `${import.meta.env.VITE_IMG_URL}${challan.receiverReceiptUrl}`,
+      );
+      return;
+    }
+    receiverReceipt.removePhoto();
+    setReceiptChallan(challan);
+    setShowReceiptModal(true);
+  };
+
+  const closeReceiptModal = () => {
+    setShowReceiptModal(false);
+    setReceiptChallan(null);
+  };
+
+  const handleReceiverReceiptUpload = async (type) => {
+    const imageUrl = await receiverReceipt.uploadImage(type);
+    if (!imageUrl) return;
+
+    try {
+      // Save URL to challan
+      await api.put(
+        `/counsellor/chalans/${receiptChallan.id}/receiverReceipt`,
+        {
+          receiverReceiptUrl: imageUrl,
+        },
+      );
+
+      // Update local state
+      setChallans((prev) =>
+        prev.map((c) =>
+          c.id === receiptChallan.id ? { ...c, receiverReceiptUrl: imageUrl } : c
+        )
+      );
+      alert("Receiver receipt uploaded successfully!");
+      closeReceiptModal();
+    } catch (err) {
+      console.error("Error uploading receiver receipt", err);
+      alert("Failed to upload receipt. Please try again.");
+    }
+  };
+
+  const renderReceiptModal = () => {
+    if (!showReceiptModal || !receiptChallan) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 bg-black bg-opacity-50 overflow-y-auto">
+        <div className="flex items-center justify-center min-h-full p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-800">
+              Upload Receiver Receipt
+            </h3>
+            <button
+              onClick={closeReceiptModal}
+              className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            >
+              ×
+            </button>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            Challan No:{" "}
+            <span className="font-semibold text-gray-800">
+              {receiptChallan.chalanNo || "N/A"}
+            </span>
+          </p>
+          <FileUpload
+            title="Receiver Receipt"
+            imageUrl={receiverReceipt.imageUrl}
+            error={receiverReceipt.error}
+            loader={receiverReceipt.loader}
+            isSaved={receiverReceipt.isSaved}
+            imageType="challan"
+            onFileUpload={receiverReceipt.handleFileUpload}
+            onUploadImage={handleReceiverReceiptUpload}
+            onRemovePhoto={receiverReceipt.removePhoto}
+          />
+          <div className="flex justify-end mt-2">
+            <button
+              onClick={closeReceiptModal}
+              className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition"
+            >
+              Cancel
+            </button>
+          </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Pagination logic
@@ -378,6 +499,12 @@ const ChallanManagement = () => {
                       <p className="text-blue-100 font-medium">Challan No.</p>
                       <p className="text-xl font-bold">
                         {selectedChallan.chalanNo || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-blue-100 font-medium">Manual Challan No.</p>
+                      <p className="text-xl font-bold">
+                        {selectedChallan.manualChalanNo || <span className="text-blue-200 text-sm font-normal">Not provided</span>}
                       </p>
                     </div>
                     <div>
@@ -639,6 +766,57 @@ const ChallanManagement = () => {
                 </p>
               </div>
             )}
+
+            {/* Receipts Section */}
+            {(selectedChallan.senderReceiptUrl || selectedChallan.receiverReceiptUrl || user.role === "counsellor") && (
+              <div className="mt-6 border-t pt-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <span className="bg-blue-100 p-2 rounded-lg">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </span>
+                  Receipts
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Sender Receipt */}
+                  <div className="border rounded-xl p-4">
+                    <p className="font-semibold text-gray-700 mb-3">Sender Receipt <span className="text-xs text-gray-400">(Admin)</span></p>
+                    {selectedChallan.senderReceiptUrl ? (
+                      <div>
+                        <img
+                          src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedChallan.senderReceiptUrl}`}
+                          alt="Sender Receipt"
+                          className="h-40 w-auto rounded-lg border border-gray-200 object-cover cursor-pointer hover:opacity-90 transition"
+                          onClick={() => setImageViewerUrl(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedChallan.senderReceiptUrl}`)}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Click image to enlarge</p>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-sm italic">No sender receipt uploaded</p>
+                    )}
+                  </div>
+
+                  {/* Receiver Receipt */}
+                  <div className="border rounded-xl p-4">
+                    <p className="font-semibold text-gray-700 mb-3">Receiver Receipt <span className="text-xs text-gray-400">(Counsellor)</span></p>
+                    {selectedChallan.receiverReceiptUrl ? (
+                      <div>
+                        <img
+                          src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedChallan.receiverReceiptUrl}`}
+                          alt="Receiver Receipt"
+                          className="h-40 w-auto rounded-lg border border-gray-200 object-cover cursor-pointer hover:opacity-90 transition"
+                          onClick={() => setImageViewerUrl(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedChallan.receiverReceiptUrl}`)}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Click image to enlarge</p>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-sm italic">No receiver receipt uploaded yet</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
@@ -889,6 +1067,31 @@ const ChallanManagement = () => {
 
       {/* Challan Details Modal */}
       {renderChallanDetailsModal()}
+
+      {/* Receiver Receipt Upload Modal */}
+      {renderReceiptModal()}
+
+      {/* Full-size Image Viewer */}
+      {imageViewerUrl && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[60] p-4"
+          onClick={() => setImageViewerUrl("")}
+        >
+          <div className="relative max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="absolute -top-10 right-0 text-white text-3xl font-bold hover:text-gray-300"
+              onClick={() => setImageViewerUrl("")}
+            >
+              ×
+            </button>
+            <img
+              src={imageViewerUrl}
+              alt="Receipt Full View"
+              className="w-full h-auto rounded-xl shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
