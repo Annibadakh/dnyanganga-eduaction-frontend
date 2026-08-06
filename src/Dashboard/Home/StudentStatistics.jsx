@@ -20,7 +20,7 @@ import {
   Banknote,
 } from "lucide-react";
 import { DashboardContext } from "../../Context/DashboardContext";
-import CustomSelect from "../Generic/CustomSelect";
+import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import DateField from "../Generic/DateField";
 import SelectField from "../Generic/SelectField";
 
@@ -58,9 +58,9 @@ const StudentStatistics = () => {
     useContext(DashboardContext);
   const [loading, setLoading] = useState(true);
   const [statistics, setStatistics] = useState(null);
-  const [selectedCounsellor, setSelectedCounsellor] = useState("");
-  const [selectedBranch, setSelectedBranch] = useState("");
-  const [selectedExamCentre, setSelectedExamCentre] = useState("");
+  const [selectedCounsellor, setSelectedCounsellor] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState([]);
+  const [selectedExamCentre, setSelectedExamCentre] = useState([]);
   const [selectedStandard, setSelectedStandard] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -93,9 +93,15 @@ const StudentStatistics = () => {
   const fetchStatistics = () => {
     setLoading(true);
     const params = {
-      counsellor: selectedCounsellor?.value || "",
-      branch: selectedBranch?.value || "",
-      examCentre: selectedExamCentre?.value || "",
+      counsellor: selectedCounsellor && selectedCounsellor.length > 0
+        ? selectedCounsellor.map((c) => c.value).join(",")
+        : "",
+      branch: selectedBranch && selectedBranch.length > 0
+        ? selectedBranch.map((b) => b.value).join(",")
+        : "",
+      examCentre: selectedExamCentre && selectedExamCentre.length > 0
+        ? selectedExamCentre.map((e) => e.value).join(",")
+        : "",
       standard: selectedStandard,
       status: selectedStatus,
       dateFrom: dateFrom,
@@ -129,9 +135,9 @@ const StudentStatistics = () => {
   ]);
 
   const clearAllFilters = () => {
-    setSelectedCounsellor("");
-    setSelectedBranch("");
-    setSelectedExamCentre("");
+    setSelectedCounsellor([]);
+    setSelectedBranch([]);
+    setSelectedExamCentre([]);
     setSelectedStandard("");
     setSelectedStatus("");
     setDateFrom("");
@@ -140,9 +146,9 @@ const StudentStatistics = () => {
   };
 
   const hasActiveFilters =
-    selectedCounsellor ||
-    selectedBranch ||
-    selectedExamCentre ||
+    (selectedCounsellor && selectedCounsellor.length > 0) ||
+    (selectedBranch && selectedBranch.length > 0) ||
+    (selectedExamCentre && selectedExamCentre.length > 0) ||
     selectedStandard ||
     selectedStatus ||
     dateFrom ||
@@ -153,9 +159,15 @@ const StudentStatistics = () => {
     try {
       const params = {
         type,
-        counsellor: selectedCounsellor?.value || "",
-        branch: selectedBranch?.value || "",
-        examCentre: selectedExamCentre?.value || "",
+        counsellor: selectedCounsellor && selectedCounsellor.length > 0
+          ? selectedCounsellor.map((c) => c.value).join(",")
+          : "",
+        branch: selectedBranch && selectedBranch.length > 0
+          ? selectedBranch.map((b) => b.value).join(",")
+          : "",
+        examCentre: selectedExamCentre && selectedExamCentre.length > 0
+          ? selectedExamCentre.map((e) => e.value).join(",")
+          : "",
         standard: selectedStandard,
         status: selectedStatus,
         dateFrom,
@@ -219,7 +231,7 @@ const StudentStatistics = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-4 flex-wrap">
           {(user.role === "admin" || user.role === "followUp") && (
             <>
-              <CustomSelect
+              <CustomMultiSelect
                 options={users}
                 value={selectedCounsellor}
                 onChange={setSelectedCounsellor}
@@ -227,7 +239,7 @@ const StudentStatistics = () => {
                 placeholder="Select Counsellors"
               />
 
-              <CustomSelect
+              <CustomMultiSelect
                 options={branch}
                 value={selectedBranch}
                 onChange={setSelectedBranch}
@@ -236,7 +248,7 @@ const StudentStatistics = () => {
               />
             </>
           )}
-          <CustomSelect
+          <CustomMultiSelect
             options={examCentres}
             value={selectedExamCentre}
             onChange={setSelectedExamCentre}

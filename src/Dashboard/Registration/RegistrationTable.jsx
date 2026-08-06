@@ -5,7 +5,7 @@ import PaymentForm from "./PaymentForm";
 import StudentEditPage from "./StudentEditPage";
 import DeleteStudentDialog from "./DeleteStudentDialog";
 import { DashboardContext } from "../../Context/DashboardContext";
-import CustomSelect from "../Generic/CustomSelect";
+import CustomMultiSelect from "../Generic/CustomMultiSelect";
 
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
@@ -32,12 +32,12 @@ const RegistrationTable = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showPayment, setShowPayment] = useState(false);
   const [paymentData, setPaymentData] = useState("");
-  const [selectedCounsellor, setSelectedCounsellor] = useState("");
-  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedCounsellor, setSelectedCounsellor] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState([]);
   const [users, setUsers] = useState([]);
   const [branch, setBranch] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
-  const [selectedExamCentre, setSelectedExamCentre] = useState("");
+  const [selectedExamCentre, setSelectedExamCentre] = useState([]);
   const [selectedStandard, setSelectedStandard] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
@@ -259,9 +259,15 @@ const RegistrationTable = () => {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearchQuery,
-      counsellor: selectedCounsellor?.value || "",
-      branch: selectedBranch?.value || "",
-      examCentre: selectedExamCentre?.value || "",
+      counsellor: selectedCounsellor && selectedCounsellor.length > 0
+        ? selectedCounsellor.map((c) => c.value).join(",")
+        : "",
+      branch: selectedBranch && selectedBranch.length > 0
+        ? selectedBranch.map((b) => b.value).join(",")
+        : "",
+      examCentre: selectedExamCentre && selectedExamCentre.length > 0
+        ? selectedExamCentre.map((e) => e.value).join(",")
+        : "",
       standard: selectedStandard,
       status: selectedStatus,
       dateFrom: dateFrom,
@@ -567,7 +573,7 @@ const RegistrationTable = () => {
 
             {(user.role === "admin" || user.role === "followUp") && (
               <>
-                <CustomSelect
+                <CustomMultiSelect
                   options={users}
                   value={selectedCounsellor}
                   onChange={setSelectedCounsellor}
@@ -575,7 +581,7 @@ const RegistrationTable = () => {
                   placeholder="Select Counsellors"
                 />
 
-                <CustomSelect
+                <CustomMultiSelect
                   options={branch}
                   value={selectedBranch}
                   onChange={setSelectedBranch}
@@ -585,7 +591,7 @@ const RegistrationTable = () => {
               </>
             )}
 
-            <CustomSelect
+            <CustomMultiSelect
               options={examCentres}
               value={selectedExamCentre}
               onChange={setSelectedExamCentre}

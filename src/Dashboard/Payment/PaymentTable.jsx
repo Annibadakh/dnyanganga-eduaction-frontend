@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import api from "../../Api";
 import { useAuth } from "../../Context/AuthContext";
-import CustomSelect from "../Generic/CustomSelect";
+import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import { DashboardContext } from "../../Context/DashboardContext";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
@@ -26,7 +26,7 @@ const PaymentTable = () => {
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCounsellor, setSelectedCounsellor] = useState("");
+  const [selectedCounsellor, setSelectedCounsellor] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [paymentType, setPaymentType] = useState("");
@@ -179,7 +179,9 @@ const PaymentTable = () => {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearchTerm,
-      counsellor: selectedCounsellor?.value || "",
+      counsellor: selectedCounsellor && selectedCounsellor.length > 0
+        ? selectedCounsellor.map((c) => c.value).join(",")
+        : "",
       startDate: startDate,
       endDate: endDate,
       paymentType,
@@ -300,7 +302,9 @@ const PaymentTable = () => {
       const response = await api.get("/counsellor/downloadPaymentsExcel", {
         params: {
           search: debouncedSearchTerm,
-          counsellor: selectedCounsellor?.value || "",
+          counsellor: selectedCounsellor && selectedCounsellor.length > 0
+            ? selectedCounsellor.map((c) => c.value).join(",")
+            : "",
           startDate,
           endDate,
           paymentType,
@@ -348,7 +352,7 @@ const PaymentTable = () => {
         />
 
         {user.role === "admin" && (
-          <CustomSelect
+          <CustomMultiSelect
             options={users}
             value={selectedCounsellor}
             onChange={setSelectedCounsellor}

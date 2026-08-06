@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useContext } from "react";
 import * as XLSX from "xlsx";
 import api from "../../Api";
 import { DashboardContext } from "../../Context/DashboardContext";
-import CustomSelect from "../Generic/CustomSelect";
+import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import DateField from "../Generic/DateField";
 
 const Excel = () => {
@@ -15,8 +15,8 @@ const Excel = () => {
 
   const [selectedColumns, setSelectedColumns] = useState([]);
   const [selectedStandard, setSelectedStandard] = useState("");
-  const [selectedCounsellor, setSelectedCounsellor] = useState("");
-  const [selectedExamCentre, setSelectedExamCentre] = useState("");
+  const [selectedCounsellor, setSelectedCounsellor] = useState([]);
+  const [selectedExamCentre, setSelectedExamCentre] = useState([]);
   const [selectedExamYear, setSelectedExamYear] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -174,8 +174,8 @@ const Excel = () => {
 
       const body = {
         standard: selectedStandard || null,
-        counsellor: selectedCounsellor?.value || null,
-        examCentre: selectedExamCentre?.value || null,
+        counsellor: selectedCounsellor && selectedCounsellor.length > 0 ? selectedCounsellor.map((c) => c.value).join(",") : null,
+        examCentre: selectedExamCentre && selectedExamCentre.length > 0 ? selectedExamCentre.map((e) => e.value).join(",") : null,
         examYear: selectedExamYear || null,
         fromDate: fromDate || null,
         toDate: toDate || null,
@@ -221,8 +221,8 @@ const Excel = () => {
 
       const body = {
         standard: selectedStandard || null,
-        counsellor: selectedCounsellor?.value || null,
-        examCentre: selectedExamCentre?.value || null,
+        counsellor: selectedCounsellor && selectedCounsellor.length > 0 ? selectedCounsellor.map((c) => c.value).join(",") : null,
+        examCentre: selectedExamCentre && selectedExamCentre.length > 0 ? selectedExamCentre.map((e) => e.value).join(",") : null,
         examYear: selectedExamYear || null,
         fromDate: fromDate || null,
         toDate: toDate || null,
@@ -308,7 +308,7 @@ const Excel = () => {
           <option value="12th">12th</option>
         </select>
 
-        <CustomSelect
+        <CustomMultiSelect
           options={users}
           value={selectedCounsellor}
           onChange={setSelectedCounsellor}
@@ -316,7 +316,7 @@ const Excel = () => {
           placeholder="Select Counsellors"
         />
 
-        <CustomSelect
+        <CustomMultiSelect
           options={examCentres}
           value={selectedExamCentre}
           onChange={setSelectedExamCentre}

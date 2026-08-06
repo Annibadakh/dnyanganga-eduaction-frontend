@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import api from "../../Api";
 import { useAuth } from "../../Context/AuthContext";
 import { DashboardContext } from "../../Context/DashboardContext";
-import CustomSelect from "../Generic/CustomSelect";
+import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
 import Button from "../Generic/Button";
@@ -26,7 +26,7 @@ const ChallanManagement = () => {
   const receiverReceipt = FileUploadHook();
 
   // Filter states
-  const [filterCounsellor, setFilterCounsellor] = useState("");
+  const [filterCounsellor, setFilterCounsellor] = useState([]);
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
   const [searchChallanNo, setSearchChallanNo] = useState("");
@@ -146,7 +146,7 @@ const ChallanManagement = () => {
     if (user.role === "admin" || user.role === "logistics") {
       counsellor && setCounsellors(counsellor);
     }
-  }, [user.role, counsellor]);
+  }, [user.role, counsellor, filterCounsellor]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -180,7 +180,14 @@ const ChallanManagement = () => {
   const fetchAllChallans = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/admin/chalans");
+      const params = {};
+      if (user.role === "admin" || user.role === "logistics") {
+        params.counsellor =
+          filterCounsellor && filterCounsellor.length > 0
+            ? filterCounsellor.map((c) => c.value).join(",")
+            : "";
+      }
+      const res = await api.get("/admin/chalans", { params });
       // console.log("Challans data:", res.data.data);
       setChallans(res.data.data || []);
     } catch (err) {
@@ -256,12 +263,13 @@ const ChallanManagement = () => {
     // console.log(filterCounsellor);
 
     // Filter by counsellor
-    if (filterCounsellor) {
+    if (filterCounsellor && filterCounsellor.length > 0) {
+      const selectedValues = filterCounsellor.map((c) => c.value);
       filtered = filtered.filter((challan) => {
         // Check both counsellorId and User.uuid for compatibility
         return (
-          challan.counsellorId === filterCounsellor.value ||
-          (challan.User && challan.User.uuid === filterCounsellor.value)
+          selectedValues.includes(challan.counsellorId) ||
+          (challan.User && selectedValues.includes(challan.User.uuid))
         );
       });
     }
@@ -294,7 +302,7 @@ const ChallanManagement = () => {
   };
 
   const clearFilters = () => {
-    setFilterCounsellor("");
+    setFilterCounsellor([]);
     setFilterDateFrom("");
     setFilterDateTo("");
     setSearchChallanNo("");
@@ -419,7 +427,7 @@ const ChallanManagement = () => {
   const totalPages = Math.ceil(filteredChallans.length / challansPerPage);
 
   const CustomDropdown = () => (
-    <CustomSelect
+    <CustomMultiSelect
       options={counsellors}
       value={filterCounsellor}
       onChange={setFilterCounsellor}

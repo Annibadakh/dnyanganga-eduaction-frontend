@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../Api";
 import CustomSelect from "../Generic/CustomSelect";
+import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import Button from "../Generic/Button";
 import { useNavigate } from "react-router-dom";
 
@@ -174,12 +175,11 @@ const QuizCreate = () => {
           {/* Subjects */}
           <div className="md:col-span-2">
             <label className={labelCls}>Subjects</label>
-            <CustomSelect
+            <CustomMultiSelect
               options={subjects}
               value={selectedSubjects}
               onChange={setSelectedSubjects}
               placeholder="Select Subjects"
-              isMulti
               isRequired={true}
             />
           </div>

@@ -3,7 +3,7 @@ import api from "../../Api";
 import { useAuth } from "../../Context/AuthContext";
 import VisitingFormView from "./VisitingFormView";
 import VisitingFormEdit from "./VisitingFormEdit";
-import CustomSelect from "../Generic/CustomSelect";
+import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import { DashboardContext } from "../../Context/DashboardContext";
 
 import DataTable from "../Generic/DataTable";
@@ -22,8 +22,8 @@ const VisitingTable = () => {
   const [error, setError] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCounsellor, setSelectedCounsellor] = useState("");
-  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedCounsellor, setSelectedCounsellor] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState([]);
   const [selectedStandard, setSelectedStandard] = useState("");
 
   // Date range filter states
@@ -172,8 +172,12 @@ const VisitingTable = () => {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearchQuery,
-      counsellor: selectedCounsellor?.value || "",
-      branch: selectedBranch?.value || "",
+      counsellor: selectedCounsellor && selectedCounsellor.length > 0
+        ? selectedCounsellor.map((c) => c.value).join(",")
+        : "",
+      branch: selectedBranch && selectedBranch.length > 0
+        ? selectedBranch.map((b) => b.value).join(",")
+        : "",
       standard: selectedStandard,
       dateFrom: dateFrom,
       dateTo: dateTo,
@@ -326,8 +330,12 @@ const VisitingTable = () => {
     try {
       const params = {
         search: debouncedSearchQuery,
-        counsellor: selectedCounsellor?.value || "",
-        branch: selectedBranch?.value || "",
+        counsellor: selectedCounsellor && selectedCounsellor.length > 0
+          ? selectedCounsellor.map((c) => c.value).join(",")
+          : "",
+        branch: selectedBranch && selectedBranch.length > 0
+          ? selectedBranch.map((b) => b.value).join(",")
+          : "",
         standard: selectedStandard,
         dateFrom: dateFrom,
         dateTo: dateTo,
@@ -418,7 +426,7 @@ const VisitingTable = () => {
         </div>
         {(user.role === "admin" || user.role === "followUp") && (
           <div className="flex flex-col md:flex-row gap-4">
-            <CustomSelect
+            <CustomMultiSelect
               options={users}
               value={selectedCounsellor}
               onChange={setSelectedCounsellor}
@@ -426,7 +434,7 @@ const VisitingTable = () => {
               placeholder="Select Counsellors"
             />
 
-            <CustomSelect
+            <CustomMultiSelect
               options={branch}
               value={selectedBranch}
               onChange={setSelectedBranch}

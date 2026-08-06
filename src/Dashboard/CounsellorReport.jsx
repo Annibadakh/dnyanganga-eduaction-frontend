@@ -6,6 +6,7 @@ import api from "../Api";
 import { useAuth } from "../Context/AuthContext";
 import { DashboardContext } from "../Context/DashboardContext";
 import CustomSelect from "./Generic/CustomSelect";
+import CustomMultiSelect from "./Generic/CustomMultiSelect";
 import DataTable from "./Generic/DataTable";
 import { Users, DollarSign, TrendingUp, Clock, PlayCircle } from "lucide-react";
 
@@ -51,7 +52,7 @@ const CounsellorReport = () => {
 
   // Filters
   const today = new Date();
-  const [selectedCounsellor, setSelectedCounsellor] = useState("");
+  const [selectedCounsellor, setSelectedCounsellor] = useState([]);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [week, setWeek] = useState("");
@@ -83,9 +84,9 @@ const CounsellorReport = () => {
         day,
       };
 
-      // ✅ Admin can optionally filter by counsellor
-      if (user.role === "admin" && selectedCounsellor?.value) {
-        params.counsellorId = selectedCounsellor.value;
+      // ✅ Admin can optionally filter by counsellor (multi-select support)
+      if (user.role === "admin" && selectedCounsellor && selectedCounsellor.length > 0) {
+        params.counsellorId = selectedCounsellor.map((c) => c.value).join(",");
       }
 
       // ✅ Single endpoint for all
@@ -273,11 +274,11 @@ const CounsellorReport = () => {
             <label className="text-xs font-medium text-gray-600">
               Counsellor
             </label>
-            <CustomSelect
+            <CustomMultiSelect
               options={counsellor}
               value={selectedCounsellor}
               onChange={setSelectedCounsellor}
-              placeholder="Select Counsellor"
+              placeholder="Select Counsellors"
             />
           </div>
         )}
