@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../Api";
+import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import {
   Search,
   ChevronLeft,
@@ -26,10 +27,10 @@ const StudentPreviewSelector = ({ onDataReady, onCancel }) => {
   const [error, setError] = useState("");
 
   const [filters, setFilters] = useState({
-    standard: "",
+    standard: [],
     counsellor: "",
     examCentre: "",
-    examYear: "",
+    examYear: [],
     fromDate: "",
     toDate: "",
   });
@@ -151,16 +152,16 @@ const StudentPreviewSelector = ({ onDataReady, onCancel }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {/* Standard */}
             <div>
-              <label className="block text-sm font-medium text-tertiary mb-1">Standard</label>
-              <select
+              <CustomMultiSelect
+                label="Standard"
                 value={filters.standard}
-                onChange={(e) => handleFilterChange("standard", e.target.value)}
-                className={selectClass}
-              >
-                <option value="">All Standards</option>
-                <option value="10th">10th</option>
-                <option value="12th">12th</option>
-              </select>
+                onChange={(val) => handleFilterChange("standard", val)}
+                placeholder="Select Standards"
+                options={[
+                  { label: "10th", value: "10th" },
+                  { label: "12th", value: "12th" },
+                ]}
+              />
             </div>
 
             {/* Counsellor */}
@@ -195,17 +196,16 @@ const StudentPreviewSelector = ({ onDataReady, onCancel }) => {
 
             {/* Exam Year */}
             <div>
-              <label className="block text-sm font-medium text-tertiary mb-1">Exam Year</label>
-              <select
+              <CustomMultiSelect
+                label="Exam Year"
                 value={filters.examYear}
-                onChange={(e) => handleFilterChange("examYear", e.target.value)}
-                className={selectClass}
-              >
-                <option value="">All Exam Years</option>
-                {getExamYearOptions().map((year) => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+                onChange={(val) => handleFilterChange("examYear", val)}
+                placeholder="Select Exam Years"
+                options={getExamYearOptions().map((year) => ({
+                  label: year,
+                  value: year,
+                }))}
+              />
             </div>
 
             {/* From Date */}

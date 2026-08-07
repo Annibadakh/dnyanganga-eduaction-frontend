@@ -38,7 +38,7 @@ const RegistrationTable = () => {
   const [branch, setBranch] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
   const [selectedExamCentre, setSelectedExamCentre] = useState([]);
-  const [selectedStandard, setSelectedStandard] = useState("");
+  const [selectedStandard, setSelectedStandard] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
   const [loadingStatusId, setLoadingStatusId] = useState(null);
@@ -66,7 +66,9 @@ const RegistrationTable = () => {
   const [quizStudentName, setQuizStudentName] = useState("");
 
   const currentYear = new Date().getFullYear();
-  const [selectedExamYear, setSelectedExamYear] = useState(currentYear);
+  const [selectedExamYear, setSelectedExamYear] = useState([
+    { label: currentYear, value: currentYear },
+  ]);
 
   const examYearOptions = [
     currentYear - 2,
@@ -268,13 +270,17 @@ const RegistrationTable = () => {
       examCentre: selectedExamCentre && selectedExamCentre.length > 0
         ? selectedExamCentre.map((e) => e.value).join(",")
         : "",
-      standard: selectedStandard,
+      standard: selectedStandard && selectedStandard.length > 0
+        ? selectedStandard.map((s) => s.value).join(",")
+        : "",
       status: selectedStatus,
       dateFrom: dateFrom,
       dateTo: dateTo,
       onlyZeroRemaining,
       onlyNonZeroRemaining,
-      examYear: selectedExamYear,
+      examYear: selectedExamYear && selectedExamYear.length > 0
+        ? selectedExamYear.map((y) => y.value).join(",")
+        : "",
     };
 
     api
@@ -599,17 +605,18 @@ const RegistrationTable = () => {
               placeholder="Select Exam Centre"
             />
 
-            <select
+            <CustomMultiSelect
+              options={[
+                { label: "9th+10th", value: "9th+10th" },
+                { label: "10th", value: "10th" },
+                { label: "11th+12th", value: "11th+12th" },
+                { label: "12th", value: "12th" },
+              ]}
               value={selectedStandard}
-              onChange={(e) => setSelectedStandard(e.target.value)}
-              className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
-            >
-              <option value="">All Standards</option>
-              <option value="9th+10th">9th+10th</option>
-              <option value="10th">10th</option>
-              <option value="11th+12th">11th+12th</option>
-              <option value="12th">12th</option>
-            </select>
+              onChange={setSelectedStandard}
+              isRequired={false}
+              placeholder="Select Standards"
+            />
 
             <select
               value={selectedStatus}
@@ -621,17 +628,16 @@ const RegistrationTable = () => {
               <option value="inactive">Inactive</option>
             </select>
 
-            <select
+            <CustomMultiSelect
+              options={examYearOptions.map((year) => ({
+                label: year,
+                value: year,
+              }))}
               value={selectedExamYear}
-              onChange={(e) => setSelectedExamYear(e.target.value)}
-              className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
-            >
-              {examYearOptions.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedExamYear}
+              isRequired={false}
+              placeholder="Select Exam Years"
+            />
           </div>
           <div className="flex flex-wrap gap-4 mb-5">
             <label className="flex items-center gap-2 text-sm">

@@ -61,14 +61,14 @@ const StudentStatistics = () => {
   const [selectedCounsellor, setSelectedCounsellor] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState([]);
   const [selectedExamCentre, setSelectedExamCentre] = useState([]);
-  const [selectedStandard, setSelectedStandard] = useState("");
+  const [selectedStandard, setSelectedStandard] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [users, setUsers] = useState([]);
   const [branch, setBranch] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
-  const [selectedExamYear, setSelectedExamYear] = useState("");
+  const [selectedExamYear, setSelectedExamYear] = useState([]);
 
   useEffect(() => {
     if (counsellor && (user.role === "admin" || user.role === "followUp")) {
@@ -102,11 +102,15 @@ const StudentStatistics = () => {
       examCentre: selectedExamCentre && selectedExamCentre.length > 0
         ? selectedExamCentre.map((e) => e.value).join(",")
         : "",
-      standard: selectedStandard,
+      standard: selectedStandard && selectedStandard.length > 0
+        ? selectedStandard.map((s) => s.value).join(",")
+        : "",
       status: selectedStatus,
       dateFrom: dateFrom,
       dateTo: dateTo,
-      examYear: selectedExamYear,
+      examYear: selectedExamYear && selectedExamYear.length > 0
+        ? selectedExamYear.map((y) => y.value).join(",")
+        : "",
     };
 
     api
@@ -138,22 +142,22 @@ const StudentStatistics = () => {
     setSelectedCounsellor([]);
     setSelectedBranch([]);
     setSelectedExamCentre([]);
-    setSelectedStandard("");
+    setSelectedStandard([]);
     setSelectedStatus("");
     setDateFrom("");
     setDateTo("");
-    setSelectedExamYear("");
+    setSelectedExamYear([]);
   };
 
   const hasActiveFilters =
     (selectedCounsellor && selectedCounsellor.length > 0) ||
     (selectedBranch && selectedBranch.length > 0) ||
     (selectedExamCentre && selectedExamCentre.length > 0) ||
-    selectedStandard ||
+    (selectedStandard && selectedStandard.length > 0) ||
     selectedStatus ||
     dateFrom ||
     dateTo ||
-    selectedExamYear;
+    (selectedExamYear && selectedExamYear.length > 0);
 
   const downloadDueStudents = async (type) => {
     try {
@@ -168,11 +172,15 @@ const StudentStatistics = () => {
         examCentre: selectedExamCentre && selectedExamCentre.length > 0
           ? selectedExamCentre.map((e) => e.value).join(",")
           : "",
-        standard: selectedStandard,
+        standard: selectedStandard && selectedStandard.length > 0
+          ? selectedStandard.map((s) => s.value).join(",")
+          : "",
         status: selectedStatus,
         dateFrom,
         dateTo,
-        examYear: selectedExamYear,
+        examYear: selectedExamYear && selectedExamYear.length > 0
+          ? selectedExamYear.map((y) => y.value).join(",")
+          : "",
       };
 
       const response = await api.get("/counsellor/downloadDueStudents", {
@@ -256,12 +264,11 @@ const StudentStatistics = () => {
             placeholder="Select Exam Centre"
           />
 
-          <SelectField
-            id="standard"
+          <CustomMultiSelect
             label="Standard"
             value={selectedStandard}
             onChange={setSelectedStandard}
-            placeholder="All Standards"
+            placeholder="Select Standards"
             options={[
               { label: "9th+10th", value: "9th+10th" },
               { label: "10th", value: "10th" },
@@ -271,12 +278,11 @@ const StudentStatistics = () => {
             className="w-full md:w-1/4"
           />
 
-          <SelectField
-            id="examYear"
+          <CustomMultiSelect
             label="Exam Year"
             value={selectedExamYear}
             onChange={setSelectedExamYear}
-            placeholder="All Exam Years"
+            placeholder="Select Exam Years"
             options={getExamYearOptions().map((year) => ({
               label: year,
               value: year,

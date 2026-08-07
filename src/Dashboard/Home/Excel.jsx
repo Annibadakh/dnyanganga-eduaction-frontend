@@ -14,10 +14,10 @@ const Excel = () => {
   const [error, setError] = useState("");
 
   const [selectedColumns, setSelectedColumns] = useState([]);
-  const [selectedStandard, setSelectedStandard] = useState("");
+  const [selectedStandard, setSelectedStandard] = useState([]);
   const [selectedCounsellor, setSelectedCounsellor] = useState([]);
   const [selectedExamCentre, setSelectedExamCentre] = useState([]);
-  const [selectedExamYear, setSelectedExamYear] = useState("");
+  const [selectedExamYear, setSelectedExamYear] = useState([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
@@ -173,10 +173,14 @@ const Excel = () => {
       if (!validateDateRange()) return;
 
       const body = {
-        standard: selectedStandard || null,
+        standard: selectedStandard && selectedStandard.length > 0
+          ? selectedStandard.map((s) => s.value).join(",")
+          : null,
         counsellor: selectedCounsellor && selectedCounsellor.length > 0 ? selectedCounsellor.map((c) => c.value).join(",") : null,
         examCentre: selectedExamCentre && selectedExamCentre.length > 0 ? selectedExamCentre.map((e) => e.value).join(",") : null,
-        examYear: selectedExamYear || null,
+        examYear: selectedExamYear && selectedExamYear.length > 0
+          ? selectedExamYear.map((y) => y.value).join(",")
+          : null,
         fromDate: fromDate || null,
         toDate: toDate || null,
         onlyZeroRemaining,
@@ -220,10 +224,14 @@ const Excel = () => {
       setError("");
 
       const body = {
-        standard: selectedStandard || null,
+        standard: selectedStandard && selectedStandard.length > 0
+          ? selectedStandard.map((s) => s.value).join(",")
+          : null,
         counsellor: selectedCounsellor && selectedCounsellor.length > 0 ? selectedCounsellor.map((c) => c.value).join(",") : null,
         examCentre: selectedExamCentre && selectedExamCentre.length > 0 ? selectedExamCentre.map((e) => e.value).join(",") : null,
-        examYear: selectedExamYear || null,
+        examYear: selectedExamYear && selectedExamYear.length > 0
+          ? selectedExamYear.map((y) => y.value).join(",")
+          : null,
         fromDate: fromDate || null,
         toDate: toDate || null,
         onlyZeroRemaining,
@@ -295,18 +303,19 @@ const Excel = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-        <select
+        <CustomMultiSelect
+          options={[
+            { label: "9th+10th", value: "9th+10th" },
+            { label: "10th", value: "10th" },
+            { label: "11th+12th", value: "11th+12th" },
+            { label: "12th", value: "12th" },
+          ]}
           value={selectedStandard}
-          onChange={(e) => setSelectedStandard(e.target.value)}
-          className="p-2 border border-gray-300"
-          disabled={loading}
-        >
-          <option value="">All Standards</option>
-          <option value="9th+10th">9th+10th</option>
-          <option value="10th">10th</option>
-          <option value="11th+12th">11th+12th</option>
-          <option value="12th">12th</option>
-        </select>
+          onChange={setSelectedStandard}
+          isRequired={false}
+          isDisabled={loading}
+          placeholder="Select Standards"
+        />
 
         <CustomMultiSelect
           options={users}
@@ -324,19 +333,17 @@ const Excel = () => {
           placeholder="Select Exam Centre"
         />
 
-        <select
+        <CustomMultiSelect
+          options={getExamYearOptions().map((year) => ({
+            label: year,
+            value: year,
+          }))}
           value={selectedExamYear}
-          onChange={(e) => setSelectedExamYear(e.target.value)}
-          className="p-2 border border-gray-300"
-          disabled={loading}
-        >
-          <option value="">All Exam Years</option>
-          {getExamYearOptions().map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
+          onChange={setSelectedExamYear}
+          isRequired={false}
+          isDisabled={loading}
+          placeholder="Select Exam Years"
+        />
 
         <DateField
           id="fromDate"

@@ -24,7 +24,7 @@ const VisitingTable = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCounsellor, setSelectedCounsellor] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState([]);
-  const [selectedStandard, setSelectedStandard] = useState("");
+  const [selectedStandard, setSelectedStandard] = useState([]);
 
   // Date range filter states
   const [dateFrom, setDateFrom] = useState("");
@@ -178,7 +178,9 @@ const VisitingTable = () => {
       branch: selectedBranch && selectedBranch.length > 0
         ? selectedBranch.map((b) => b.value).join(",")
         : "",
-      standard: selectedStandard,
+      standard: selectedStandard && selectedStandard.length > 0
+        ? selectedStandard.map((s) => s.value).join(",")
+        : "",
       dateFrom: dateFrom,
       dateTo: dateTo,
     };
@@ -336,7 +338,9 @@ const VisitingTable = () => {
         branch: selectedBranch && selectedBranch.length > 0
           ? selectedBranch.map((b) => b.value).join(",")
           : "",
-        standard: selectedStandard,
+        standard: selectedStandard && selectedStandard.length > 0
+          ? selectedStandard.map((s) => s.value).join(",")
+          : "",
         dateFrom: dateFrom,
         dateTo: dateTo,
       };
@@ -412,17 +416,19 @@ const VisitingTable = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"
           />
-          <select
+          <CustomMultiSelect
+            options={[
+              { label: "9th+10th", value: "9th+10th" },
+              { label: "10th", value: "10th" },
+              { label: "11th+12th", value: "11th+12th" },
+              { label: "12th", value: "12th" },
+            ]}
             value={selectedStandard}
-            onChange={(e) => setSelectedStandard(e.target.value)}
-            className="p-2 w-full md:w-2/4 border border-gray-300 rounded-lg"
-          >
-            <option value="">All Standards</option>
-            <option value="9th+10th">9th+10th</option>
-            <option value="10th">10th</option>
-            <option value="11th+12th">11th+12th</option>
-            <option value="12th">12th</option>
-          </select>
+            onChange={setSelectedStandard}
+            isRequired={false}
+            placeholder="Select Standards"
+            className="w-full md:w-2/4"
+          />
         </div>
         {(user.role === "admin" || user.role === "followUp") && (
           <div className="flex flex-col md:flex-row gap-4">

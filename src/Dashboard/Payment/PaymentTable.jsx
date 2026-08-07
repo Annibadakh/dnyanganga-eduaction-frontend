@@ -30,7 +30,7 @@ const PaymentTable = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [paymentType, setPaymentType] = useState("");
-  const [standard, setStandard] = useState("");
+  const [standard, setStandard] = useState([]);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -185,7 +185,9 @@ const PaymentTable = () => {
       startDate: startDate,
       endDate: endDate,
       paymentType,
-      standard,
+      standard: standard && standard.length > 0
+        ? standard.map((s) => s.value).join(",")
+        : "",
     };
 
     api
@@ -308,7 +310,9 @@ const PaymentTable = () => {
           startDate,
           endDate,
           paymentType,
-          standard,
+          standard: standard && standard.length > 0
+            ? standard.map((s) => s.value).join(",")
+            : "",
         },
         responseType: "blob",
       });
@@ -372,17 +376,18 @@ const PaymentTable = () => {
           </select>
         </div>
         <div>
-          <select
-            value={standard}
-            onChange={(e) => setStandard(e.target.value)}
-            className="p-3 w-full border border-gray-300"
-          >
-            <option value="">All Standards</option>
-            <option value="9th+10th">9th+10th</option>
-            <option value="10th">10th</option>
-            <option value="11th+12th">11th+12th</option>
-            <option value="12th">12th</option>
-          </select>
+        <CustomMultiSelect
+          options={[
+            { label: "9th+10th", value: "9th+10th" },
+            { label: "10th", value: "10th" },
+            { label: "11th+12th", value: "11th+12th" },
+            { label: "12th", value: "12th" },
+          ]}
+          value={standard}
+          onChange={setStandard}
+          isRequired={false}
+          placeholder="Select Standards"
+        />
         </div>
 
         <div className="flex flex-nowrap md:flex-row gap-1">
