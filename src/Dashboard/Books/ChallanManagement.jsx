@@ -428,6 +428,7 @@ const ChallanManagement = () => {
 
   const CustomDropdown = () => (
     <CustomMultiSelect
+      label="Counsellor"
       options={counsellors}
       value={filterCounsellor}
       onChange={setFilterCounsellor}

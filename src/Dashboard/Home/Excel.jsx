@@ -304,6 +304,7 @@ const Excel = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
         <CustomMultiSelect
+          label="Standard"
           options={[
             { label: "9th+10th", value: "9th+10th" },
             { label: "10th", value: "10th" },
@@ -318,6 +319,7 @@ const Excel = () => {
         />
 
         <CustomMultiSelect
+          label="Counsellor"
           options={users}
           value={selectedCounsellor}
           onChange={setSelectedCounsellor}
@@ -326,6 +328,7 @@ const Excel = () => {
         />
 
         <CustomMultiSelect
+          label="Exam Centre"
           options={examCentres}
           value={selectedExamCentre}
           onChange={setSelectedExamCentre}
@@ -334,6 +337,7 @@ const Excel = () => {
         />
 
         <CustomMultiSelect
+          label="Exam Year"
           options={getExamYearOptions().map((year) => ({
             label: year,
             value: year,

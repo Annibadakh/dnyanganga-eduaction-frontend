@@ -357,6 +357,7 @@ const PaymentTable = () => {
 
         {user.role === "admin" && (
           <CustomMultiSelect
+            label="Counsellor"
             options={users}
             value={selectedCounsellor}
             onChange={setSelectedCounsellor}
@@ -377,6 +378,7 @@ const PaymentTable = () => {
         </div>
         <div>
         <CustomMultiSelect
+          label="Standard"
           options={[
             { label: "9th+10th", value: "9th+10th" },
             { label: "10th", value: "10th" },

@@ -13,6 +13,8 @@ const CustomSelect = ({
   isSearchable = true,
   isRequired = true,
   error = false,
+  className = "",
+  labelClassName = "",
 }) => {
   const customStyles = {
     placeholder: (provided) => ({
@@ -48,8 +50,14 @@ const CustomSelect = ({
   };
 
   return (
-    <div>
-      {label && <label className="block">{label}</label>}
+    <div className={`w-full ${className}`}>
+      {label && (
+        <label
+          className={`block text-sm font-medium text-gray-700 mb-1 ${labelClassName}`}
+        >
+          {label}
+        </label>
+      )}
 
       <Select
         options={options}

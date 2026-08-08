@@ -240,6 +240,7 @@ const StudentStatistics = () => {
           {(user.role === "admin" || user.role === "followUp") && (
             <>
               <CustomMultiSelect
+                label="Counsellor"
                 options={users}
                 value={selectedCounsellor}
                 onChange={setSelectedCounsellor}
@@ -248,6 +249,7 @@ const StudentStatistics = () => {
               />
 
               <CustomMultiSelect
+                label="Branch"
                 options={branch}
                 value={selectedBranch}
                 onChange={setSelectedBranch}
@@ -257,6 +259,7 @@ const StudentStatistics = () => {
             </>
           )}
           <CustomMultiSelect
+            label="Exam Centre"
             options={examCentres}
             value={selectedExamCentre}
             onChange={setSelectedExamCentre}

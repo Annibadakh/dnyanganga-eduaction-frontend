@@ -417,6 +417,7 @@ const VisitingTable = () => {
             className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"
           />
           <CustomMultiSelect
+            label="Standard"
             options={[
               { label: "9th+10th", value: "9th+10th" },
               { label: "10th", value: "10th" },
@@ -433,6 +434,7 @@ const VisitingTable = () => {
         {(user.role === "admin" || user.role === "followUp") && (
           <div className="flex flex-col md:flex-row gap-4">
             <CustomMultiSelect
+              label="Counsellor"
               options={users}
               value={selectedCounsellor}
               onChange={setSelectedCounsellor}
@@ -441,6 +443,7 @@ const VisitingTable = () => {
             />
 
             <CustomMultiSelect
+              label="Branch"
               options={branch}
               value={selectedBranch}
               onChange={setSelectedBranch}

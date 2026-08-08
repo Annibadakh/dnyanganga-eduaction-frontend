@@ -35,14 +35,6 @@ const monthOptions = [
   { label: "December", value: 12 },
 ];
 
-const weekOptions = [
-  { label: "Week 1 (1–7)", value: 1 },
-  { label: "Week 2 (8–14)", value: 2 },
-  { label: "Week 3 (15–21)", value: 3 },
-  { label: "Week 4 (22–28)", value: 4 },
-  { label: "Week 5 (29–31)", value: 5 },
-];
-
 const CounsellorReport = () => {
   const { user } = useAuth();
   const { counsellor } = useContext(DashboardContext);
@@ -55,21 +47,17 @@ const CounsellorReport = () => {
   const [selectedCounsellor, setSelectedCounsellor] = useState([]);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
-  const [week, setWeek] = useState("");
-  const [day, setDay] = useState(today.getDate());
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   useEffect(() => {
     const currentDate = new Date();
 
     if (Number(year) === currentDate.getFullYear()) {
       setMonth(currentDate.getMonth() + 1);
-      setDay(currentDate.getDate()); // ✅ keep today's day
     } else {
       setMonth(1);
-      setDay(""); // optional for past years
     }
-
-    setWeek("");
   }, [year]);
 
   // 🔥 Fetch report (single API)
@@ -80,9 +68,19 @@ const CounsellorReport = () => {
       const params = {
         year,
         month,
-        week,
-        day,
       };
+
+      // ✅ Custom date range takes priority when both dates are selected
+      const isCustomRange = fromDate && toDate;
+      if (isCustomRange) {
+        if (fromDate > toDate) {
+          setLoading(false);
+          alert("From Date cannot be after To Date");
+          return;
+        }
+        params.fromDate = fromDate;
+        params.toDate = toDate;
+      }
 
       // ✅ Admin can optionally filter by counsellor (multi-select support)
       if (user.role === "admin" && selectedCounsellor && selectedCounsellor.length > 0) {
@@ -110,7 +108,7 @@ const CounsellorReport = () => {
 
   useEffect(() => {
     fetchReport();
-  }, [year, month, week, day, selectedCounsellor]);
+  }, [year, month, fromDate, toDate, selectedCounsellor]);
 
   const handleExportExcel = () => {
     if (!data || data.length === 0) {
@@ -243,38 +241,33 @@ const CounsellorReport = () => {
           />
         </div>
 
-        {/* Week */}
+        {/* From Date */}
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Week</label>
-          <CustomSelect
-            options={weekOptions}
-            value={weekOptions.find((w) => w.value === week) || null}
-            onChange={(val) => setWeek(val?.value || "")}
-            placeholder="Select Week"
+          <label className="text-xs font-medium text-gray-600">From Date</label>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="border p-2 rounded"
           />
         </div>
 
-        {/* Day */}
+        {/* To Date */}
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Day</label>
+          <label className="text-xs font-medium text-gray-600">To Date</label>
           <input
-            type="number"
-            min={1}
-            max={31}
-            value={day}
-            onChange={(e) => setDay(e.target.value)}
-            className="border p-2 rounded w-40"
-            placeholder="Day"
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="border p-2 rounded"
           />
         </div>
 
         {/* Admin Counsellor Filter */}
         {user.role === "admin" && (
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">
-              Counsellor
-            </label>
             <CustomMultiSelect
+              label="Counsellor"
               options={counsellor}
               value={selectedCounsellor}
               onChange={setSelectedCounsellor}

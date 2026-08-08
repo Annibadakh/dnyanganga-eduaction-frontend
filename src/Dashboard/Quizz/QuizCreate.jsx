@@ -174,8 +174,8 @@ const QuizCreate = () => {
 
           {/* Subjects */}
           <div className="md:col-span-2">
-            <label className={labelCls}>Subjects</label>
             <CustomMultiSelect
+              label="Subjects"
               options={subjects}
               value={selectedSubjects}
               onChange={setSelectedSubjects}
