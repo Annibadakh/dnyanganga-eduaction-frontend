@@ -3,7 +3,6 @@ import api from "../../Api";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
 
-
 const AddBookEntry = () => {
   const [counsellors, setCounsellors] = useState([]);
   const [selectedCounsellor, setSelectedCounsellor] = useState("");
@@ -11,27 +10,32 @@ const AddBookEntry = () => {
   const [showForm, setShowForm] = useState(false);
   const [submitLoader, setSubmitLoader] = useState(false);
   const [counsellorBooks, setCounsellorBooks] = useState([]);
-  
+
   // Book entries for multiple standards - grouped by standard
   const [bookEntries, setBookEntries] = useState({});
-  
+
   // Pamphlet entry
   const [pamphletEntry, setPamphletEntry] = useState({ count: "" });
-  
+
   // Receipt book entries
-  const [receiptBookEntries, setReceiptBookEntries] = useState([{ bookNo: "", range: "" }]);
-  
+  const [receiptBookEntries, setReceiptBookEntries] = useState([
+    { bookNo: "", range: "" },
+  ]);
+
   // Challan details
-  const [chalanDate, setChalanDate] = useState(new Date().toISOString().split('T')[0]);
+  const [chalanDate, setChalanDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [manualChalanNo, setManualChalanNo] = useState("");
+  const [chalanFrom, setChalanFrom] = useState("");
   const senderReceipt = FileUploadHook();
   const [senderReceiptUrl, setSenderReceiptUrl] = useState("");
-  
+
   // Dropdown states for form
   const [isFormDropdownOpen, setIsFormDropdownOpen] = useState(false);
   const [formInternalSearch, setFormInternalSearch] = useState("");
   const formDropdownRef = useRef(null);
-  
+
   // Dropdown states for view section
   const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
   const [viewInternalSearch, setViewInternalSearch] = useState("");
@@ -39,9 +43,9 @@ const AddBookEntry = () => {
 
   // Class options with their corresponding books
   const classOptions = {
-    "10th": ["Math", "Science", "English"],
+    "10th": ["Math", "Science", "English-LL", "English-HL"],
     "11th": ["Physics", "Chemistry", "Math", "Biology"],
-    "12th": ["Physics", "Chemistry", "Math", "Biology"]
+    "12th": ["Physics", "Chemistry", "Math", "Biology"],
   };
 
   useEffect(() => {
@@ -50,19 +54,25 @@ const AddBookEntry = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (formDropdownRef.current && !formDropdownRef.current.contains(event.target)) {
+      if (
+        formDropdownRef.current &&
+        !formDropdownRef.current.contains(event.target)
+      ) {
         setIsFormDropdownOpen(false);
         setFormInternalSearch("");
       }
-      if (viewDropdownRef.current && !viewDropdownRef.current.contains(event.target)) {
+      if (
+        viewDropdownRef.current &&
+        !viewDropdownRef.current.contains(event.target)
+      ) {
         setIsViewDropdownOpen(false);
         setViewInternalSearch("");
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -98,9 +108,9 @@ const AddBookEntry = () => {
   // Initialize book entries based on all standards - grouped by standard
   const initializeBookEntries = () => {
     const entries = {};
-    Object.keys(classOptions).forEach(standard => {
+    Object.keys(classOptions).forEach((standard) => {
       entries[standard] = {};
-      classOptions[standard].forEach(book => {
+      classOptions[standard].forEach((book) => {
         entries[standard][book] = "";
       });
     });
@@ -159,8 +169,8 @@ const AddBookEntry = () => {
 
   const getCurrentDate = () => {
     const today = new Date();
-    const day = String(today.getDate()).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0");
     const year = today.getFullYear();
     return `${day}/${month}/${year}`;
   };
@@ -175,18 +185,19 @@ const AddBookEntry = () => {
       chalanDate,
       counsellorId: selectedCounsellor,
       manualChalanNo: manualChalanNo.trim() || null,
-      items: []
+      chalanFrom: chalanFrom.trim() || null,
+      items: [],
     };
 
     // Add book entries (only those with valid count)
-    Object.keys(bookEntries).forEach(standard => {
-      Object.keys(bookEntries[standard]).forEach(book => {
+    Object.keys(bookEntries).forEach((standard) => {
+      Object.keys(bookEntries[standard]).forEach((book) => {
         const count = bookEntries[standard][book];
         if (count !== "" && parseInt(count) > 0) {
           payload.items.push({
             standard,
             bookName: book,
-            totalCount: parseInt(count)
+            totalCount: parseInt(count),
           });
         }
       });
@@ -197,25 +208,28 @@ const AddBookEntry = () => {
       payload.items.push({
         standard: "pamphlet",
         bookName: getCurrentDate(),
-        totalCount: parseInt(pamphletEntry.count)
+        totalCount: parseInt(pamphletEntry.count),
       });
     }
 
     // Add receipt book entries (only valid ones)
-    const validReceiptEntries = receiptBookEntries.filter(entry => 
-      entry.bookNo && entry.range !== "" && parseInt(entry.range) > 0
+    const validReceiptEntries = receiptBookEntries.filter(
+      (entry) =>
+        entry.bookNo && entry.range !== "" && parseInt(entry.range) > 0,
     );
-    validReceiptEntries.forEach(entry => {
+    validReceiptEntries.forEach((entry) => {
       payload.items.push({
         standard: "receiptBook",
         bookName: entry.bookNo,
-        totalCount: parseInt(entry.range)
+        totalCount: parseInt(entry.range),
       });
     });
 
     // Check if at least one item is being sent
     if (payload.items.length === 0) {
-      alert("Please add at least one entry (book, pamphlet, or receipt book) with valid data");
+      alert(
+        "Please add at least one entry (book, pamphlet, or receipt book) with valid data",
+      );
       return null;
     }
 
@@ -223,8 +237,9 @@ const AddBookEntry = () => {
   };
 
   const resetForm = () => {
-    setChalanDate(new Date().toISOString().split('T')[0]);
+    setChalanDate(new Date().toISOString().split("T")[0]);
     setManualChalanNo("");
+    setChalanFrom("");
     setSenderReceiptUrl("");
     senderReceipt.removePhoto();
     initializeBookEntries();
@@ -242,7 +257,7 @@ const AddBookEntry = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const payload = validateAndPreparePayload();
     if (!payload) return;
 
@@ -253,15 +268,15 @@ const AddBookEntry = () => {
       if (senderReceiptUrl) {
         payload.senderReceiptUrl = senderReceiptUrl;
       }
-      
+
       await api.post("/admin/addBooksWithChalan", payload);
-      
+
       alert("Entry added successfully with challan!");
-      
+
       // Reset form and close it
       resetForm();
       setShowForm(false);
-      
+
       // Reload books for selected counsellor
       if (selectedCounsellor) {
         await loadBooksById(selectedCounsellor);
@@ -276,27 +291,27 @@ const AddBookEntry = () => {
 
   // Filter counsellors by search
   const formFilteredCounsellors = counsellors.filter((c) =>
-    c.name.toLowerCase().includes(formInternalSearch.toLowerCase())
+    c.name.toLowerCase().includes(formInternalSearch.toLowerCase()),
   );
 
   const viewFilteredCounsellors = counsellors.filter((c) =>
-    c.name.toLowerCase().includes(viewInternalSearch.toLowerCase())
+    c.name.toLowerCase().includes(viewInternalSearch.toLowerCase()),
   );
 
   // Group books by standard for display with proper ordering
   const groupBooksByStandard = () => {
     const grouped = {};
-    
+
     // Group books by standard first
-    counsellorBooks.forEach(book => {
+    counsellorBooks.forEach((book) => {
       if (!grouped[book.standard]) {
         grouped[book.standard] = [];
       }
       grouped[book.standard].push(book);
     });
-    
+
     // Sort books within each standard according to classOptions order
-    Object.keys(grouped).forEach(standard => {
+    Object.keys(grouped).forEach((standard) => {
       if (classOptions[standard]) {
         // Sort based on the order in classOptions
         grouped[standard].sort((a, b) => {
@@ -306,41 +321,46 @@ const AddBookEntry = () => {
         });
       }
     });
-    
+
     return grouped;
   };
 
   const groupedBooks = groupBooksByStandard();
-  
+
   // Define the order of standards and filter only those that exist
   const standardOrder = ["10th", "11th", "12th", "receiptBook", "pamphlet"];
-  const orderedStandards = standardOrder.filter(std => groupedBooks[std]);
+  const orderedStandards = standardOrder.filter((std) => groupedBooks[std]);
 
-  const CustomDropdown = ({ 
-    isOpen, 
-    toggleDropdown, 
-    internalSearch, 
-    setInternalSearch, 
-    filteredCounsellors, 
-    onSelect, 
-    selectedName, 
-    dropdownRef 
+  const CustomDropdown = ({
+    isOpen,
+    toggleDropdown,
+    internalSearch,
+    setInternalSearch,
+    filteredCounsellors,
+    onSelect,
+    selectedName,
+    dropdownRef,
   }) => (
     <div className="relative" ref={dropdownRef}>
-      <div 
+      <div
         onClick={toggleDropdown}
         className="w-full p-2 border border-gray-300 rounded-lg cursor-pointer bg-white flex justify-between items-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <span className={selectedName ? "text-black" : "text-gray-500"}>
           {selectedName || "-- Select Counsellor --"}
         </span>
-        <svg 
-          className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
+        <svg
+          className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </div>
 
@@ -356,11 +376,11 @@ const AddBookEntry = () => {
               autoFocus
             />
           </div>
-          
+
           <div className="max-h-40 overflow-y-auto">
             {filteredCounsellors.length > 0 ? (
               <>
-                <div 
+                <div
                   onClick={() => onSelect("", "")}
                   className="p-2 hover:bg-gray-100 cursor-pointer text-gray-500"
                 >
@@ -371,7 +391,9 @@ const AddBookEntry = () => {
                     key={counsellor.uuid}
                     onClick={() => onSelect(counsellor.uuid, counsellor.name)}
                     className={`p-2 hover:bg-gray-100 cursor-pointer transition ${
-                      selectedCounsellor === counsellor.uuid ? 'text-blue-600' : ''
+                      selectedCounsellor === counsellor.uuid
+                        ? "text-blue-600"
+                        : ""
                     }`}
                   >
                     {counsellor.name}
@@ -402,9 +424,14 @@ const AddBookEntry = () => {
           </thead>
           <tbody>
             {Object.keys(bookEntries).map((standard, standardIndex) => (
-              <tr key={standard} className="text-center border-b hover:bg-gray-100 transition">
+              <tr
+                key={standard}
+                className="text-center border-b hover:bg-gray-100 transition"
+              >
                 <td className="p-2 border">{standardIndex + 1}</td>
-                <td className="p-2 border font-semibold text-primary">{standard}</td>
+                <td className="p-2 border font-semibold text-primary">
+                  {standard}
+                </td>
                 <td className="p-2 border">
                   <table className="w-full text-xs border border-gray-300">
                     <thead>
@@ -423,7 +450,9 @@ const AddBookEntry = () => {
                               min="0"
                               placeholder="0"
                               value={bookEntries[standard][book]}
-                              onChange={(e) => handleBookChange(standard, book, e.target.value)}
+                              onChange={(e) =>
+                                handleBookChange(standard, book, e.target.value)
+                              }
                               className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                           </td>
@@ -442,7 +471,9 @@ const AddBookEntry = () => {
 
   const renderPamphletEntry = () => (
     <div className=" border rounded-lg p-4">
-      <h4 className="text-lg font-semibold text-green-700 mb-3">Pamphlet Entry</h4>
+      <h4 className="text-lg font-semibold text-green-700 mb-3">
+        Pamphlet Entry
+      </h4>
       <div className="overflow-auto">
         <table className="w-full border border-gray-300 rounded-lg text-sm">
           <thead className="bg-green-600 text-white">
@@ -454,7 +485,9 @@ const AddBookEntry = () => {
           </thead>
           <tbody>
             <tr className="text-center border-b hover:bg-green-50 transition">
-              <td className="p-3 border font-semibold text-green-700">Pamphlet</td>
+              <td className="p-3 border font-semibold text-green-700">
+                Pamphlet
+              </td>
               {/* <td className="p-3 border text-gray-600">{getCurrentDate()}</td> */}
               <td className="p-3 border">
                 <input
@@ -475,7 +508,9 @@ const AddBookEntry = () => {
 
   const renderReceiptBookEntries = () => (
     <div className=" border border-purple-200 rounded-lg p-4">
-      <h4 className="text-lg font-semibold text-purple-700 mb-3">Receipt Book Entries</h4>
+      <h4 className="text-lg font-semibold text-purple-700 mb-3">
+        Receipt Book Entries
+      </h4>
       <div className="overflow-auto">
         <table className="w-full border border-gray-300 rounded-lg text-sm">
           <thead className="bg-purple-600 text-white">
@@ -488,14 +523,19 @@ const AddBookEntry = () => {
           </thead>
           <tbody>
             {receiptBookEntries.map((entry, index) => (
-              <tr key={index} className="text-center border-b hover:bg-purple-50 transition">
+              <tr
+                key={index}
+                className="text-center border-b hover:bg-purple-50 transition"
+              >
                 {/* <td className="p-3 border font-semibold text-purple-700">Receipt Book</td> */}
                 <td className="p-3 border">
                   <input
                     type="text"
                     placeholder="Book Number"
                     value={entry.bookNo}
-                    onChange={(e) => handleReceiptBookChange(index, "bookNo", e.target.value)}
+                    onChange={(e) =>
+                      handleReceiptBookChange(index, "bookNo", e.target.value)
+                    }
                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </td>
@@ -505,7 +545,9 @@ const AddBookEntry = () => {
                     min="0"
                     placeholder="0"
                     value={entry.range}
-                    onChange={(e) => handleReceiptBookChange(index, "range", e.target.value)}
+                    onChange={(e) =>
+                      handleReceiptBookChange(index, "range", e.target.value)
+                    }
                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </td>
@@ -556,7 +598,9 @@ const AddBookEntry = () => {
       {/* Add Entry Form */}
       {showForm && (
         <div className="bg-white shadow-lg rounded-lg md:p-6 p-2 mb-6 border">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Add Challan Entry</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">
+            Add Challan Entry
+          </h2>
           {/* <p className="text-sm text-gray-600 mb-6">
             Create a single challan that can include books, pamphlets, and receipt books for the selected counsellor.
           </p> */}
@@ -564,7 +608,9 @@ const AddBookEntry = () => {
           <div className="space-y-6">
             {/* Counsellor Selection */}
             <div>
-              <label className="block mb-2 font-medium text-gray-700">Select Counsellor</label>
+              <label className="block mb-2 font-medium text-gray-700">
+                Select Counsellor
+              </label>
               <CustomDropdown
                 isOpen={isFormDropdownOpen}
                 toggleDropdown={toggleFormDropdown}
@@ -579,7 +625,9 @@ const AddBookEntry = () => {
 
             {/* Challan Details */}
             <div>
-              <label className="block mb-2 font-medium text-gray-700">Challan Date</label>
+              <label className="block mb-2 font-medium text-gray-700">
+                Challan Date
+              </label>
               <input
                 type="date"
                 value={chalanDate}
@@ -590,12 +638,34 @@ const AddBookEntry = () => {
 
             {/* Manual Challan No. */}
             <div>
-              <label className="block mb-2 font-medium text-gray-700">Manual Challan No. <span className="text-gray-400 font-normal text-sm">(optional)</span></label>
+              <label className="block mb-2 font-medium text-gray-700">
+                Manual Challan No.{" "}
+                <span className="text-gray-400 font-normal text-sm">
+                  (optional)
+                </span>
+              </label>
               <input
                 type="text"
                 placeholder="Enter physical/manual challan number"
                 value={manualChalanNo}
                 onChange={(e) => setManualChalanNo(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Challan From */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                Challan From{" "}
+                <span className="text-gray-400 font-normal text-sm">
+                  (optional)
+                </span>
+              </label>
+              <input
+                type="text"
+                placeholder="Enter challan source / from where issued"
+                value={chalanFrom}
+                onChange={(e) => setChalanFrom(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -625,7 +695,9 @@ const AddBookEntry = () => {
 
             {/* Books Section */}
             <div className="border rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-primary mb-3">Books Entries</h3>
+              <h3 className="text-lg font-semibold text-primary mb-3">
+                Books Entries
+              </h3>
               {renderBookEntriesTable()}
             </div>
 
@@ -669,8 +741,10 @@ const AddBookEntry = () => {
 
       {/* View Books Section */}
       <div className="bg-white shadow-lg rounded-lg md:p-6 p-2 border">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">View Books by Counsellor</h2>
-        
+        <h2 className="text-xl font-semibold text-gray-700 mb-4">
+          View Books by Counsellor
+        </h2>
+
         {/* Counsellor Selection for View */}
         <div className="mb-4">
           <label className="block mb-2 text-black">Select Counsellor</label>
@@ -699,15 +773,25 @@ const AddBookEntry = () => {
               </thead>
               <tbody>
                 {orderedStandards.map((standard, standardIndex) => (
-                  <tr key={standard} className="text-center border-b hover:bg-gray-100 transition">
+                  <tr
+                    key={standard}
+                    className="text-center border-b hover:bg-gray-100 transition"
+                  >
                     <td className="p-2 border">{standardIndex + 1}</td>
-                    <td className="p-2 border font-semibold text-primary capitalize">{standard === "receiptBook" ? "receipt book" : standard}</td>
+                    <td className="p-2 border font-semibold text-primary capitalize">
+                      {standard === "receiptBook" ? "receipt book" : standard}
+                    </td>
                     <td className="p-2 border">
                       <table className="w-full text-xs border border-gray-300">
                         <thead>
                           <tr className="bg-gray-100">
-                            {standard !== "pamphlet" && (standard === "receiptBook" ? <th className="p-1 border">Receipt Number</th> : <th className="p-1 border">Book Name</th>)}
-                            
+                            {standard !== "pamphlet" &&
+                              (standard === "receiptBook" ? (
+                                <th className="p-1 border">Receipt Number</th>
+                              ) : (
+                                <th className="p-1 border">Book Name</th>
+                              ))}
+
                             <th className="p-1 border">Total Count</th>
                             <th className="p-1 border">Distributed</th>
                             <th className="p-1 border">Remaining</th>
@@ -717,9 +801,15 @@ const AddBookEntry = () => {
                         <tbody>
                           {groupedBooks[standard].map((book) => (
                             <tr key={book.id}>
-                              {standard !== "pamphlet" && <td className="p-1 border">{book.bookName}</td>}
-                              <td className="p-1 border">{book.totalCount + book.distributedCount}</td>
-                              <td className="p-1 border">{book.distributedCount}</td>
+                              {standard !== "pamphlet" && (
+                                <td className="p-1 border">{book.bookName}</td>
+                              )}
+                              <td className="p-1 border">
+                                {book.totalCount + book.distributedCount}
+                              </td>
+                              <td className="p-1 border">
+                                {book.distributedCount}
+                              </td>
                               <td className="p-1 border">{book.totalCount}</td>
                               <td className="p-1 border">{book.newStock}</td>
                             </tr>
@@ -733,10 +823,12 @@ const AddBookEntry = () => {
             </table>
           </div>
         )}
-        
+
         {/* No Books Message */}
         {selectedCounsellor && counsellorBooks.length === 0 && (
-          <p className="text-center text-gray-500 py-4">No books found for this counsellor</p>
+          <p className="text-center text-gray-500 py-4">
+            No books found for this counsellor
+          </p>
         )}
       </div>
     </div>

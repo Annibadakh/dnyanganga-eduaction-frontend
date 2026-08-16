@@ -34,6 +34,8 @@ const AddUser = () => {
     reenterPassword: "",
   });
 
+  const [subAdmins, setSubAdmins] = useState([]);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -43,6 +45,7 @@ const AddUser = () => {
     commission: "",
     dob: "",
     joiningDate: "",
+    subAdminId: "",
     password: "",
     reenterPassword: "",
   });
@@ -68,6 +71,13 @@ const AddUser = () => {
   useEffect(() => {
     fetchUsers();
   }, [currentPage, itemsPerPage, debouncedSearch]);
+
+  useEffect(() => {
+    api
+      .get("/admin/subAdmins")
+      .then((res) => setSubAdmins(res.data.data || []))
+      .catch((err) => console.error("Error fetching sub-admins", err));
+  }, []);
 
   const fetchUsers = () => {
     api
@@ -161,7 +171,9 @@ const AddUser = () => {
     const newUser = {
       ...formData,
       counsellorBranch:
-        formData.role === "counsellor" ? formData.counsellorBranch : null,
+        formData.role === "counsellor" || formData.role === "sub-admin"
+          ? formData.counsellorBranch
+          : null,
     };
     delete newUser.reenterPassword;
 
@@ -182,6 +194,7 @@ const AddUser = () => {
           commission: "",
           dob: "",
           joiningDate: "",
+          subAdminId: "",
           password: "",
           reenterPassword: "",
         });
@@ -210,6 +223,10 @@ const AddUser = () => {
       dob: editFormData.dob,
       joiningDate: editFormData.joiningDate,
     };
+
+    if (editFormData.role === "counsellor") {
+      updateData.subAdminId = editFormData.subAdminId || null;
+    }
 
     // Only include password if it's being changed
     if (isEditingPassword && editFormData.password) {
@@ -264,6 +281,7 @@ const AddUser = () => {
       counsellorBranch: user.counsellorBranch || "",
       commission: user.commission || "",
       dob: user.dob ? user.dob.split("T")[0] : "",
+      subAdminId: user.subAdminId || "",
       password: "",
       reenterPassword: "",
     });
@@ -477,9 +495,11 @@ const AddUser = () => {
                 className="p-2 border rounded-md"
               >
                 <option value="counsellor">Counsellor</option>
+                <option value="sub-admin">Sub-admin</option>
                 <option value="teacher">Teacher</option>
                 <option value="logistics">Logistics</option>
                 <option value="followUp">Follow-up</option>
+                <option value="ca">CA</option>
               </select>
 
               <div className="flex flex-row items-center gap-2">
@@ -507,6 +527,21 @@ const AddUser = () => {
                 />
               </div>
               {formData.role === "counsellor" && (
+                  <select
+                    name="subAdminId"
+                    value={formData.subAdminId || ""}
+                    onChange={handleChange}
+                    className="p-2 border rounded-md"
+                  >
+                    <option value="">No leader (report directly to admin)</option>
+                    {subAdmins.map((sa) => (
+                      <option key={sa.uuid} value={sa.uuid}>
+                        {sa.name} ({sa.counsellorBranch || "?"})
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {(formData.role === "counsellor" || formData.role === "sub-admin") && (
                 <input
                   type="text"
                   name="counsellorBranch"
@@ -588,9 +623,13 @@ const AddUser = () => {
                   className="p-2 border rounded-md"
                 >
                   <option value="counsellor">Counsellor</option>
+                  <option value="sub-admin">Sub-admin</option>
                   <option value="teacher">Teacher</option>
+                  <option value="logistics">Logistics</option>
+                  <option value="followUp">Follow-up</option>
+                  <option value="ca">CA</option>
                 </select>
-                {editFormData.role === "counsellor" && (
+                {(editFormData.role === "counsellor" || editFormData.role === "sub-admin") && (
                   <input
                     type="text"
                     name="counsellorBranch"
@@ -600,6 +639,21 @@ const AddUser = () => {
                     required
                     className="p-2 border rounded-md"
                   />
+                )}
+                {editFormData.role === "counsellor" && (
+                  <select
+                    name="subAdminId"
+                    value={editFormData.subAdminId || ""}
+                    onChange={handleEditChange}
+                    className="p-2 border rounded-md"
+                  >
+                    <option value="">No leader (report directly to admin)</option>
+                    {subAdmins.map((sa) => (
+                      <option key={sa.uuid} value={sa.uuid}>
+                        {sa.name} ({sa.counsellorBranch || "?"})
+                      </option>
+                    ))}
+                  </select>
                 )}
                 <div className="flex flex-row items-center gap-2">
                   <p>DOB:</p>

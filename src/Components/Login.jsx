@@ -16,7 +16,6 @@ function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("counsellor");
   const [loginLoader, setLoginLoader] = useState(false);
 
 
@@ -35,7 +34,6 @@ function Login() {
       const response = await axios.post(`${apiUrl}/auth/login`, {
         email,
         password,
-        role,
       });
 
       await login(response.data);
@@ -87,21 +85,6 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-          </div>
-
-          <div>
-            <label className="block font-medium">Select Role</label>
-            <select
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="counsellor">Counsellor</option>
-              <option value="admin">Admin</option>
-              <option value="teacher">Teacher</option>
-              <option value="logistics">Logistics</option>
-              <option value="followUp">Follow-up</option>
-            </select>
           </div>
 
           <div className="flex justify-center">

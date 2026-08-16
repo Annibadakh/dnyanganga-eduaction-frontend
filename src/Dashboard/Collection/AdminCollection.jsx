@@ -68,12 +68,21 @@ const AdminCollection = () => {
         remark: remarkFilter || undefined,
       };
 
-      const res = await api.get(`/counsellor/collection/AllTransactions`, { params });
+      const res = await api.get(`/counsellor/collection/AllTransactions`, {
+        params,
+      });
       setTransactions(res.data.transactions || []);
       setCurrentPage(res.data.currentPage);
       setTotalPages(res.data.totalPages);
       setTotalCount(res.data.totalCount);
-      setStats(res.data.stats || { totalAmount: 0, pendingAmount: 0, approvedAmount: 0, rejectedAmount: 0 });
+      setStats(
+        res.data.stats || {
+          totalAmount: 0,
+          pendingAmount: 0,
+          approvedAmount: 0,
+          rejectedAmount: 0,
+        },
+      );
     } catch (err) {
       console.error("Error fetching transactions", err);
     }
@@ -302,7 +311,7 @@ const AdminCollection = () => {
           {/* Start Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start Date
+              From Date
             </label>
             <input
               type="date"
@@ -315,7 +324,7 @@ const AdminCollection = () => {
           {/* End Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              End Date
+              To Date
             </label>
             <input
               type="date"
@@ -532,7 +541,9 @@ const AdminCollection = () => {
               <tbody>
                 {transactions.map((txn, idx) => (
                   <tr key={txn.id} className="hover:bg-gray-100">
-                    <td className="p-2 border whitespace-nowrap">{(currentPage - 1) * itemsPerPage + idx + 1}</td>
+                    <td className="p-2 border whitespace-nowrap">
+                      {(currentPage - 1) * itemsPerPage + idx + 1}
+                    </td>
                     <td className="p-2 border whitespace-nowrap">
                       {new Date(txn.paymentDate).toLocaleDateString("en-GB")}
                     </td>

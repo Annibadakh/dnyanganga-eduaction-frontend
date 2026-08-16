@@ -67,7 +67,7 @@ const PaymentTable = () => {
       render: (row) =>
         new Date(row.Student?.createdAt).toLocaleDateString("en-GB"),
     },
-    ...(user.role === "admin"
+    ...(user.role === "admin" || user.role === "sub-admin"
       ? [
           {
             header: "Counsellor",
@@ -97,7 +97,7 @@ const PaymentTable = () => {
       accessor: "paymentId",
     },
     {
-      header: "Receipt No",
+      header: "Receipt No.",
       accessor: "receiptNo",
     },
     {
@@ -136,14 +136,30 @@ const PaymentTable = () => {
     {
       header: "Action",
       render: (row) => (
-        <Button
-          onClick={() => handleViewReceiptPDF(row)}
-          loading={loadingPdfId === row.paymentId}
-          variant="success"
-          startIcon={<FileText size={16} />}
-        >
-          PDF
-        </Button>
+        <div className="flex gap-2 items-center">
+          <Button
+            onClick={() => handleViewGSTPDF(row)}
+            loading={loadingPdfId === `gst-${row.paymentId}`}
+            variant="secondary"
+            startIcon={<FileText size={16} />}
+            disabled={!row.gstBillAvailable}
+            title={
+              row.gstBillAvailable
+                ? "Download GST bill"
+                : "GST bill not available for this payment"
+            }
+          >
+            GST Bill
+          </Button>
+          <Button
+            onClick={() => handleViewReceiptPDF(row)}
+            loading={loadingPdfId === `receipt-${row.paymentId}`}
+            variant="success"
+            startIcon={<FileText size={16} />}
+          >
+            Receipt
+          </Button>
+        </div>
       ),
     },
   ];
@@ -167,7 +183,7 @@ const PaymentTable = () => {
 
   // Fetch users data
   useEffect(() => {
-    if (user.role === "admin") {
+    if (user.role === "admin" || user.role === "sub-admin") {
       counsellor && setUsers(counsellor);
     }
   }, [user.role, counsellor]);
@@ -179,15 +195,17 @@ const PaymentTable = () => {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearchTerm,
-      counsellor: selectedCounsellor && selectedCounsellor.length > 0
-        ? selectedCounsellor.map((c) => c.value).join(",")
-        : "",
+      counsellor:
+        selectedCounsellor && selectedCounsellor.length > 0
+          ? selectedCounsellor.map((c) => c.value).join(",")
+          : "",
       startDate: startDate,
       endDate: endDate,
       paymentType,
-      standard: standard && standard.length > 0
-        ? standard.map((s) => s.value).join(",")
-        : "",
+      standard:
+        standard && standard.length > 0
+          ? standard.map((s) => s.value).join(",")
+          : "",
     };
 
     api
@@ -261,9 +279,9 @@ const PaymentTable = () => {
 
   const handleViewReceiptPDF = async (payment) => {
     try {
-      setLoadingPdfId(payment.paymentId);
+      setLoadingPdfId(`receipt-${payment.paymentId}`);
       const response = await api.get("/pdf/payment-receipt", {
-        params: { studentId: payment.Student.studentId },
+        params: { studentId: payment.Student.studentId, type: "normal" },
         responseType: "blob",
       });
 
@@ -289,6 +307,36 @@ const PaymentTable = () => {
     }
   };
 
+  const handleViewGSTPDF = async (payment) => {
+    try {
+      setLoadingPdfId(`gst-${payment.paymentId}`);
+      const response = await api.get("/pdf/payment-receipt", {
+        params: { studentId: payment.Student.studentId, type: "gst" },
+        responseType: "blob",
+      });
+
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const fileName = payment.Student.studentName
+        ? `${payment.Student.studentName.replace(/\s+/g, "_")}_GST_RECEIPT.pdf`
+        : `${payment.Student.studentId}_GST_RECEIPT.pdf`;
+
+      setPdfUrl(url);
+      setPdfFileName(fileName);
+      setCurrentPdfStudent(payment.Student);
+      setShowPdfPreview(true);
+    } catch (err) {
+      alert(
+        err.response?.status === 403
+          ? "Student not found!"
+          : err.response?.data?.message || "GST bill download failed.",
+      );
+      console.error(err);
+    } finally {
+      setLoadingPdfId(null);
+    }
+  };
+
   const handleClosePdfPreview = () => {
     setShowPdfPreview(false);
     if (pdfUrl) {
@@ -304,15 +352,17 @@ const PaymentTable = () => {
       const response = await api.get("/counsellor/downloadPaymentsExcel", {
         params: {
           search: debouncedSearchTerm,
-          counsellor: selectedCounsellor && selectedCounsellor.length > 0
-            ? selectedCounsellor.map((c) => c.value).join(",")
-            : "",
+          counsellor:
+            selectedCounsellor && selectedCounsellor.length > 0
+              ? selectedCounsellor.map((c) => c.value).join(",")
+              : "",
           startDate,
           endDate,
           paymentType,
-          standard: standard && standard.length > 0
-            ? standard.map((s) => s.value).join(",")
-            : "",
+          standard:
+            standard && standard.length > 0
+              ? standard.map((s) => s.value).join(",")
+              : "",
         },
         responseType: "blob",
       });
@@ -355,7 +405,7 @@ const PaymentTable = () => {
           className="p-2 border border-gray-300"
         />
 
-        {user.role === "admin" && (
+        {(user.role === "admin" || user.role === "sub-admin") && (
           <CustomMultiSelect
             label="Counsellor"
             options={users}
@@ -377,19 +427,19 @@ const PaymentTable = () => {
           </select>
         </div>
         <div>
-        <CustomMultiSelect
-          label="Standard"
-          options={[
-            { label: "9th+10th", value: "9th+10th" },
-            { label: "10th", value: "10th" },
-            { label: "11th+12th", value: "11th+12th" },
-            { label: "12th", value: "12th" },
-          ]}
-          value={standard}
-          onChange={setStandard}
-          isRequired={false}
-          placeholder="Select Standards"
-        />
+          <CustomMultiSelect
+            label="Standard"
+            options={[
+              { label: "9th+10th", value: "9th+10th" },
+              { label: "10th", value: "10th" },
+              { label: "11th+12th", value: "11th+12th" },
+              { label: "12th", value: "12th" },
+            ]}
+            value={standard}
+            onChange={setStandard}
+            isRequired={false}
+            placeholder="Select Standards"
+          />
         </div>
 
         <div className="flex flex-nowrap md:flex-row gap-1">

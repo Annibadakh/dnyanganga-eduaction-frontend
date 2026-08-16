@@ -71,7 +71,12 @@ const StudentStatistics = () => {
   const [selectedExamYear, setSelectedExamYear] = useState([]);
 
   useEffect(() => {
-    if (counsellor && (user.role === "admin" || user.role === "followUp")) {
+    if (
+      counsellor &&
+      (user.role === "admin" ||
+        user.role === "followUp" ||
+        user.role === "sub-admin")
+    ) {
       setUsers(counsellor);
       setBranch(counsellorBranch);
     }
@@ -237,7 +242,9 @@ const StudentStatistics = () => {
 
         {/* Other Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-4 flex-wrap">
-          {(user.role === "admin" || user.role === "followUp") && (
+          {(user.role === "admin" ||
+            user.role === "followUp" ||
+            user.role === "sub-admin") && (
             <>
               <CustomMultiSelect
                 label="Counsellor"
@@ -489,8 +496,12 @@ const StudentStatistics = () => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div
-                  className="cursor-pointer"
-                  onClick={() => downloadDueStudents("overdue")}
+                  className={user.role === "admin" ? "cursor-pointer" : ""}
+                  onClick={
+                    user.role === "admin"
+                      ? () => downloadDueStudents("overdue")
+                      : undefined
+                  }
                 >
                   <StatCard
                     title="Overdue Payments"
@@ -502,8 +513,12 @@ const StudentStatistics = () => {
                   />
                 </div>
                 <div
-                  className="cursor-pointer"
-                  onClick={() => downloadDueStudents("week")}
+                  className={user.role === "admin" ? "cursor-pointer" : ""}
+                  onClick={
+                    user.role === "admin"
+                      ? () => downloadDueStudents("week")
+                      : undefined
+                  }
                 >
                   <StatCard
                     title="Due This Week"
@@ -517,8 +532,12 @@ const StudentStatistics = () => {
                   />
                 </div>
                 <div
-                  className="cursor-pointer"
-                  onClick={() => downloadDueStudents("month")}
+                  className={user.role === "admin" ? "cursor-pointer" : ""}
+                  onClick={
+                    user.role === "admin"
+                      ? () => downloadDueStudents("month")
+                      : undefined
+                  }
                 >
                   <StatCard
                     title="Due This Month"

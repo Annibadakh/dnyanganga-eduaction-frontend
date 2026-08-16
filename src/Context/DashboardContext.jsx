@@ -38,15 +38,22 @@ export const DashboardProvider = ({ children }) => {
 
   const getCounsellor = async () => {
     try {
-      const response = await api.get("/admin/getUser");
+      let people = [];
+      if (user?.role === "sub-admin") {
+        const response = await api.get("/admin/myTeam");
+        people = [response.data?.data?.me, ...(response.data?.data?.members || [])].filter(Boolean);
+      } else {
+        const response = await api.get("/admin/getUser");
+        people = response.data.data;
+      }
 
-      const formattedCounsellors = response.data.data.map((user) => ({
-        value: user.uuid,
-        label: user.name,
+      const formattedCounsellors = people.map((person) => ({
+        value: person.uuid,
+        label: person.name,
       }));
-      const formattedBranches = response.data.data.map((user) => ({
-        value: user.counsellorBranch,
-        label: user.counsellorBranch,
+      const formattedBranches = people.map((person) => ({
+        value: person.counsellorBranch,
+        label: person.counsellorBranch,
       }));
       setCounsellorBranch(getDistinctBranches(formattedBranches));
       setCounsellor(formattedCounsellors);
@@ -57,8 +64,8 @@ export const DashboardProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      if (user.role !== "counsellor") getCounsellor();
-      getExamCenter();
+      if (user.role !== "counsellor" && user.role !== "ca") getCounsellor();
+      if (user.role !== "ca") getExamCenter();
     }
   }, []);
 

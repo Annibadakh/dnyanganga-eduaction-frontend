@@ -19,16 +19,12 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   // Form states
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
+  const [standards, setStandards] = useState([]);
 
   // Searchable exam centre dropdown states
   const [examCentreSearch, setExamCentreSearch] = useState("");
   const [showExamCentreDropdown, setShowExamCentreDropdown] = useState(false);
   const examCentreDropdownRef = useRef(null);
-
-  // Branch dropdown visibility states
-  const [show9thBranchDropdown, setShow9thBranchDropdown] = useState(false); // For mediums (9th/10th)
-  const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] =
-    useState(false); // For groups (11th/12th)
 
   const [formData, setFormData] = useState({
     studentName: "",
@@ -57,20 +53,6 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
     amountPaid: 0,
     amountRemaining: 0,
   });
-
-  // Handle branch dropdown visibility based on standard
-  useEffect(() => {
-    const standard = formData.standard || "";
-
-    // Show medium dropdowns for 9th+10th and 10th standards
-    const showMediumDropdown = standard === "9th+10th" || standard === "10th";
-
-    // Show group dropdowns for 11th+12th and 12th standards
-    const showGroupDropdown = standard === "11th+12th" || standard === "12th";
-
-    setShow9thBranchDropdown(showMediumDropdown);
-    setShow11thPlusBranchDropdown(showGroupDropdown);
-  }, [formData.standard]);
 
   // Search for student when component loads
   useEffect(() => {
@@ -200,6 +182,18 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
       });
   }, []);
 
+  // Fetch active standards (name, fees, previous year, branches)
+  useEffect(() => {
+    api
+      .get("/simple/standards")
+      .then((response) => {
+        setStandards(response.data.data || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching standards", error);
+      });
+  }, []);
+
   // Update exam centre search when exam centres are loaded and student data exists
   useEffect(() => {
     if (studentData && examCentres.length > 0 && formData.examCentre) {
@@ -212,58 +206,64 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
     }
   }, [examCentres, studentData, formData.examCentre]);
 
+  // When editing, the student record doesn't carry branch options.
+  // Populate branchType/branches from the Standard table once loaded.
+  useEffect(() => {
+    if (!formData.standard || standards.length === 0) return;
+    const std = standards.find((s) => s.name === formData.standard);
+    if (!std) return;
+    setFormData((prev) => ({
+      ...prev,
+      branchType: prev.branchType || std.branchType || "",
+      branches:
+        prev.branches && prev.branches.length > 0
+          ? prev.branches
+          : std.branches && Array.isArray(std.branches)
+            ? std.branches
+            : [],
+    }));
+  }, [formData.standard, standards]);
+
   const applyStandardLogic = (standard) => {
     const currDate = new Date();
     const currentYear = currDate.getFullYear();
     const currMonth = currDate.getMonth();
     const nextYear = currMonth < 4 ? currentYear : currentYear + 1;
 
-    const standardConfig = {
-      "9th+10th": {
-        previousYear: "8th",
-        examYear: nextYear.toString(),
-        paymentStandard: "9th+10th",
-        totalAmount: 7850,
-      },
+    const std = standards.find((s) => s.name === standard) || null;
+    const isCombined = typeof standard === "string" && standard.includes("+");
 
-      "10th": {
-        previousYear: "9th",
-        examYear: currentYear.toString(),
-        paymentStandard: "10th",
-        totalAmount: 6850,
-      },
-
-      "11th+12th": {
-        previousYear: "10th",
-        examYear: nextYear.toString(),
-        paymentStandard: "11th+12th",
-        totalAmount: 9950,
-      },
-
-      "12th": {
-        previousYear: "11th",
-        examYear: currentYear.toString(),
-        paymentStandard: "12th",
-        totalAmount: 7900,
-      },
+    return {
+      previousYear: std?.previousYear || "",
+      examYear: (isCombined ? nextYear : currentYear).toString(),
+      paymentStandard: standard || "",
+      totalAmount: std?.totalFees ?? 0,
+      branchType: std?.branchType || "",
+      branches:
+        std?.branches && Array.isArray(std.branches) ? std.branches : [],
     };
-
-    return standardConfig[standard] || {};
   };
 
-  const allowedConversions = {
-    "11th+12th": "12th",
-    "9th+10th": "10th",
+  // A combined package ("11th+12th") converts to the standalone standard
+  // named after its normalizeName ("12th"). DB-driven.
+  const getConversionTarget = () => {
+    const std = standards.find((s) => s.name === formData.standard);
+    if (!std) return null;
+    return (
+      standards.find((s) => s.name === std.normalizeName) ||
+      standards.find((s) => s.normalizeName === std.name) ||
+      null
+    );
   };
 
   const handleStandardConversion = () => {
-    const newStandard = allowedConversions[formData.standard];
+    const target = getConversionTarget();
 
-    if (!newStandard) {
+    if (!target) {
       return;
     }
 
-    const standardFields = applyStandardLogic(newStandard);
+    const standardFields = applyStandardLogic(target.name);
 
     const newTotalAmount = Number(standardFields.totalAmount || 0);
     const amountPaid = Number(formData.amountPaid || 0);
@@ -278,12 +278,12 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
     setFormData((prev) => ({
       ...prev,
-      standard: newStandard,
+      standard: target.name,
       ...standardFields,
       amountRemaining: newTotalAmount - amountPaid,
     }));
 
-    alert(`Student converted successfully to ${newStandard}`);
+    alert(`Student converted successfully to ${target.name}`);
   };
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -612,13 +612,13 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                           />
                         </div>
 
-                        {allowedConversions[formData.standard] && (
+                        {getConversionTarget() && (
                           <button
                             type="button"
                             onClick={handleStandardConversion}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
                           >
-                            Convert to {allowedConversions[formData.standard]}
+                            Convert to {getConversionTarget().name}
                           </button>
                         )}
                       </div>
@@ -652,8 +652,8 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                         step="0.01"
                       />
 
-                      {/* Dynamic Branch Dropdowns */}
-                      {show9thBranchDropdown && (
+                      {/* Dynamic Branch Dropdown */}
+                      {formData.branches?.length > 0 && (
                         <select
                           name="branch"
                           value={formData.branch}
@@ -661,25 +661,16 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                           className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                           required
                         >
-                          <option value="">Select Medium</option>
-                          <option value="Marathi">Marathi</option>
-                          <option value="Semi-English">Semi-English</option>
-                          <option value="English">English</option>
-                        </select>
-                      )}
-
-                      {show11thPlusBranchDropdown && (
-                        <select
-                          name="branch"
-                          value={formData.branch}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
-                          required
-                        >
-                          <option value="">Select Group</option>
-                          <option value="PCM">PCM</option>
-                          <option value="PCB">PCB</option>
-                          <option value="PCMB">PCMB</option>
+                          <option value="">
+                            {formData.branchType === "GROUP"
+                              ? "Select Group"
+                              : "Select Medium"}
+                          </option>
+                          {formData.branches.map((b) => (
+                            <option key={b} value={b}>
+                              {b}
+                            </option>
+                          ))}
                         </select>
                       )}
 

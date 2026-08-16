@@ -47,7 +47,9 @@ const Header = () => {
   const initials = getInitials(displayName);
 
   const roleLabel = user?.role
-    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    ? user.role === "ca"
+      ? "CA"
+      : user.role.charAt(0).toUpperCase() + user.role.slice(1)
     : "";
 
   // Role color mapping
@@ -58,6 +60,7 @@ const Header = () => {
     logistics: "bg-orange-500",
     followUp: "bg-yellow-500",
     student: "bg-teal-600",
+    ca: "bg-indigo-600",
   };
   const badgeColor = roleBadgeColor[user?.role] || "bg-primary";
 

@@ -13,11 +13,7 @@ const RegistrationForm = () => {
   const receiptPhoto = FileUploadHook();
 
   const [paymentError, setPaymentError] = useState("");
-  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
-  const [show9thBranchDropdown, setShow9thBranchDropdown] = useState(false);
-  const [show10thBranchDropdown, setShow10thBranchDropdown] = useState(false);
-  const [show11thPlusBranchDropdown, setShow11thPlusBranchDropdown] =
-    useState(false);
+  const [standards, setStandards] = useState([]);
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
   const [isPaidInFull, setIsPaidInFull] = useState(false);
@@ -39,12 +35,15 @@ const RegistrationForm = () => {
     appNo: "",
     notificationNo: "",
     standard: "",
+    standardId: null,
     previousYear: "",
     schoolCollege: "",
     preYearPercent: "",
     branch: "",
     examCentre: "",
     examYear: "",
+    branchType: "",
+    branches: [],
     receiptNo: "",
     studentPhoto: "",
     receiptPhoto: "",
@@ -56,90 +55,29 @@ const RegistrationForm = () => {
     dueDate: "",
   });
 
-  // Single source of truth for standard-related state
+  // Single source of truth for standard-related state.
+  // Driven by the Standard table (name, previousYear, totalFees, branches).
   const applyStandardLogic = (standard) => {
     const currDate = new Date();
     const currentYear = currDate.getFullYear();
     const currMonth = currDate.getMonth();
     const nextYear = currMonth < 4 ? currentYear : currentYear + 1;
 
-    const standardConfig = {
-      "9th+10th": {
-        branch: "",
-        previousYear: "8th",
-        examYear: nextYear.toString(),
-        paymentStandard: "9th+10th",
-        totalamount: 7850,
-        dropdowns: {
-          show9th: true,
-          show10th: false,
-          show11th: false,
-          show12th: false,
-        },
-      },
-      "10th": {
-        branch: "",
-        previousYear: "9th",
-        examYear: currentYear.toString(),
-        paymentStandard: "10th",
-        totalamount: 6850,
-        dropdowns: {
-          show9th: false,
-          show10th: true,
-          show11th: false,
-          show12th: false,
-        },
-      },
-      "11th+12th": {
-        branch: "",
-        previousYear: "10th",
-        examYear: nextYear.toString(),
-        paymentStandard: "11th+12th",
-        totalamount: 9950,
-        dropdowns: {
-          show9th: false,
-          show10th: false,
-          show11th: true,
-          show12th: false,
-        },
-      },
-      "12th": {
-        branch: "",
-        previousYear: "11th",
-        examYear: currentYear.toString(),
-        paymentStandard: "12th",
-        totalamount: 7900,
-        dropdowns: {
-          show9th: false,
-          show10th: false,
-          show11th: false,
-          show12th: true,
-        },
-      },
-    };
+    const std = standards.find((s) => s.name === standard) || null;
+    const isCombined = typeof standard === "string" && standard.includes("+");
+    const branches =
+      std?.branches && Array.isArray(std.branches) ? std.branches : [];
 
-    const config = standardConfig[standard] ?? {
+    return {
       branch: "",
-      previousYear: "",
-      examYear: "",
-      paymentStandard: "",
-      totalamount: 0,
-      dropdowns: {
-        show9th: false,
-        show10th: false,
-        show11th: false,
-        show12th: false,
-      },
+      previousYear: std?.previousYear || "",
+      examYear: (isCombined ? nextYear : currentYear).toString(),
+      paymentStandard: standard || "",
+      totalamount: std?.totalFees ?? 0,
+      branchType: std?.branchType || "",
+      branches,
+      standardId: std?.id ?? null,
     };
-
-    const { dropdowns, ...formFields } = config;
-
-    setShow9thBranchDropdown(dropdowns.show9th);
-    setShow10thBranchDropdown(dropdowns.show10th);
-    setShow11thPlusBranchDropdown(dropdowns.show11th);
-    setShowBranchDropdown(dropdowns.show12th);
-
-    return formFields;
   };
 
   // Helper function to find center by centerId
@@ -193,10 +131,6 @@ const RegistrationForm = () => {
   const loadDraftData = () => {
     const draftData = loadDraftFromLocalStorage();
     if (draftData) {
-      if (draftData.standard) {
-        applyStandardLogic(draftData.standard);
-      }
-
       setFormData((prevData) => ({
         ...prevData,
         ...draftData,
@@ -257,6 +191,18 @@ const RegistrationForm = () => {
       })
       .catch((error) => {
         console.error("Error fetching exam centers", error);
+      });
+  }, []);
+
+  // Fetch active standards (name, fees, previous year, branches)
+  useEffect(() => {
+    api
+      .get("/simple/standards")
+      .then((response) => {
+        setStandards(response.data.data || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching standards", error);
       });
   }, []);
 
@@ -485,10 +431,11 @@ const RegistrationForm = () => {
                   required
                 >
                   <option value="">Select Standard</option>
-                  <option value="9th+10th">9th+10th</option>
-                  <option value="10th">10th</option>
-                  <option value="11th+12th">11th+12th</option>
-                  <option value="12th">12th</option>
+                  {standards.map((std) => (
+                    <option key={std.id} value={std.name}>
+                      {std.name}
+                    </option>
+                  ))}
                 </select>
 
                 {/* Auto-filled Previous Year Field */}
@@ -506,7 +453,7 @@ const RegistrationForm = () => {
                   />
                 </div>
 
-                {show9thBranchDropdown && (
+                {formData.branches?.length > 0 && (
                   <select
                     name="branch"
                     value={formData.branch}
@@ -514,55 +461,16 @@ const RegistrationForm = () => {
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
                     required
                   >
-                    <option value="">Select Medium</option>
-                    <option value="Marathi">Marathi</option>
-                    <option value="Semi-English">Semi-English</option>
-                    <option value="English">English</option>
-                  </select>
-                )}
-
-                {show10thBranchDropdown && (
-                  <select
-                    name="branch"
-                    value={formData.branch}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
-                    required
-                  >
-                    <option value="">Select Medium</option>
-                    <option value="Marathi">Marathi</option>
-                    <option value="Semi-English">Semi-English</option>
-                    <option value="English">English</option>
-                  </select>
-                )}
-
-                {show11thPlusBranchDropdown && (
-                  <select
-                    name="branch"
-                    value={formData.branch}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
-                    required
-                  >
-                    <option value="">Select Group</option>
-                    <option value="PCM">PCM</option>
-                    <option value="PCB">PCB</option>
-                    <option value="PCMB">PCMB</option>
-                  </select>
-                )}
-
-                {showBranchDropdown && (
-                  <select
-                    name="branch"
-                    value={formData.branch}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
-                    required
-                  >
-                    <option value="">Select Group</option>
-                    <option value="PCM">PCM</option>
-                    <option value="PCB">PCB</option>
-                    <option value="PCMB">PCMB</option>
+                    <option value="">
+                      {formData.branchType === "GROUP"
+                        ? "Select Group"
+                        : "Select Medium"}
+                    </option>
+                    {formData.branches.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
                   </select>
                 )}
 

@@ -14,6 +14,12 @@ const CounsellorCollection = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Sub-admin: Me + My Counsellors selector
+  const [teamOptions, setTeamOptions] = useState([]);
+  const [selectedCounsellor, setSelectedCounsellor] = useState(user?.uuid || "");
+  const isSubAdmin = user?.role === "sub-admin";
+  const isOwnView = !isSubAdmin || selectedCounsellor === user?.uuid;
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -51,10 +57,10 @@ const CounsellorCollection = () => {
   const imgUrl = import.meta.env.VITE_IMG_URL;
 
   // Fetch collection summary
-  const fetchCollection = async () => {
+  const fetchCollection = async (counsellorId) => {
     setLoading(true);
     try {
-      const res = await api.get(`/counsellor/collection/${user.uuid}`);
+      const res = await api.get(`/counsellor/collection/${counsellorId || selectedCounsellor}`);
       setCollection(res.data || null);
     } catch (err) {
       console.error("Error fetching collection", err);
@@ -64,7 +70,7 @@ const CounsellorCollection = () => {
   };
 
   // Fetch transaction history with server-side pagination + filters
-  const fetchTransactions = async (page = 1, limitOverride) => {
+  const fetchTransactions = async (page = 1, limitOverride, counsellorId) => {
     try {
       const limit = limitOverride || itemsPerPage;
       const params = {
@@ -74,7 +80,7 @@ const CounsellorCollection = () => {
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
       };
-      const res = await api.get(`/counsellor/collection/payments/${user.uuid}`, { params });
+      const res = await api.get(`/counsellor/collection/payments/${counsellorId || selectedCounsellor}`, { params });
       setTransactions(res.data.transactions || []);
       setCurrentPage(res.data.currentPage);
       setTotalPages(res.data.totalPages);
@@ -84,6 +90,29 @@ const CounsellorCollection = () => {
       console.error("Error fetching transactions", err);
     }
   };
+
+  // Sub-admin: load Me + My Counsellors options
+  useEffect(() => {
+    if (!isSubAdmin) return;
+    api
+      .get("/admin/myTeam")
+      .then((res) => {
+        const data = res.data?.data || {};
+        const members = data.members || [];
+        setTeamOptions([
+          ...(data.me ? [{ value: data.me.uuid, label: `${data.me.name} (Me)` }] : []),
+          ...members.map((m) => ({ value: m.uuid, label: m.name })),
+        ]);
+      })
+      .catch((err) => console.error("Error fetching team", err));
+  }, [isSubAdmin]);
+
+  // Refetch when the selected counsellor changes
+  useEffect(() => {
+    if (!selectedCounsellor) return;
+    fetchCollection(selectedCounsellor);
+    fetchTransactions(1, undefined, selectedCounsellor);
+  }, [selectedCounsellor]);
 
   const handlePageChange = (newPage) => {
     fetchTransactions(newPage);
@@ -101,7 +130,7 @@ const CounsellorCollection = () => {
 
   // Refetch when filters change
   useEffect(() => {
-    if (dateFrom || dateTo || statusFilter) fetchTransactions(1);
+    if (dateFrom || dateTo || statusFilter) fetchTransactions(1, undefined, selectedCounsellor);
   }, [statusFilter, dateFrom, dateTo]);
 
   const handleProofUpload = async (type) => {
@@ -179,12 +208,37 @@ const CounsellorCollection = () => {
         My Collection
       </h1>
 
+      {isSubAdmin && (
+        <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
+          <label className="block mb-2 font-medium text-sm">
+            Viewing Collection For
+          </label>
+          <select
+            value={selectedCounsellor}
+            onChange={(e) => setSelectedCounsellor(e.target.value)}
+            className="w-full md:w-1/2 p-2 border rounded-md"
+          >
+            {teamOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {!isOwnView && (
+            <p className="mt-2 text-sm text-gray-500">
+              Read-only view of your counsellor's collection.
+            </p>
+          )}
+        </div>
+      )}
+
       {loading && <p className="text-center">Loading data...</p>}
 
       {/* Statistics Section - moved after filters */}
       
 
       {/* Send Collection Button or Form */}
+      {isOwnView && (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
           {!showForm ? (
             // Show button initially
@@ -319,6 +373,7 @@ const CounsellorCollection = () => {
             </>
           )}
         </div>
+      )}
 
       {/* Transaction History */}
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">

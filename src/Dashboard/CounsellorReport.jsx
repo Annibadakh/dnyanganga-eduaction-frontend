@@ -82,8 +82,12 @@ const CounsellorReport = () => {
         params.toDate = toDate;
       }
 
-      // ✅ Admin can optionally filter by counsellor (multi-select support)
-      if (user.role === "admin" && selectedCounsellor && selectedCounsellor.length > 0) {
+      // ✅ Admin / sub-admin can filter by counsellor (self + team for sub-admin)
+      if (
+        (user.role === "admin" || user.role === "sub-admin") &&
+        selectedCounsellor &&
+        selectedCounsellor.length > 0
+      ) {
         params.counsellorId = selectedCounsellor.map((c) => c.value).join(",");
       }
 
@@ -122,6 +126,7 @@ const CounsellorReport = () => {
       Admissions: row.students.registered,
       Visiting: row.visiting.total,
       Booking: row.students.booking,
+      "Recollection Count": row.payments.recollectionCount ?? 0,
       "Half Cash": row.students.halfCash,
       "Full Cash": row.students.fullCash,
       "Initial Collection": row.payments.initialCollection,
@@ -154,7 +159,7 @@ const CounsellorReport = () => {
   // Table columns
   const columns = [
     {
-      header: "Sr No.",
+      header: "Sr. No.",
       render: (row, index) => index + 1,
     },
     {
@@ -170,6 +175,10 @@ const CounsellorReport = () => {
       render: (row) => row.visiting.total,
     },
     {
+      header: "Demo",
+      render: (row) => row.visiting.total + row.students.registered, // Assuming demo is sum of visits and students, adjust as needed
+    },
+    {
       header: "Booking",
       render: (row) => row.students.booking,
     },
@@ -180,6 +189,10 @@ const CounsellorReport = () => {
     {
       header: "Full Cash",
       render: (row) => row.students.fullCash,
+    },
+    {
+      header: "Rec Count",
+      render: (row) => row.payments.recollectionCount ?? 0,
     },
     {
       header: "Initial",
@@ -197,10 +210,6 @@ const CounsellorReport = () => {
       header: "Due",
       render: (row) => `₹${row.dues.totalDue}`,
     },
-    {
-      header: "Demo",
-      render: (row) => row.visiting.total + row.students.registered, // Assuming demo is sum of visits and students, adjust as needed
-    },
   ];
 
   // Aggregate for cards
@@ -211,6 +220,10 @@ const CounsellorReport = () => {
   );
   const totalDue = data.reduce((sum, r) => sum + r.dues.totalDue, 0);
   const totalVisits = data.reduce((sum, r) => sum + r.visiting.total, 0);
+  const totalRecollectionCount = data.reduce(
+    (sum, r) => sum + Number(r.payments.recollectionCount || 0),
+    0,
+  );
 
   return (
     <div className="container bg-white mx-auto p-4">
@@ -264,7 +277,7 @@ const CounsellorReport = () => {
         </div>
 
         {/* Admin Counsellor Filter */}
-        {user.role === "admin" && (
+        {(user.role === "admin" || user.role === "sub-admin") && (
           <div className="flex flex-col gap-1">
             <CustomMultiSelect
               label="Counsellor"
@@ -297,6 +310,11 @@ const CounsellorReport = () => {
         <StatCard
           title="Total Demo"
           value={totalVisits + totalStudents} // Assuming demo is sum of visits and students, adjust as needed
+          icon={PlayCircle}
+        />
+        <StatCard
+          title="Recollection Count"
+          value={totalRecollectionCount}
           icon={PlayCircle}
         />
         <StatCard

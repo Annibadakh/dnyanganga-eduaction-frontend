@@ -3,6 +3,7 @@ import { lazy, Suspense, useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import { DashboardProvider } from "./Context/DashboardContext";
+import { useAuth } from "./Context/AuthContext";
 import {
   ProtectedRoute,
   ProtectedRoleBasedRoute,
@@ -27,6 +28,20 @@ import ChapterManager from "./Dashboard/QuestionBank/ChapterManager";
 import StudentSubjects from "./Dashboard/Student/QuestionBank/StudentSubjects";
 import StudentChapters from "./Dashboard/Student/QuestionBank/StudentChapters";
 import StudentQuestions from "./Dashboard/Student/QuestionBank/StudentQuestions";
+import {
+  counsellorLikeRoles,
+  paymentTableAccess,
+  reportAccess,
+  challanAccess,
+  registrationTableAccess,
+  adminControlsAccess,
+  userManageAccess,
+  marksAccess,
+  questionBankManageAccess,
+  quizManageAccess,
+  bookEntryAccess,
+  caAccess,
+} from "./utils/roleArrays";
 
 // Landing
 const About = lazy(() => import("./Pages/About"));
@@ -48,8 +63,14 @@ const Home = lazy(() => import("./Dashboard/Home/Home"));
 const Profile = lazy(() => import("./Dashboard/Layout/Profile"));
 
 // Admin
-const SubjectManagement = lazy(
-  () => import("./Dashboard/AdminControls/SubjectManagement"),
+const StandardSubjectManagement = lazy(
+  () => import("./Dashboard/AdminControls/StandardSubjectManagement"),
+);
+const GSTReceiptManagement = lazy(
+  () => import("./Dashboard/AdminControls/GSTReceiptManagement"),
+);
+const StandardReceiptBills = lazy(
+  () => import("./Dashboard/AdminControls/StandardReceiptBills"),
 );
 const AddUser = lazy(() => import("./Dashboard/AdminControls/AddUser"));
 const AddCenter = lazy(() => import("./Dashboard/AdminControls/AddCenter"));
@@ -84,9 +105,18 @@ const CounsellorCollection = lazy(
   () => import("./Dashboard/Collection/CounsellorCollection"),
 );
 
+// CA
+const CaStudents = lazy(() => import("./Dashboard/CA/CaStudents"));
+
 ////// student dashboard
 
 const PageNotFound = lazy(() => import("./Pages/PageNotFound"));
+
+// Send each role to its own landing page after login
+const DashboardIndexRedirect = () => {
+  const { user } = useAuth();
+  return <Navigate to={user?.role === "ca" ? "ca-students" : "home"} replace />;
+};
 
 function App() {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -169,15 +199,23 @@ function App() {
               }
             >
               <Route path="dashboard" element={<Dashboard />}>
-                <Route index element={<Navigate to="home" replace />} />
+                <Route index element={<DashboardIndexRedirect />} />
 
                 <Route path="home" element={<Home />} />
                 <Route path="profile" element={<Profile />} />
 
                 <Route
                   element={
+                    <ProtectedRoleBasedRoute allowedRoles={caAccess} />
+                  }
+                >
+                  <Route path="ca-students" element={<CaStudents />} />
+                </Route>
+
+                <Route
+                  element={
                     <ProtectedRoleBasedRoute
-                      allowedRoles={["counsellor", "admin"]}
+                      allowedRoles={paymentTableAccess}
                     />
                   }
                 >
@@ -188,7 +226,7 @@ function App() {
                 <Route
                   element={
                     <ProtectedRoleBasedRoute
-                      allowedRoles={["counsellor", "admin", "logistics"]}
+                      allowedRoles={challanAccess}
                     />
                   }
                 >
@@ -198,7 +236,7 @@ function App() {
                 <Route
                   element={
                     <ProtectedRoleBasedRoute
-                      allowedRoles={["counsellor", "admin", "followUp"]}
+                      allowedRoles={registrationTableAccess}
                     />
                   }
                 >
@@ -208,7 +246,7 @@ function App() {
 
                 <Route
                   element={
-                    <ProtectedRoleBasedRoute allowedRoles={["counsellor"]} />
+                    <ProtectedRoleBasedRoute allowedRoles={counsellorLikeRoles} />
                   }
                 >
                   <Route path="register" element={<RegistrationForm />} />
@@ -221,10 +259,22 @@ function App() {
                 </Route>
 
                 <Route
-                  element={<ProtectedRoleBasedRoute allowedRoles={["admin", "counsellor"]} />}
+                  element={
+                    <ProtectedRoleBasedRoute allowedRoles={adminControlsAccess} />
+                  }
                 >
-                  <Route path="user" element={<AddUser />} />
-                  <Route path="subject" element={<SubjectManagement />} />
+                  <Route
+                    path="standards"
+                    element={<StandardSubjectManagement />}
+                  />
+                  <Route
+                    path="standards/:id/receipt-bills"
+                    element={<StandardReceiptBills />}
+                  />
+                  <Route
+                    path="gst-receipt"
+                    element={<GSTReceiptManagement />}
+                  />
                   <Route path="examcenter" element={<AddCenter />} />
                   <Route path="collection" element={<AdminCollection />} />
                   <Route
@@ -233,15 +283,46 @@ function App() {
                   />
                   <Route path="jobCreation" element={<JobCreation />} />
                   <Route path="jobs" element={<JobsList />} />
+                </Route>
+
+                <Route
+                  element={
+                    <ProtectedRoleBasedRoute allowedRoles={userManageAccess} />
+                  }
+                >
+                  <Route path="user" element={<AddUser />} />
+                </Route>
+
+                <Route
+                  element={
+                    <ProtectedRoleBasedRoute allowedRoles={marksAccess} />
+                  }
+                >
                   <Route path="marksentry" element={<MarksContextSelector />} />
+                </Route>
+
+                <Route
+                  element={
+                    <ProtectedRoleBasedRoute
+                      allowedRoles={questionBankManageAccess}
+                    />
+                  }
+                >
                   <Route path="question-bank" element={<ChapterManager />} />
+                </Route>
+
+                <Route
+                  element={
+                    <ProtectedRoleBasedRoute allowedRoles={quizManageAccess} />
+                  }
+                >
                   <Route path="quizz/*" element={<Quizz />} />
                 </Route>
 
                 <Route
                   element={
                     <ProtectedRoleBasedRoute
-                      allowedRoles={["admin", "logistics"]}
+                      allowedRoles={bookEntryAccess}
                     />
                   }
                 >
@@ -254,6 +335,7 @@ function App() {
               <Route element={<Dashboard />}>
                 <Route index element={<Navigate to="home" replace />} />
                 <Route path="home" element={<StudentQuizzDashboard />} />
+                <Route path="profile" element={<Profile />} />
                 <Route path="question-bank" element={<StudentSubjects />} />
                 <Route path="question-bank/:subjectId" element={<StudentChapters />} />
                 <Route path="question-bank/:subjectId/:chapterId" element={<StudentQuestions />} />
