@@ -34,7 +34,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
 };
 
 const inr = (n) =>
-    "₹" + (Number(n) || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+  "₹" + (Number(n) || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
 export default function CaStudents() {
   const { user } = useAuth();
@@ -70,12 +70,10 @@ export default function CaStudents() {
 
   useEffect(() => {
     api
-      .get("/simple/standards")
+      .get("/ca/standards")
       .then((res) => {
         const data = res.data?.data || [];
-        setStandardOptions(
-          data.map((s) => ({ value: s.name, label: s.name })),
-        );
+        setStandardOptions(data.map((s) => ({ value: s.name, label: s.name })));
       })
       .catch((err) => console.error("Error fetching standards", err));
   }, []);
@@ -115,17 +113,13 @@ export default function CaStudents() {
       });
   };
 
-  // Fetch data when page/limit changes or filters change
+  // Single effect drives every fetch — page changes, page-size changes, or any
+  // filter change. Filters reset currentPage via withPageReset/clearFilters,
+  // which batches with the setter call so this effect fires exactly once per change.
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage]);
-
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStandard, dateFrom, dateTo]);
+  }, [currentPage, itemsPerPage, selectedStandard, dateFrom, dateTo]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -136,14 +130,21 @@ export default function CaStudents() {
     setCurrentPage(1);
   };
 
+  // Wraps a filter setter so changing a filter also resets to page 1, batched
+  // into the same render so the fetch effect above only runs once.
+  const withPageReset = (setter) => (value) => {
+    setter(value);
+    setCurrentPage(1);
+  };
+
   const clearFilters = () => {
     setSelectedStandard([]);
     setDateFrom("");
     setDateTo("");
+    setCurrentPage(1);
   };
 
-  const hasActiveFilters =
-    selectedStandard.length > 0 || dateFrom || dateTo;
+  const hasActiveFilters = selectedStandard.length > 0 || dateFrom || dateTo;
 
   const handleViewPdf = async (row) => {
     try {
@@ -160,7 +161,11 @@ export default function CaStudents() {
       setPdfSubTitle(`${row.studentName} (ID: ${row.studentId})`);
       setShowPdf(true);
     } catch (err) {
-      alert(err.response?.status === 403 ? "Unauthorized" : "Receipt download failed.");
+      alert(
+        err.response?.status === 403
+          ? "Unauthorized"
+          : "Receipt download failed.",
+      );
       console.error(err);
     } finally {
       setLoadingPdfId(null);
@@ -184,6 +189,13 @@ export default function CaStudents() {
     {
       header: "Invoice Number",
       render: (row) => row.invoiceNumber ?? "—",
+    },
+    {
+      header: "Invoice Date",
+      render: (row) =>
+        row.invoiceDate
+          ? new Date(row.invoiceDate).toLocaleDateString("en-IN")
+          : "—",
     },
     {
       header: "Total Amount",
@@ -231,7 +243,7 @@ export default function CaStudents() {
               label="Standard"
               options={standardOptions}
               value={selectedStandard}
-              onChange={setSelectedStandard}
+              onChange={withPageReset(setSelectedStandard)}
               placeholder="Select Standard"
             />
           </div>
@@ -239,14 +251,14 @@ export default function CaStudents() {
             id="dateFrom"
             label="From Date"
             value={dateFrom}
-            onChange={setDateFrom}
+            onChange={withPageReset(setDateFrom)}
             max={dateTo || undefined}
           />
           <DateField
             id="dateTo"
             label="To Date"
             value={dateTo}
-            onChange={setDateTo}
+            onChange={withPageReset(setDateTo)}
             min={dateFrom || undefined}
           />
           {hasActiveFilters && (
