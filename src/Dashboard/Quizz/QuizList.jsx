@@ -117,6 +117,11 @@ const QuizList = () => {
               Edit
             </Button>
           )}
+          {user.role === "admin" && (
+            <Button variant="danger" onClick={() => handleDelete(row)}>
+              Delete
+            </Button>
+          )}
           <Button variant="secondary" onClick={() => handleAnalytics(row)}>
             Stats
           </Button>
@@ -131,6 +136,17 @@ const QuizList = () => {
 
   const handleEdit = () => {
     // console.log("Edit Quiz:", quiz);
+  };
+
+  const handleDelete = async (quiz) => {
+    if (!window.confirm(`Delete quiz "${quiz.title}"?`)) return;
+
+    try {
+      await api.delete(`/quiz/${quiz.id}`);
+      fetchQuizzes();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete quiz");
+    }
   };
 
   return (

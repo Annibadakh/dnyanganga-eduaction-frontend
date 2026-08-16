@@ -12,6 +12,7 @@ import Pagination from "../Generic/Pagination";
 import PdfViewerModal from "../Generic/PdfViewerModal";
 import Button from "../Generic/Button";
 import QuizAnalyticsCharts from "../Generic/QuizAnalyticsCharts";
+import FollowupModal from "../Generic/FollowupModal";
 import {
   FileText,
   Edit,
@@ -22,7 +23,9 @@ import {
   Target,
   Award,
   X,
+  MessageSquarePlus,
 } from "lucide-react";
+import { followupAccess } from "../../utils/roleArrays";
 
 const RegistrationTable = () => {
   const { user } = useAuth();
@@ -37,6 +40,7 @@ const RegistrationTable = () => {
   const [users, setUsers] = useState([]);
   const [branch, setBranch] = useState([]);
   const [examCentres, setExamCentres] = useState([]);
+  const [standards, setStandards] = useState([]);
   const [selectedExamCentre, setSelectedExamCentre] = useState([]);
   const [selectedStandard, setSelectedStandard] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -64,6 +68,8 @@ const RegistrationTable = () => {
   const [quizData, setQuizData] = useState(null);
   const [quizLoading, setQuizLoading] = useState(false);
   const [quizStudentName, setQuizStudentName] = useState("");
+  const [showFollowupModal, setShowFollowupModal] = useState(false);
+  const [followupStudent, setFollowupStudent] = useState(null);
 
   const currentYear = new Date().getFullYear();
   const [selectedExamYear, setSelectedExamYear] = useState([
@@ -148,7 +154,9 @@ const RegistrationTable = () => {
         row.dueDate ? new Date(row.dueDate).toLocaleDateString("en-GB") : "-",
     },
 
-    ...(user.role === "admin" || user.role === "followUp"
+    ...(user.role === "admin" ||
+    user.role === "followUp" ||
+    user.role === "sub-admin"
       ? [
           {
             header: "Counsellor",
@@ -223,6 +231,19 @@ const RegistrationTable = () => {
               Pay
             </Button>
           )}
+
+          {followupAccess.includes(user.role) && (
+            <Button
+              variant="success"
+              startIcon={<MessageSquarePlus size={16} />}
+              onClick={() => {
+                setFollowupStudent(row);
+                setShowFollowupModal(true);
+              }}
+            >
+              Follow Ups
+            </Button>
+          )}
         </div>
       ),
     },
@@ -237,7 +258,12 @@ const RegistrationTable = () => {
   }, [pdfUrl]);
 
   useEffect(() => {
-    if (counsellor && (user.role === "admin" || user.role === "followUp")) {
+    if (
+      counsellor &&
+      (user.role === "admin" ||
+        user.role === "followUp" ||
+        user.role === "sub-admin")
+    ) {
       setUsers(counsellor);
       setBranch(counsellorBranch);
     }
@@ -246,6 +272,17 @@ const RegistrationTable = () => {
   useEffect(() => {
     examCenter && setExamCentres(examCenter);
   }, [user.role, examCenter]);
+
+  useEffect(() => {
+    api
+      .get("/simple/standards")
+      .then((response) => {
+        setStandards(response.data.data || []);
+      })
+      .catch((err) => {
+        console.error("Error fetching standards", err);
+      });
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -261,26 +298,31 @@ const RegistrationTable = () => {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearchQuery,
-      counsellor: selectedCounsellor && selectedCounsellor.length > 0
-        ? selectedCounsellor.map((c) => c.value).join(",")
-        : "",
-      branch: selectedBranch && selectedBranch.length > 0
-        ? selectedBranch.map((b) => b.value).join(",")
-        : "",
-      examCentre: selectedExamCentre && selectedExamCentre.length > 0
-        ? selectedExamCentre.map((e) => e.value).join(",")
-        : "",
-      standard: selectedStandard && selectedStandard.length > 0
-        ? selectedStandard.map((s) => s.value).join(",")
-        : "",
+      counsellor:
+        selectedCounsellor && selectedCounsellor.length > 0
+          ? selectedCounsellor.map((c) => c.value).join(",")
+          : "",
+      branch:
+        selectedBranch && selectedBranch.length > 0
+          ? selectedBranch.map((b) => b.value).join(",")
+          : "",
+      examCentre:
+        selectedExamCentre && selectedExamCentre.length > 0
+          ? selectedExamCentre.map((e) => e.value).join(",")
+          : "",
+      standard:
+        selectedStandard && selectedStandard.length > 0
+          ? selectedStandard.map((s) => s.value).join(",")
+          : "",
       status: selectedStatus,
       dateFrom: dateFrom,
       dateTo: dateTo,
       onlyZeroRemaining,
       onlyNonZeroRemaining,
-      examYear: selectedExamYear && selectedExamYear.length > 0
-        ? selectedExamYear.map((y) => y.value).join(",")
-        : "",
+      examYear:
+        selectedExamYear && selectedExamYear.length > 0
+          ? selectedExamYear.map((y) => y.value).join(",")
+          : "",
     };
 
     api
@@ -577,7 +619,9 @@ const RegistrationTable = () => {
               className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"
             />
 
-            {(user.role === "admin" || user.role === "followUp") && (
+            {(user.role === "admin" ||
+              user.role === "followUp" ||
+              user.role === "sub-admin") && (
               <>
                 <CustomMultiSelect
                   options={users}
@@ -606,12 +650,10 @@ const RegistrationTable = () => {
             />
 
             <CustomMultiSelect
-              options={[
-                { label: "9th+10th", value: "9th+10th" },
-                { label: "10th", value: "10th" },
-                { label: "11th+12th", value: "11th+12th" },
-                { label: "12th", value: "12th" },
-              ]}
+              options={standards.map((std) => ({
+                label: std.name,
+                value: std.name,
+              }))}
               value={selectedStandard}
               onChange={setSelectedStandard}
               isRequired={false}
@@ -649,7 +691,7 @@ const RegistrationTable = () => {
                   if (e.target.checked) setOnlyNonZeroRemaining(false);
                 }}
               />
-              Amount Remaining = 0
+              Full Cash
             </label>
 
             <label className="flex items-center gap-2 text-sm">
@@ -661,7 +703,7 @@ const RegistrationTable = () => {
                   if (e.target.checked) setOnlyZeroRemaining(false);
                 }}
               />
-              Amount Remaining ≠ 0
+              Booking/Half Cash
             </label>
           </div>
 
@@ -810,6 +852,19 @@ const RegistrationTable = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Follow Ups Modal */}
+      {showFollowupModal && followupStudent && (
+        <FollowupModal
+          isOpen={showFollowupModal}
+          onClose={() => setShowFollowupModal(false)}
+          targetType="student"
+          targetId={followupStudent.studentId}
+          title={`Follow Ups — ${followupStudent.firstName ?? ""} ${
+            followupStudent.lastName ?? ""
+          } (${followupStudent.studentId})`}
+        />
       )}
     </div>
   );

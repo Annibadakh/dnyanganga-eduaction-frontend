@@ -9,7 +9,9 @@ import { DashboardContext } from "../../Context/DashboardContext";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
 import Button from "../Generic/Button";
-import { Eye, Edit, Trash2 } from "lucide-react";
+import FollowupModal from "../Generic/FollowupModal";
+import { Eye, Edit, Trash2, MessageSquarePlus } from "lucide-react";
+import { followupAccess } from "../../utils/roleArrays";
 
 const VisitingTable = () => {
   const { user } = useAuth();
@@ -40,6 +42,8 @@ const VisitingTable = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState(null);
+  const [showFollowupModal, setShowFollowupModal] = useState(false);
+  const [followupVisit, setFollowupVisit] = useState(null);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
   const columns = [
@@ -84,7 +88,7 @@ const VisitingTable = () => {
       accessor: "reason",
     },
 
-    ...(user.role === "admin" || user.role === "followUp"
+    ...(user.role === "admin" || user.role === "followUp" || user.role === "sub-admin"
       ? [
           {
             header: "Counsellor Name",
@@ -125,6 +129,19 @@ const VisitingTable = () => {
             View
           </Button>
 
+          {followupAccess.includes(user.role) && (
+            <Button
+              variant="warning"
+              startIcon={<MessageSquarePlus size={16} />}
+              onClick={() => {
+                setFollowupVisit(row);
+                setShowFollowupModal(true);
+              }}
+            >
+              Follow Ups
+            </Button>
+          )}
+
           {user.role === "admin" && (
             <>
               <Button
@@ -159,7 +176,7 @@ const VisitingTable = () => {
 
   // Fetch users data
   useEffect(() => {
-    if (counsellor && (user.role === "admin" || user.role === "followUp")) {
+    if (counsellor && (user.role === "admin" || user.role === "followUp" || user.role === "sub-admin")) {
       setUsers(counsellor);
       setBranch(counsellorBranch);
     }
@@ -431,7 +448,7 @@ const VisitingTable = () => {
             className="w-full md:w-2/4"
           />
         </div>
-        {(user.role === "admin" || user.role === "followUp") && (
+        {(user.role === "admin" || user.role === "followUp" || user.role === "sub-admin") && (
           <div className="flex flex-col md:flex-row gap-4">
             <CustomMultiSelect
               label="Counsellor"
@@ -488,6 +505,17 @@ const VisitingTable = () => {
           visitData={selectedVisit}
           onClose={handleCloseEdit}
           onUpdate={handleUpdateSuccess}
+        />
+      )}
+
+      {/* Follow Ups Modal */}
+      {showFollowupModal && followupVisit && (
+        <FollowupModal
+          isOpen={showFollowupModal}
+          onClose={() => setShowFollowupModal(false)}
+          targetType="visiting"
+          targetId={followupVisit.id}
+          title={`Follow Ups — Visiting ${followupVisit.id}`}
         />
       )}
     </div>

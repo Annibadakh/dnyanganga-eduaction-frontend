@@ -137,9 +137,9 @@ export default function Home() {
           </div>
         )}
 
-        {(user.role === "admin" || user.role === "counsellor") && (
-          <StudentStatistics />
-        )}
+        {(user.role === "admin" ||
+          user.role === "counsellor" ||
+          user.role === "sub-admin") && <StudentStatistics />}
       </div>
     </div>
   );

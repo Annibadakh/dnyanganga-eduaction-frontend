@@ -173,14 +173,22 @@ const Excel = () => {
       if (!validateDateRange()) return;
 
       const body = {
-        standard: selectedStandard && selectedStandard.length > 0
-          ? selectedStandard.map((s) => s.value).join(",")
-          : null,
-        counsellor: selectedCounsellor && selectedCounsellor.length > 0 ? selectedCounsellor.map((c) => c.value).join(",") : null,
-        examCentre: selectedExamCentre && selectedExamCentre.length > 0 ? selectedExamCentre.map((e) => e.value).join(",") : null,
-        examYear: selectedExamYear && selectedExamYear.length > 0
-          ? selectedExamYear.map((y) => y.value).join(",")
-          : null,
+        standard:
+          selectedStandard && selectedStandard.length > 0
+            ? selectedStandard.map((s) => s.value).join(",")
+            : null,
+        counsellor:
+          selectedCounsellor && selectedCounsellor.length > 0
+            ? selectedCounsellor.map((c) => c.value).join(",")
+            : null,
+        examCentre:
+          selectedExamCentre && selectedExamCentre.length > 0
+            ? selectedExamCentre.map((e) => e.value).join(",")
+            : null,
+        examYear:
+          selectedExamYear && selectedExamYear.length > 0
+            ? selectedExamYear.map((y) => y.value).join(",")
+            : null,
         fromDate: fromDate || null,
         toDate: toDate || null,
         onlyZeroRemaining,
@@ -224,14 +232,22 @@ const Excel = () => {
       setError("");
 
       const body = {
-        standard: selectedStandard && selectedStandard.length > 0
-          ? selectedStandard.map((s) => s.value).join(",")
-          : null,
-        counsellor: selectedCounsellor && selectedCounsellor.length > 0 ? selectedCounsellor.map((c) => c.value).join(",") : null,
-        examCentre: selectedExamCentre && selectedExamCentre.length > 0 ? selectedExamCentre.map((e) => e.value).join(",") : null,
-        examYear: selectedExamYear && selectedExamYear.length > 0
-          ? selectedExamYear.map((y) => y.value).join(",")
-          : null,
+        standard:
+          selectedStandard && selectedStandard.length > 0
+            ? selectedStandard.map((s) => s.value).join(",")
+            : null,
+        counsellor:
+          selectedCounsellor && selectedCounsellor.length > 0
+            ? selectedCounsellor.map((c) => c.value).join(",")
+            : null,
+        examCentre:
+          selectedExamCentre && selectedExamCentre.length > 0
+            ? selectedExamCentre.map((e) => e.value).join(",")
+            : null,
+        examYear:
+          selectedExamYear && selectedExamYear.length > 0
+            ? selectedExamYear.map((y) => y.value).join(",")
+            : null,
         fromDate: fromDate || null,
         toDate: toDate || null,
         onlyZeroRemaining,
@@ -376,7 +392,7 @@ const Excel = () => {
               }}
               disabled={loading}
             />
-            <span>Amount Remaining = 0</span>
+            <span>Full Cash</span>
           </label>
 
           <label className="flex items-center space-x-2">
@@ -389,7 +405,7 @@ const Excel = () => {
               }}
               disabled={loading}
             />
-            <span>Amount Remaining != 0</span>
+            <span>Booking/Half Cash</span>
           </label>
         </div>
       </div>

@@ -667,7 +667,7 @@ const QuestionManager = ({ chapter, onBack }) => {
       if (viewTarget?.id === deleteId) setViewTarget(null);
     } catch (err) {
       console.error(err);
-      alert("Failed to delete question");
+      alert(err.response?.data?.message || "Failed to delete question");
     } finally {
       setDeleting(false);
       setDeleteId(null);
@@ -755,13 +755,13 @@ const QuestionManager = ({ chapter, onBack }) => {
           >
             Edit
           </Button>
-          {/* <Button
+          <Button
             variant="danger"
             startIcon={<Trash2 size={15} />}
             onClick={() => setDeleteId(row.id)}
           >
             Delete
-          </Button> */}
+          </Button>
         </div>
       ),
     },

@@ -25,6 +25,14 @@ const ChallanManagement = () => {
   const [imageViewerUrl, setImageViewerUrl] = useState("");
   const receiverReceipt = FileUploadHook();
 
+  // Sub-admin: Me + My Counsellors selector
+  const [teamOptions, setTeamOptions] = useState([]);
+  const [selectedCounsellor, setSelectedCounsellor] = useState(
+    user?.uuid || "",
+  );
+  const isSubAdmin = user?.role === "sub-admin";
+  const isOwnView = !isSubAdmin || selectedCounsellor === user?.uuid;
+
   // Filter states
   const [filterCounsellor, setFilterCounsellor] = useState([]);
   const [filterDateFrom, setFilterDateFrom] = useState("");
@@ -53,12 +61,18 @@ const ChallanManagement = () => {
       render: (_, index) => indexOfFirstChallan + index + 1,
     },
     {
-      header: "Challan No",
+      header: "Challan No.",
       render: (row) => row.chalanNo || "N/A",
     },
     {
-      header: "Manual Challan No",
-      render: (row) => row.manualChalanNo || <span className="text-gray-400">—</span>,
+      header: "Manual Challan No.",
+      render: (row) =>
+        row.manualChalanNo || <span className="text-gray-400">—</span>,
+    },
+    {
+      header: "Challan From",
+      render: (row) =>
+        row.chalanFrom || <span className="text-gray-400">—</span>,
     },
     {
       header: "Date",
@@ -122,7 +136,7 @@ const ChallanManagement = () => {
           >
             View
           </Button>
-          {user.role === "counsellor" && (
+          {(user.role === "counsellor" || (isSubAdmin && isOwnView)) && (
             <button
               type="button"
               onClick={() => openReceiptModal(row)}
@@ -132,9 +146,7 @@ const ChallanManagement = () => {
                   : "bg-orange-500 text-white hover:bg-orange-600"
               }`}
             >
-              {row.receiverReceiptUrl
-                ? "✓ View Receipt"
-                : "Upload Receipt"}
+              {row.receiverReceiptUrl ? "✓ View Receipt" : "Upload Receipt"}
             </button>
           )}
         </div>
@@ -142,11 +154,29 @@ const ChallanManagement = () => {
     },
   ];
   useEffect(() => {
+    if (isSubAdmin) {
+      api
+        .get("/admin/myTeam")
+        .then((res) => {
+          const data = res.data?.data || {};
+          const members = data.members || [];
+          setTeamOptions([
+            ...(data.me
+              ? [{ value: data.me.uuid, label: `${data.me.name} (Me)` }]
+              : []),
+            ...members.map((m) => ({ value: m.uuid, label: m.name })),
+          ]);
+        })
+        .catch((err) => console.error("Error fetching team", err));
+    }
+  }, [isSubAdmin]);
+
+  useEffect(() => {
     fetchAllChallans();
     if (user.role === "admin" || user.role === "logistics") {
       counsellor && setCounsellors(counsellor);
     }
-  }, [user.role, counsellor, filterCounsellor]);
+  }, [user.role, counsellor, filterCounsellor, selectedCounsellor]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -186,6 +216,8 @@ const ChallanManagement = () => {
           filterCounsellor && filterCounsellor.length > 0
             ? filterCounsellor.map((c) => c.value).join(",")
             : "";
+      } else if (user.role === "sub-admin") {
+        params.counsellor = selectedCounsellor || "";
       }
       const res = await api.get("/admin/chalans", { params });
       // console.log("Challans data:", res.data.data);
@@ -357,8 +389,10 @@ const ChallanManagement = () => {
       // Update local state
       setChallans((prev) =>
         prev.map((c) =>
-          c.id === receiptChallan.id ? { ...c, receiverReceiptUrl: imageUrl } : c
-        )
+          c.id === receiptChallan.id
+            ? { ...c, receiverReceiptUrl: imageUrl }
+            : c,
+        ),
       );
       alert("Receiver receipt uploaded successfully!");
       closeReceiptModal();
@@ -375,42 +409,42 @@ const ChallanManagement = () => {
       <div className="fixed inset-0 z-50 bg-black bg-opacity-50 overflow-y-auto">
         <div className="flex items-center justify-center min-h-full p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-gray-800">
-              Upload Receiver Receipt
-            </h3>
-            <button
-              onClick={closeReceiptModal}
-              className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-            >
-              ×
-            </button>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">
-            Challan No:{" "}
-            <span className="font-semibold text-gray-800">
-              {receiptChallan.chalanNo || "N/A"}
-            </span>
-          </p>
-          <FileUpload
-            title="Receiver Receipt"
-            imageUrl={receiverReceipt.imageUrl}
-            error={receiverReceipt.error}
-            loader={receiverReceipt.loader}
-            isSaved={receiverReceipt.isSaved}
-            imageType="challan"
-            onFileUpload={receiverReceipt.handleFileUpload}
-            onUploadImage={handleReceiverReceiptUpload}
-            onRemovePhoto={receiverReceipt.removePhoto}
-          />
-          <div className="flex justify-end mt-2">
-            <button
-              onClick={closeReceiptModal}
-              className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition"
-            >
-              Cancel
-            </button>
-          </div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-800">
+                Upload Receiver Receipt
+              </h3>
+              <button
+                onClick={closeReceiptModal}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Challan No:{" "}
+              <span className="font-semibold text-gray-800">
+                {receiptChallan.chalanNo || "N/A"}
+              </span>
+            </p>
+            <FileUpload
+              title="Receiver Receipt"
+              imageUrl={receiverReceipt.imageUrl}
+              error={receiverReceipt.error}
+              loader={receiverReceipt.loader}
+              isSaved={receiverReceipt.isSaved}
+              imageType="challan"
+              onFileUpload={receiverReceipt.handleFileUpload}
+              onUploadImage={handleReceiverReceiptUpload}
+              onRemovePhoto={receiverReceipt.removePhoto}
+            />
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={closeReceiptModal}
+                className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -511,9 +545,25 @@ const ChallanManagement = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-blue-100 font-medium">Manual Challan No.</p>
+                      <p className="text-blue-100 font-medium">
+                        Manual Challan No.
+                      </p>
                       <p className="text-xl font-bold">
-                        {selectedChallan.manualChalanNo || <span className="text-blue-200 text-sm font-normal">Not provided</span>}
+                        {selectedChallan.manualChalanNo || (
+                          <span className="text-blue-200 text-sm font-normal">
+                            Not provided
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-blue-100 font-medium">Challan From</p>
+                      <p className="text-xl font-bold">
+                        {selectedChallan.chalanFrom || (
+                          <span className="text-blue-200 text-sm font-normal">
+                            Not provided
+                          </span>
+                        )}
                       </p>
                     </div>
                     <div>
@@ -777,12 +827,25 @@ const ChallanManagement = () => {
             )}
 
             {/* Receipts Section */}
-            {(selectedChallan.senderReceiptUrl || selectedChallan.receiverReceiptUrl || user.role === "counsellor") && (
+            {(selectedChallan.senderReceiptUrl ||
+              selectedChallan.receiverReceiptUrl ||
+              user.role === "counsellor" ||
+              (isSubAdmin && isOwnView)) && (
               <div className="mt-6 border-t pt-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <span className="bg-blue-100 p-2 rounded-lg">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      className="w-5 h-5 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                   </span>
                   Receipts
@@ -790,37 +853,61 @@ const ChallanManagement = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Sender Receipt */}
                   <div className="border rounded-xl p-4">
-                    <p className="font-semibold text-gray-700 mb-3">Sender Receipt <span className="text-xs text-gray-400">(Admin)</span></p>
+                    <p className="font-semibold text-gray-700 mb-3">
+                      Sender Receipt{" "}
+                      <span className="text-xs text-gray-400">(Admin)</span>
+                    </p>
                     {selectedChallan.senderReceiptUrl ? (
                       <div>
                         <img
-                          src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedChallan.senderReceiptUrl}`}
+                          src={`${import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000"}${selectedChallan.senderReceiptUrl}`}
                           alt="Sender Receipt"
                           className="h-40 w-auto rounded-lg border border-gray-200 object-cover cursor-pointer hover:opacity-90 transition"
-                          onClick={() => setImageViewerUrl(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedChallan.senderReceiptUrl}`)}
+                          onClick={() =>
+                            setImageViewerUrl(
+                              `${import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000"}${selectedChallan.senderReceiptUrl}`,
+                            )
+                          }
                         />
-                        <p className="text-xs text-gray-500 mt-1">Click image to enlarge</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Click image to enlarge
+                        </p>
                       </div>
                     ) : (
-                      <p className="text-gray-400 text-sm italic">No sender receipt uploaded</p>
+                      <p className="text-gray-400 text-sm italic">
+                        No sender receipt uploaded
+                      </p>
                     )}
                   </div>
 
                   {/* Receiver Receipt */}
                   <div className="border rounded-xl p-4">
-                    <p className="font-semibold text-gray-700 mb-3">Receiver Receipt <span className="text-xs text-gray-400">(Counsellor)</span></p>
+                    <p className="font-semibold text-gray-700 mb-3">
+                      Receiver Receipt{" "}
+                      <span className="text-xs text-gray-400">
+                        (Counsellor)
+                      </span>
+                    </p>
                     {selectedChallan.receiverReceiptUrl ? (
                       <div>
                         <img
-                          src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedChallan.receiverReceiptUrl}`}
+                          src={`${import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000"}${selectedChallan.receiverReceiptUrl}`}
                           alt="Receiver Receipt"
                           className="h-40 w-auto rounded-lg border border-gray-200 object-cover cursor-pointer hover:opacity-90 transition"
-                          onClick={() => setImageViewerUrl(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${selectedChallan.receiverReceiptUrl}`)}
+                          onClick={() =>
+                            setImageViewerUrl(
+                              `${import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000"}${selectedChallan.receiverReceiptUrl}`,
+                            )
+                          }
                         />
-                        <p className="text-xs text-gray-500 mt-1">Click image to enlarge</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Click image to enlarge
+                        </p>
                       </div>
                     ) : (
-                      <p className="text-gray-400 text-sm italic">No receiver receipt uploaded yet</p>
+                      <p className="text-gray-400 text-sm italic">
+                        No receiver receipt uploaded yet
+                      </p>
                     )}
                   </div>
                 </div>
@@ -882,7 +969,7 @@ const ChallanManagement = () => {
         show: true,
       },
       {
-        title: "Books Received",
+        title: "Books Sent",
         value: stats.totalBooks,
         color: "from-purple-500 to-purple-600",
         textColor: "text-purple-100",
@@ -910,7 +997,7 @@ const ChallanManagement = () => {
         show: true,
       },
       {
-        title: "Receipt Books",
+        title: "Receipt Count",
         value: stats.totalReceiptBooks,
         color: "from-red-500 to-red-600",
         textColor: "text-red-100",
@@ -947,6 +1034,31 @@ const ChallanManagement = () => {
       <h1 className="text-3xl text-center font-bold text-primary mb-6">
         Challan Management System
       </h1>
+
+      {/* Sub-admin: Me + My Counsellors selector */}
+      {isSubAdmin && (
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md mb-6">
+          <label className="block mb-2 font-medium text-sm">
+            Viewing Challans For
+          </label>
+          <select
+            value={selectedCounsellor}
+            onChange={(e) => setSelectedCounsellor(e.target.value)}
+            className="w-full md:w-1/2 p-2 border rounded-md"
+          >
+            {teamOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {!isOwnView && (
+            <p className="mt-2 text-sm text-gray-500">
+              Read-only view of your counsellor's challans.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Enhanced Statistics Cards */}
       <div
@@ -989,16 +1101,16 @@ const ChallanManagement = () => {
         >
           {(user.role === "admin" || user.role === "logistics") && (
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
+              {/* <label className="block mb-2 text-sm font-medium text-gray-700">
                 Counsellor
-              </label>
+              </label> */}
               <CustomDropdown />
             </div>
           )}
 
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Date From
+              From Date
             </label>
             <input
               type="date"
@@ -1010,7 +1122,7 @@ const ChallanManagement = () => {
 
           <div>
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              Date To
+              To Date
             </label>
             <input
               type="date"
@@ -1086,7 +1198,10 @@ const ChallanManagement = () => {
           className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[60] p-4"
           onClick={() => setImageViewerUrl("")}
         >
-          <div className="relative max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative max-w-3xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               className="absolute -top-10 right-0 text-white text-3xl font-bold hover:text-gray-300"
               onClick={() => setImageViewerUrl("")}
