@@ -68,6 +68,42 @@ export default function CaStudents() {
   const [showPdf, setShowPdf] = useState(false);
   const [loadingPdfId, setLoadingPdfId] = useState(null);
 
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
+
+  const handleDownloadExcel = async () => {
+    try {
+      setDownloadingExcel(true);
+      const params = {
+        standard:
+          selectedStandard && selectedStandard.length > 0
+            ? selectedStandard.map((s) => s.value).join(",")
+            : "",
+        dateFrom,
+        dateTo,
+      };
+      const response = await api.get("/ca/students/export", {
+        params,
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ca-gst-students-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download Excel", err);
+      alert("Excel download failed.");
+    } finally {
+      setDownloadingExcel(false);
+    }
+  };
+
   useEffect(() => {
     api
       .get("/ca/standards")
@@ -202,6 +238,22 @@ export default function CaStudents() {
       render: (row) => inr(row.totalAmount),
     },
     {
+      header: "HSN Code",
+      render: (row) => row.hsnCode ?? "—",
+    },
+    {
+      header: "HSN Amount",
+      render: (row) => inr(row.hsnAmount),
+    },
+    {
+      header: "SAC Code",
+      render: (row) => row.sacCode ?? "—",
+    },
+    {
+      header: "SAC Amount",
+      render: (row) => inr(row.sacAmount),
+    },
+    {
       header: "GST Amount",
       render: (row) => inr(row.gstAmount),
     },
@@ -269,6 +321,18 @@ export default function CaStudents() {
               Clear Filters
             </button>
           )}
+          <button
+            onClick={handleDownloadExcel}
+            disabled={downloadingExcel}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+              downloadingExcel
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-green-600 text-white hover:bg-green-700"
+            }`}
+          >
+            <Download size={16} />
+            {downloadingExcel ? "Downloading..." : "Download Excel"}
+          </button>
         </div>
       </div>
 
