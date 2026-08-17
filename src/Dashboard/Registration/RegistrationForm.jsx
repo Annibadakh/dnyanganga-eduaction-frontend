@@ -195,11 +195,33 @@ const RegistrationForm = () => {
   }, []);
 
   // Fetch active standards (name, fees, previous year, branches)
+  // Fetch active standards (name, fees, previous year, branches)
   useEffect(() => {
     api
       .get("/simple/standards")
       .then((response) => {
-        setStandards(response.data.data || []);
+        const rawStandards = response.data.data || [];
+
+        const parsedStandards = rawStandards.map((std) => {
+          let branches = [];
+          if (Array.isArray(std.branches)) {
+            branches = std.branches;
+          } else if (typeof std.branches === "string" && std.branches.trim()) {
+            try {
+              const parsed = JSON.parse(std.branches);
+              branches = Array.isArray(parsed) ? parsed : [];
+            } catch (err) {
+              console.error(
+                `Error parsing branches for standard "${std.name}"`,
+                err,
+              );
+              branches = [];
+            }
+          }
+          return { ...std, branches };
+        });
+
+        setStandards(parsedStandards);
       })
       .catch((error) => {
         console.error("Error fetching standards", error);
@@ -453,26 +475,34 @@ const RegistrationForm = () => {
                   />
                 </div>
 
-                {formData.branches?.length > 0 && (
-                  <select
-                    name="branch"
-                    value={formData.branch}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
-                    required
-                  >
-                    <option value="">
-                      {formData.branchType === "GROUP"
+                {/* Branch/Medium select — always visible, disabled until a standard is chosen */}
+                <select
+                  name="branch"
+                  value={formData.branch}
+                  onChange={handleChange}
+                  disabled={
+                    !formData.standard || formData.branches?.length === 0
+                  }
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3 ${
+                    !formData.standard || formData.branches?.length === 0
+                      ? "bg-gray-100 cursor-not-allowed"
+                      : ""
+                  }`}
+                  required
+                >
+                  <option value="">
+                    {!formData.standard
+                      ? "Select Standard First"
+                      : formData.branchType === "GROUP"
                         ? "Select Group"
                         : "Select Medium"}
+                  </option>
+                  {formData.branches?.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
                     </option>
-                    {formData.branches.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                  ))}
+                </select>
 
                 <input
                   type="number"
