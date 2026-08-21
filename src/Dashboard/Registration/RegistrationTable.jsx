@@ -226,7 +226,7 @@ const RegistrationTable = () => {
             </>
           )}
 
-          {user.role === "counsellor" && row.amountRemaining > 0 && (
+          {(user.role === "counsellor" || user.role == "sub-admin") && row.amountRemaining > 0 && (
             <Button variant="info" onClick={() => handlePayment(row)}>
               Pay
             </Button>

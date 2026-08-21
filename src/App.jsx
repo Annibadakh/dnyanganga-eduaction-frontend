@@ -41,6 +41,7 @@ import {
   quizManageAccess,
   bookEntryAccess,
   caAccess,
+  quizReadAccess,
 } from "./utils/roleArrays";
 
 // Landing
@@ -205,9 +206,7 @@ function App() {
                 <Route path="profile" element={<Profile />} />
 
                 <Route
-                  element={
-                    <ProtectedRoleBasedRoute allowedRoles={caAccess} />
-                  }
+                  element={<ProtectedRoleBasedRoute allowedRoles={caAccess} />}
                 >
                   <Route path="ca-students" element={<CaStudents />} />
                 </Route>
@@ -225,9 +224,7 @@ function App() {
 
                 <Route
                   element={
-                    <ProtectedRoleBasedRoute
-                      allowedRoles={challanAccess}
-                    />
+                    <ProtectedRoleBasedRoute allowedRoles={challanAccess} />
                   }
                 >
                   <Route path="chalan" element={<ChallanManagement />} />
@@ -246,7 +243,9 @@ function App() {
 
                 <Route
                   element={
-                    <ProtectedRoleBasedRoute allowedRoles={counsellorLikeRoles} />
+                    <ProtectedRoleBasedRoute
+                      allowedRoles={counsellorLikeRoles}
+                    />
                   }
                 >
                   <Route path="register" element={<RegistrationForm />} />
@@ -260,7 +259,9 @@ function App() {
 
                 <Route
                   element={
-                    <ProtectedRoleBasedRoute allowedRoles={adminControlsAccess} />
+                    <ProtectedRoleBasedRoute
+                      allowedRoles={adminControlsAccess}
+                    />
                   }
                 >
                   <Route
@@ -313,7 +314,7 @@ function App() {
 
                 <Route
                   element={
-                    <ProtectedRoleBasedRoute allowedRoles={quizManageAccess} />
+                    <ProtectedRoleBasedRoute allowedRoles={quizReadAccess} />
                   }
                 >
                   <Route path="quizz/*" element={<Quizz />} />
@@ -321,9 +322,7 @@ function App() {
 
                 <Route
                   element={
-                    <ProtectedRoleBasedRoute
-                      allowedRoles={bookEntryAccess}
-                    />
+                    <ProtectedRoleBasedRoute allowedRoles={bookEntryAccess} />
                   }
                 >
                   <Route path="bookentries" element={<AddBookEntry />} />
@@ -337,8 +336,14 @@ function App() {
                 <Route path="home" element={<StudentQuizzDashboard />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="question-bank" element={<StudentSubjects />} />
-                <Route path="question-bank/:subjectId" element={<StudentChapters />} />
-                <Route path="question-bank/:subjectId/:chapterId" element={<StudentQuestions />} />
+                <Route
+                  path="question-bank/:subjectId"
+                  element={<StudentChapters />}
+                />
+                <Route
+                  path="question-bank/:subjectId/:chapterId"
+                  element={<StudentQuestions />}
+                />
                 <Route path="quizzes" element={<StudentAllQuizzes />} />
                 <Route path="view-quiz/:quizId" element={<StudentQuizView />} />
                 <Route
