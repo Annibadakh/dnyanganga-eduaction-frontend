@@ -35,7 +35,7 @@ import {
   bookEntryAccess,
   marksAccess,
   questionBankManageAccess,
-  quizManageAccess,
+  quizReadAccess,
   homeAccess,
   caAccess,
   allRoles,
@@ -179,7 +179,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     {
       path: "quizz",
       label: "Quizz",
-      role: quizManageAccess,
+      role: quizReadAccess,
       icon: <FaClipboardCheck className="text-lg" />,
     },
     {
