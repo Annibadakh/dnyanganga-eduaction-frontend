@@ -70,16 +70,16 @@ const CounsellorReport = () => {
         month,
       };
 
-      // ✅ Custom date range takes priority when both dates are selected
-      const isCustomRange = fromDate && toDate;
+      // ✅ Custom date range takes priority when at least one date is selected
+      const isCustomRange = fromDate || toDate;
       if (isCustomRange) {
-        if (fromDate > toDate) {
+        if (fromDate && toDate && fromDate > toDate) {
           setLoading(false);
           alert("From Date cannot be after To Date");
           return;
         }
-        params.fromDate = fromDate;
-        params.toDate = toDate;
+        if (fromDate) params.fromDate = fromDate;
+        if (toDate) params.toDate = toDate;
       }
 
       // ✅ Admin / sub-admin can filter by counsellor (self + team for sub-admin)
