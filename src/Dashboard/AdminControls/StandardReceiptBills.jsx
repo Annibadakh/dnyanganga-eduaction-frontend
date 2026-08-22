@@ -44,7 +44,17 @@ const toRows = (bills) =>
     amount: b.amount ?? "",
     cgst: b.cgst ?? 0,
     sgst: b.sgst ?? 0,
-    note: Array.isArray(b.note) ? b.note.join("\n") : b.note || "",
+    note: (() => {
+      if (Array.isArray(b.note)) return b.note;
+      if (typeof b.note === "string") {
+        const t = b.note.trim();
+        if (t.startsWith("[")) {
+          try { const p = JSON.parse(t); return Array.isArray(p) ? p : []; } catch { /* fall through */ }
+        }
+        return t ? [t] : [];
+      }
+      return [];
+    })(),
     sortOrder: b.sortOrder ?? 0,
   }));
 
@@ -122,7 +132,7 @@ function StandardReceiptBills() {
         amount: "",
         cgst: 0,
         sgst: 0,
-        note: "",
+        note: [],
         sortOrder: prev.length,
       },
     ]);
@@ -169,8 +179,7 @@ function StandardReceiptBills() {
           amount: Number(r.amount) || 0,
           cgst: Number(r.cgst) || 0,
           sgst: Number(r.sgst) || 0,
-          note: r.note
-            .split("\n")
+          note: (Array.isArray(r.note) ? r.note : [])
             .map((n) => n.trim())
             .filter(Boolean),
           sortOrder: Number(r.sortOrder) || 0,
@@ -301,6 +310,53 @@ function StandardReceiptBills() {
           {inr(rowGrandTotal(r))}
         </span>
       ),
+    },
+    {
+      header: "Note",
+      cellClass: "min-w-[300px]",
+      render: (r) => {
+        const notes = Array.isArray(r.note)
+          ? r.note
+          : r.note
+            ? String(r.note).split("\n").filter(Boolean)
+            : [];
+        return (
+          <div className="flex flex-col gap-1">
+            {notes.map((n, i) => (
+              <div key={i} className="flex items-center gap-1">
+                <input
+                  type="text"
+                  value={n}
+                  onChange={(e) => {
+                    const updated = [...notes];
+                    updated[i] = e.target.value;
+                    updateRow(r._uid, { note: updated });
+                  }}
+                  className={`${inputCls} flex-1`}
+                  placeholder={`Note ${i + 1}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = notes.filter((_, j) => j !== i);
+                    updateRow(r._uid, { note: updated });
+                  }}
+                  className="text-red-500 hover:text-red-700 p-0.5 shrink-0"
+                >
+                  <Trash size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => updateRow(r._uid, { note: [...notes, ""] })}
+              className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-0.5"
+            >
+              <Plus size={12} /> Add Note
+            </button>
+          </div>
+        );
+      },
     },
     {
       header: "Order",
