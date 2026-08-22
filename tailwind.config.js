@@ -28,7 +28,7 @@ export default {
         custom: 'var(--box-shadow)',
       },
       fontFamily: {
-        custom: ['Be Vietnam Pro', 'Times New Roman', 'serif'],
+        custom: ['Poppins', 'Be Vietnam Pro', 'Times New Roman', 'serif'],
       },
       before: ['hover', 'focus'],
       after: ['hover', 'focus'],

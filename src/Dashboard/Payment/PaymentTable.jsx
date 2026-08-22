@@ -115,6 +115,10 @@ const PaymentTable = () => {
       },
     },
     {
+      header: "Amount Remaining",
+      render: (row) => row.Student?.amountRemaining?.toLocaleString("en-IN"),
+    },
+    {
       header: "Payment Mode",
       accessor: "paymentMode",
     },

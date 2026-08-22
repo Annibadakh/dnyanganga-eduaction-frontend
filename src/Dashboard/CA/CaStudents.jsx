@@ -33,8 +33,70 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
   );
 };
 
-const inr = (n) =>
-  "₹" + (Number(n) || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const inr = (n) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
+
+// Nested sub-table for a student's GST/NON-GST bill rows, rendered inside the
+// "Bill Details" cell of the main DataTable. Styled to match DataTable's
+// look (bg-primary/customwhite header, bordered cells, row hover) but built
+// by hand since DataTable itself isn't meant to be nested inside a <td>.
+const BillDetailsTable = ({ bills = [] }) => {
+  if (!bills.length) {
+    return (
+      <span className="block px-3 py-2 text-xs italic text-gray-400">
+        No bills
+      </span>
+    );
+  }
+
+  return (
+    <table className="w-full table-auto border-collapse text-xs">
+      <thead className="bg-primary text-customwhite uppercase tracking-wider">
+        <tr>
+          <th className="whitespace-nowrap border p-1.5">Sr. No</th>
+          <th className="whitespace-nowrap border p-1.5">Type</th>
+          <th className="whitespace-nowrap border p-1.5">HSN/SAC Code</th>
+          <th className="whitespace-nowrap border p-1.5">HSN/SAC Amount</th>
+          <th className="whitespace-nowrap border p-1.5">Tax Amount</th>
+        </tr>
+      </thead>
+      <tbody className="text-customblack">
+        {bills.map((b, i) => {
+          const isGst = b.type === "GST";
+          return (
+            <tr
+              key={i}
+              className="border-b border-gray-200 transition hover:bg-gray-100"
+            >
+              <td className="whitespace-nowrap border p-1.5 text-center">
+                {i + 1}
+              </td>
+              <td className="whitespace-nowrap border p-1.5 text-center">
+                <span
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                    isGst
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {isGst ? "GST" : "NON-GST"}
+                </span>
+              </td>
+              <td className="whitespace-nowrap border p-1.5 text-center">
+                {b.code ?? "—"}
+              </td>
+              <td className="whitespace-nowrap border p-1.5 text-center">
+                {inr(b.amount)}
+              </td>
+              <td className="whitespace-nowrap border p-1.5 text-center">
+                {inr(b.taxAmount)}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+};
 
 export default function CaStudents() {
   const { user } = useAuth();
@@ -130,6 +192,7 @@ export default function CaStudents() {
       .get("/ca/students", { params })
       .then((res) => {
         setRows(res.data?.data || []);
+        // console.log("Fetched rows:", res.data?.data || []);
         setSummary(
           res.data?.summary || {
             totalStudents: 0,
@@ -238,28 +301,10 @@ export default function CaStudents() {
       render: (row) => inr(row.totalAmount),
     },
     {
-      header: "HSN Code",
-      render: (row) => row.hsnCode ?? "—",
-    },
-    {
-      header: "HSN Amount",
-      render: (row) => inr(row.hsnAmount),
-    },
-    {
-      header: "SAC Code",
-      render: (row) => row.sacCode ?? "—",
-    },
-    {
-      header: "SAC Amount",
-      render: (row) => inr(row.sacAmount),
-    },
-    {
-      header: "GST Amount",
-      render: (row) => inr(row.gstAmount),
-    },
-    {
-      header: "Non-GST Amount",
-      render: (row) => inr(row.nonGstAmount),
+      header: "Bill Details",
+      headerClass: "min-w-[420px]",
+      cellClass: "!whitespace-normal !p-0 !text-left align-top",
+      render: (row) => <BillDetailsTable bills={row.bills || []} />,
     },
     {
       header: "GST Receipt",
