@@ -30,7 +30,7 @@ export const counsellorLikeRoles = [counsellor, subAdmin];
 export const followupAccess = [admin, subAdmin, counsellor, followUp];
 
 // Roles that land on the generic Home page (CA goes to its own single section)
-export const homeAccess = [admin, subAdmin, counsellor, teacher, logistics, followUp];
+export const homeAccess = [admin, subAdmin, counsellor, teacher, logistics, followUp, student];
 
 // --- access combos ---
 export const adminControlsAccess = [admin];
@@ -66,6 +66,7 @@ export const questionBankManageAccess = [admin, teacher];
 export const questionBankAccess = [admin, teacher, student];
 export const quizManageAccess = [admin];
 export const quizReadAccess = [admin, subAdmin, counsellor, student];
+export const quizReadAccess1 = [admin, subAdmin, counsellor];
 export const quizDashboardAccess = [student, admin, subAdmin, counsellor, followUp];
 export const quizAnalyticsAccess = [admin, subAdmin, counsellor];
 export const studentPdfAccess = [admin, subAdmin, counsellor, ca];
