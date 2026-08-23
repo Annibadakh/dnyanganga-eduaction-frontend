@@ -43,14 +43,10 @@ const QuizCreate = () => {
   };
 
   const fetchChapters = async (subjectIds) => {
-    let all = [];
-    for (let id of subjectIds) {
-      const res = await api.get("/question-bank/chapter", {
-        params: { subjectId: id, standardId: selectedStandard?.value },
-      });
-      console.log(res.data);
-      all = [...all, ...res.data.data];
-    }
+    const res = await api.get("/question-bank/chapter/by-subjects", {
+      params: { subjectIds: subjectIds.join(","), standardId: selectedStandard?.value },
+    });
+    const all = res.data?.data || [];
     setChapters(all);
     setChapterData(
       all.map((ch) => ({ chapterId: ch.id, name: ch.name, queCount: 0 })),
