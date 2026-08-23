@@ -66,6 +66,7 @@ export const questionBankManageAccess = [admin, teacher];
 export const questionBankAccess = [admin, teacher, student];
 export const quizManageAccess = [admin];
 export const quizReadAccess = [admin, subAdmin, counsellor, student];
+export const quizReadAccess1 = [admin, subAdmin, counsellor];
 export const quizDashboardAccess = [student, admin, subAdmin, counsellor, followUp];
 export const quizAnalyticsAccess = [admin, subAdmin, counsellor];
 export const studentPdfAccess = [admin, subAdmin, counsellor, ca];
