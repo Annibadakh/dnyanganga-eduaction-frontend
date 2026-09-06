@@ -172,6 +172,18 @@ const StudentAttemptsTable = ({
       ),
     },
     {
+      header: "Parent Number",
+      render: (row) => (
+        <span className="font-medium text-gray-800">{row.parentsNo}</span>
+      ),
+    },
+    {
+      header: "Student Number",
+      render: (row) => (
+        <span className="font-medium text-gray-800">{row.studentNo}</span>
+      ),
+    },
+    {
       header: "Counsellor",
       render: (row) => (
         <span className="text-gray-600">{row.counsellor || "\u2014"}</span>
@@ -193,9 +205,6 @@ const StudentAttemptsTable = ({
     },
     {
       header: "Status",
-      // Always shown — the backend defaults row.status to "NOT_STARTED"
-      // when no StudentQuiz row exists yet, so this stays in sync with
-      // the new status filter options instead of collapsing to a dash.
       render: (row) => <StatusBadge status={row.status} />,
     },
     {
