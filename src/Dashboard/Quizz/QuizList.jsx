@@ -16,6 +16,8 @@ const QuizList = () => {
   const [standards, setStandards] = useState([]);
   const [selectedStandard, setSelectedStandard] = useState(null);
 
+  const [demoStandard, setDemoStandard] = useState(null);
+
   const handleAnalytics = (quiz) => {
     navigate(`./${quiz.id}/analytics`);
   };
@@ -173,6 +175,35 @@ const QuizList = () => {
           </Button>
         </div>
       )}
+
+      {/* ---------------- DEMO QUIZ ---------------- */}
+      <div className="flex flex-wrap flex-col sm:flex-row items-start sm:items-center gap-3 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-700">
+            Practice Demo Quiz
+          </p>
+          <p className="text-xs text-gray-400">
+            20 random questions, 30 min timer. No results saved.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <CustomSelect
+            options={standards}
+            value={demoStandard}
+            onChange={setDemoStandard}
+            placeholder="Select Standard"
+          />
+          <Button
+            variant="primary"
+            disabled={!demoStandard}
+            onClick={() =>
+              navigate(`demo/play?standardId=${demoStandard.value}`)
+            }
+          >
+            Start Demo
+          </Button>
+        </div>
+      </div>
 
       {/* ---------------- TABLE ---------------- */}
       <DataTable
