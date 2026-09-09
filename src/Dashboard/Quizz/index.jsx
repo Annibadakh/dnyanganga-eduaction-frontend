@@ -5,6 +5,8 @@ import QuizCreate from "./QuizCreate";
 import QuizDetails from "./QuizDetails";
 import QuizAnalytics from "./QuizAnalytics";
 import StudentQuizResult from "./Studentquizresult";
+import DemoQuizPlay from "./DemoQuizPlay";
+import DemoQuizResult from "./DemoQuizResult";
 
 const QuizRoutes = () => {
   const { user } = useAuth();
@@ -18,6 +20,8 @@ const QuizRoutes = () => {
           user.role === "admin" ? <QuizCreate /> : <Navigate to="../" replace />
         }
       />
+      <Route path="demo/play" element={<DemoQuizPlay />} />
+      <Route path="demo/result" element={<DemoQuizResult />} />
       <Route path=":id/analytics" element={<QuizAnalytics />} />
       <Route path=":id" element={<QuizDetails />} />
       <Route
