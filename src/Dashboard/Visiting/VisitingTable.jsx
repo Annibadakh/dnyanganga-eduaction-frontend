@@ -88,7 +88,9 @@ const VisitingTable = () => {
       accessor: "reason",
     },
 
-    ...(user.role === "admin" || user.role === "followUp" || user.role === "sub-admin"
+    ...(user.role === "admin" ||
+    user.role === "followUp" ||
+    user.role === "sub-admin"
       ? [
           {
             header: "Counsellor Name",
@@ -101,21 +103,21 @@ const VisitingTable = () => {
         ]
       : []),
 
-    ...(user.role === "admin" || user.role === "followUp"
-      ? [
-          {
-            header: "Follow-up",
-            render: (row) => (
-              <input
-                type="checkbox"
-                checked={row.followUp || false}
-                onChange={() => handleFollowUpChange(row.id, row.followUp)}
-                className="w-5 h-5 cursor-pointer accent-primary"
-              />
-            ),
-          },
-        ]
-      : []),
+    // ...(user.role === "admin" || user.role === "followUp"
+    //   ? [
+    //       {
+    //         header: "Follow-up",
+    //         render: (row) => (
+    //           <input
+    //             type="checkbox"
+    //             checked={row.followUp || false}
+    //             onChange={() => handleFollowUpChange(row.id, row.followUp)}
+    //             className="w-5 h-5 cursor-pointer accent-primary"
+    //           />
+    //         ),
+    //       },
+    //     ]
+    //   : []),
 
     {
       header: "Actions",
@@ -176,7 +178,12 @@ const VisitingTable = () => {
 
   // Fetch users data
   useEffect(() => {
-    if (counsellor && (user.role === "admin" || user.role === "followUp" || user.role === "sub-admin")) {
+    if (
+      counsellor &&
+      (user.role === "admin" ||
+        user.role === "followUp" ||
+        user.role === "sub-admin")
+    ) {
       setUsers(counsellor);
       setBranch(counsellorBranch);
     }
@@ -189,15 +196,18 @@ const VisitingTable = () => {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearchQuery,
-      counsellor: selectedCounsellor && selectedCounsellor.length > 0
-        ? selectedCounsellor.map((c) => c.value).join(",")
-        : "",
-      branch: selectedBranch && selectedBranch.length > 0
-        ? selectedBranch.map((b) => b.value).join(",")
-        : "",
-      standard: selectedStandard && selectedStandard.length > 0
-        ? selectedStandard.map((s) => s.value).join(",")
-        : "",
+      counsellor:
+        selectedCounsellor && selectedCounsellor.length > 0
+          ? selectedCounsellor.map((c) => c.value).join(",")
+          : "",
+      branch:
+        selectedBranch && selectedBranch.length > 0
+          ? selectedBranch.map((b) => b.value).join(",")
+          : "",
+      standard:
+        selectedStandard && selectedStandard.length > 0
+          ? selectedStandard.map((s) => s.value).join(",")
+          : "",
       dateFrom: dateFrom,
       dateTo: dateTo,
     };
@@ -313,51 +323,22 @@ const VisitingTable = () => {
       alert("Failed to delete visiting record.");
     }
   };
-  // Handle follow-up checkbox change
-  const handleFollowUpChange = async (visitId, currentFollowUpStatus) => {
-    try {
-      const newFollowUpStatus = !currentFollowUpStatus;
-
-      // Optimistically update the UI
-      setVisitingData((prevData) =>
-        prevData.map((visit) =>
-          visit.id === visitId
-            ? { ...visit, followUp: newFollowUpStatus }
-            : visit,
-        ),
-      );
-
-      // Make API call to update the follow-up status
-      await api.put(`/counsellor/updateVisitingFollowUp/${visitId}`, {
-        followUp: newFollowUpStatus,
-      });
-    } catch (error) {
-      console.error("Error updating follow-up status:", error);
-      // Revert the optimistic update on error
-      setVisitingData((prevData) =>
-        prevData.map((visit) =>
-          visit.id === visitId
-            ? { ...visit, followUp: currentFollowUpStatus }
-            : visit,
-        ),
-      );
-      alert("Failed to update follow-up status. Please try again.");
-    }
-  };
-
   const handleExportExcel = async () => {
     try {
       const params = {
         search: debouncedSearchQuery,
-        counsellor: selectedCounsellor && selectedCounsellor.length > 0
-          ? selectedCounsellor.map((c) => c.value).join(",")
-          : "",
-        branch: selectedBranch && selectedBranch.length > 0
-          ? selectedBranch.map((b) => b.value).join(",")
-          : "",
-        standard: selectedStandard && selectedStandard.length > 0
-          ? selectedStandard.map((s) => s.value).join(",")
-          : "",
+        counsellor:
+          selectedCounsellor && selectedCounsellor.length > 0
+            ? selectedCounsellor.map((c) => c.value).join(",")
+            : "",
+        branch:
+          selectedBranch && selectedBranch.length > 0
+            ? selectedBranch.map((b) => b.value).join(",")
+            : "",
+        standard:
+          selectedStandard && selectedStandard.length > 0
+            ? selectedStandard.map((s) => s.value).join(",")
+            : "",
         dateFrom: dateFrom,
         dateTo: dateTo,
       };
@@ -448,7 +429,9 @@ const VisitingTable = () => {
             className="w-full md:w-2/4"
           />
         </div>
-        {(user.role === "admin" || user.role === "followUp" || user.role === "sub-admin") && (
+        {(user.role === "admin" ||
+          user.role === "followUp" ||
+          user.role === "sub-admin") && (
           <div className="flex flex-col md:flex-row gap-4">
             <CustomMultiSelect
               label="Counsellor"

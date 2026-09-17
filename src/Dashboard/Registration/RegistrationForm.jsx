@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import api from "../../Api";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
@@ -11,6 +11,7 @@ const RegistrationForm = () => {
   const { successToast, infoToast, errorToast } = useToast();
   const studentPhoto = FileUploadHook();
   const receiptPhoto = FileUploadHook();
+  const bookPhoto = FileUploadHook();
 
   const [paymentError, setPaymentError] = useState("");
   const [standards, setStandards] = useState([]);
@@ -20,7 +21,35 @@ const RegistrationForm = () => {
   const [selectedExamCentre, setSelectedExamCentre] = useState(null);
   const [showDraftButton, setShowDraftButton] = useState(false);
 
+  const isInitialRender = useRef(true);
+
   const DRAFT_STORAGE_KEY = "studentRegistrationDraft";
+
+  // Only these user-entered fields count as "has data" — derived/structural fields excluded
+  const DRAFT_FIELDS = [
+    "studentName",
+    "gender",
+    "dob",
+    "motherName",
+    "address",
+    "pincode",
+    "email",
+    "studentNo",
+    "parentsNo",
+    "appNo",
+    "notificationNo",
+    "standard",
+    "previousYear",
+    "schoolCollege",
+    "preYearPercent",
+    "branch",
+    "examCentre",
+    "examYear",
+    "receiptNo",
+    "amountPaid",
+    "modeOfPayment",
+    "dueDate",
+  ];
 
   const [formData, setFormData] = useState({
     studentName: "",
@@ -47,6 +76,7 @@ const RegistrationForm = () => {
     receiptNo: "",
     studentPhoto: "",
     receiptPhoto: "",
+    bookPhoto: "",
     paymentStandard: "",
     totalamount: 0,
     amountPaid: "",
@@ -97,8 +127,7 @@ const RegistrationForm = () => {
     try {
       const draftString = localStorage.getItem(DRAFT_STORAGE_KEY);
       if (draftString) {
-        const draft = JSON.parse(draftString);
-        return draft.data;
+        return JSON.parse(draftString);
       }
       return null;
     } catch (error) {
@@ -118,14 +147,13 @@ const RegistrationForm = () => {
 
   const checkForExistingDraft = () => {
     const draft = loadDraftFromLocalStorage();
-    if (
+    const hasData =
       draft &&
-      Object.values(draft).some((value) => value !== "" && value !== 0)
-    ) {
-      setShowDraftButton(true);
-    } else {
-      setShowDraftButton(false);
-    }
+      DRAFT_FIELDS.some((key) => {
+        const value = draft[key];
+        return value != null && value !== "" && value !== 0;
+      });
+    setShowDraftButton(!!hasData);
   };
 
   const loadDraftData = () => {
@@ -137,7 +165,6 @@ const RegistrationForm = () => {
       }));
 
       setShowDraftButton(false);
-      // alert("Draft data loaded successfully!");
       infoToast("Draft data loaded successfully!");
     }
   };
@@ -149,10 +176,15 @@ const RegistrationForm = () => {
 
   // Auto-save to localStorage whenever formData changes
   useEffect(() => {
-    const hasData = Object.entries(formData).some(([key, value]) => {
-      if (["studentPhoto", "receiptPhoto", "amountRemaining"].includes(key))
-        return false;
-      return value !== "" && value !== 0;
+    // Skip auto-save on initial render (must be FIRST check)
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+
+    const hasData = DRAFT_FIELDS.some((key) => {
+      const value = formData[key];
+      return value != null && value !== "" && value !== 0;
     });
 
     if (!hasData) return;
@@ -162,13 +194,9 @@ const RegistrationForm = () => {
         const draftData = { ...formData };
         delete draftData.studentPhoto;
         delete draftData.receiptPhoto;
-        localStorage.setItem(
-          DRAFT_STORAGE_KEY,
-          JSON.stringify({
-            data: draftData,
-            timestamp: new Date().toISOString(),
-          }),
-        );
+        // Add timestamp to the draft data itself
+        draftData._draftTimestamp = new Date().toISOString();
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftData));
       } catch (error) {
         console.error("Error saving draft:", error);
       }
@@ -243,7 +271,7 @@ const RegistrationForm = () => {
     const totalAmount = parseFloat(formData.totalamount) || 0;
     const amountPaid = parseFloat(formData.amountPaid) || 0;
     const remaining = totalAmount - amountPaid;
-    const isPaidInFull = remaining === 0;
+    const isPaidInFull = remaining == 0;
 
     setPaymentError(
       amountPaid > totalAmount && amountPaid > 0
@@ -287,6 +315,15 @@ const RegistrationForm = () => {
       setFormData((prev) => ({ ...prev, receiptPhoto: imageUrl }));
     } else {
       console.error("Receipt photo upload failed - no valid URL returned");
+    }
+  };
+
+  const handleBookPhotoUpload = async (type) => {
+    const imageUrl = await bookPhoto.uploadImage(type);
+    if (imageUrl && imageUrl.trim() !== "") {
+      setFormData((prev) => ({ ...prev, bookPhoto: imageUrl }));
+    } else {
+      console.error("Book photo upload failed - no valid URL returned");
     }
   };
 
@@ -772,6 +809,19 @@ const RegistrationForm = () => {
                   onUploadImage={handleReceiptPhotoUpload}
                   onRemovePhoto={receiptPhoto.removePhoto}
                 />
+                {isPaidInFull && (
+                  <FileUpload
+                    title="Book Distribution Proof"
+                    imageUrl={bookPhoto.imageUrl}
+                    error={bookPhoto.error}
+                    loader={bookPhoto.loader}
+                    isSaved={bookPhoto.isSaved}
+                    imageType="books"
+                    onFileUpload={bookPhoto.handleFileUpload}
+                    onUploadImage={handleBookPhotoUpload}
+                    onRemovePhoto={bookPhoto.removePhoto}
+                  />
+                )}
               </div>
             </div>
 
@@ -779,7 +829,8 @@ const RegistrationForm = () => {
               {studentPhoto.isSaved &&
                 receiptPhoto.isSaved &&
                 formData.examCentre &&
-                !paymentError && (
+                !paymentError &&
+                (!isPaidInFull || bookPhoto.isSaved) && (
                   <button
                     type="submit"
                     disabled={submitLoader}

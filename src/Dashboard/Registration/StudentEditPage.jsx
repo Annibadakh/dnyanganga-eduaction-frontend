@@ -187,7 +187,28 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
     api
       .get("/simple/standards")
       .then((response) => {
-        setStandards(response.data.data || []);
+        const rawStandards = response.data.data || [];
+
+        const parsedStandards = rawStandards.map((std) => {
+          let branches = [];
+          if (Array.isArray(std.branches)) {
+            branches = std.branches;
+          } else if (typeof std.branches === "string" && std.branches.trim()) {
+            try {
+              const parsed = JSON.parse(std.branches);
+              branches = Array.isArray(parsed) ? parsed : [];
+            } catch (err) {
+              console.error(
+                `Error parsing branches for standard "${std.name}"`,
+                err,
+              );
+              branches = [];
+            }
+          }
+          return { ...std, branches };
+        });
+
+        setStandards(parsedStandards);
       })
       .catch((error) => {
         console.error("Error fetching standards", error);
@@ -244,16 +265,12 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
     };
   };
 
-  // A combined package ("11th+12th") converts to the standalone standard
-  // named after its normalizeName ("12th"). DB-driven.
+  // A combined package ("11th+12th" / "9th+10th") converts to its base standard
+  // via baseStandardId. Only standards with baseStandardId can convert.
   const getConversionTarget = () => {
     const std = standards.find((s) => s.name === formData.standard);
-    if (!std) return null;
-    return (
-      standards.find((s) => s.name === std.normalizeName) ||
-      standards.find((s) => s.normalizeName === std.name) ||
-      null
-    );
+    if (!std || !std.baseStandardId) return null; // Only standards with baseStandardId can convert
+    return standards.find((s) => s.id === std.baseStandardId) || null;
   };
 
   const handleStandardConversion = () => {
@@ -279,6 +296,7 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
     setFormData((prev) => ({
       ...prev,
       standard: target.name,
+      branch: "", // Reset branch - user must re-select for new standard
       ...standardFields,
       amountRemaining: newTotalAmount - amountPaid,
     }));
@@ -652,27 +670,34 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                         step="0.01"
                       />
 
-                      {/* Dynamic Branch Dropdown */}
-                      {formData.branches?.length > 0 && (
-                        <select
-                          name="branch"
-                          value={formData.branch}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3"
-                          required
-                        >
-                          <option value="">
-                            {formData.branchType === "GROUP"
+                      {/* Branch/Medium select — always visible, disabled until a standard is chosen */}
+                      <select
+                        name="branch"
+                        value={formData.branch}
+                        onChange={handleChange}
+                        disabled={
+                          !formData.standard || formData.branches?.length === 0
+                        }
+                        className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base order-3 ${
+                          !formData.standard || formData.branches?.length === 0
+                            ? "bg-gray-100 cursor-not-allowed"
+                            : ""
+                        }`}
+                        required
+                      >
+                        <option value="">
+                          {!formData.standard
+                            ? "Select Standard First"
+                            : formData.branchType === "GROUP"
                               ? "Select Group"
                               : "Select Medium"}
+                        </option>
+                        {formData.branches?.map((b) => (
+                          <option key={b} value={b}>
+                            {b}
                           </option>
-                          {formData.branches.map((b) => (
-                            <option key={b} value={b}>
-                              {b}
-                            </option>
-                          ))}
-                        </select>
-                      )}
+                        ))}
+                      </select>
 
                       {/* School/College Name */}
                       <input
