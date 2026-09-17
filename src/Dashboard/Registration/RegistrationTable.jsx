@@ -24,8 +24,11 @@ import {
   Award,
   X,
   MessageSquarePlus,
+  Download,
 } from "lucide-react";
 import { followupAccess } from "../../utils/roleArrays";
+
+const imgUrl = import.meta.env.VITE_IMG_URL;
 
 const RegistrationTable = () => {
   const { user } = useAuth();
@@ -62,15 +65,19 @@ const RegistrationTable = () => {
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [loadingDeleteId, setLoadingDeleteId] = useState(null);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
-  const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
+  const [fullCash, setFullCash] = useState(false);
+  const [halfCash, setHalfCash] = useState(false);
+  const [booking, setBooking] = useState(false);
   const [showQuizDetails, setShowQuizDetails] = useState(false);
   const [quizData, setQuizData] = useState(null);
   const [quizLoading, setQuizLoading] = useState(false);
   const [quizStudentName, setQuizStudentName] = useState("");
   const [showFollowupModal, setShowFollowupModal] = useState(false);
   const [followupStudent, setFollowupStudent] = useState(null);
-
+  const [showBookProof, setShowBookProof] = useState(false);
+  const [bookProofUrl, setBookProofUrl] = useState(null);
+  const [bookProofFileName, setBookProofFileName] = useState("");
+  const [exporting, setExporting] = useState(false);
   const currentYear = new Date().getFullYear();
   const [selectedExamYear, setSelectedExamYear] = useState([
     { label: currentYear, value: currentYear },
@@ -173,6 +180,18 @@ const RegistrationTable = () => {
       render: (row) => (
         <div className="flex items-center gap-2 flex-nowrap">
           {/* PDF */}
+          {followupAccess.includes(user.role) && (
+            <Button
+              variant="success"
+              startIcon={<MessageSquarePlus size={16} />}
+              onClick={() => {
+                setFollowupStudent(row);
+                setShowFollowupModal(true);
+              }}
+            >
+              Follow Ups
+            </Button>
+          )}
           <Button
             variant="primary"
             loading={loadingPdfId === row.studentId}
@@ -181,18 +200,6 @@ const RegistrationTable = () => {
           >
             PDF
           </Button>
-
-          {/* QUIZ DETAILS */}
-          {row.amountRemaining == 0 && (
-            <Button
-              variant="secondary"
-              startIcon={<ClipboardList size={16} />}
-              onClick={() => handleQuizDetails(row)}
-            >
-              Quiz
-            </Button>
-          )}
-
           {user.role === "admin" && (
             <>
               {/* EDIT */}
@@ -225,23 +232,28 @@ const RegistrationTable = () => {
               </Button>
             </>
           )}
-
-          {(user.role === "counsellor" || user.role == "sub-admin") && row.amountRemaining > 0 && (
-            <Button variant="info" onClick={() => handlePayment(row)}>
-              Pay
+          {row.amountRemaining == 0 && (
+            <Button
+              variant="secondary"
+              startIcon={<ClipboardList size={16} />}
+              onClick={() => handleQuizDetails(row)}
+            >
+              Quiz
             </Button>
           )}
-
-          {followupAccess.includes(user.role) && (
+          {(user.role === "counsellor" || user.role == "sub-admin") &&
+            row.amountRemaining > 0 && (
+              <Button variant="info" onClick={() => handlePayment(row)}>
+                Pay
+              </Button>
+            )}
+          {row.amountRemaining == 0 && row.bookPhoto && (
             <Button
-              variant="success"
-              startIcon={<MessageSquarePlus size={16} />}
-              onClick={() => {
-                setFollowupStudent(row);
-                setShowFollowupModal(true);
-              }}
+              variant="info"
+              startIcon={<FileText size={16} />}
+              onClick={() => handleViewBookProof(row)}
             >
-              Follow Ups
+              View Book Proof
             </Button>
           )}
         </div>
@@ -292,6 +304,62 @@ const RegistrationTable = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const handleDownloadExcel = async () => {
+    try {
+      setExporting(true);
+      const params = {
+        search: debouncedSearchQuery,
+        counsellor:
+          selectedCounsellor?.length > 0
+            ? selectedCounsellor.map((c) => c.value).join(",")
+            : "",
+        branch:
+          selectedBranch?.length > 0
+            ? selectedBranch.map((b) => b.value).join(",")
+            : "",
+        examCentre:
+          selectedExamCentre?.length > 0
+            ? selectedExamCentre.map((e) => e.value).join(",")
+            : "",
+        standard:
+          selectedStandard?.length > 0
+            ? selectedStandard.map((s) => s.value).join(",")
+            : "",
+        status: selectedStatus,
+        dateFrom,
+        dateTo,
+        fullCash,
+        halfCash,
+        booking,
+        examYear:
+          selectedExamYear?.length > 0
+            ? selectedExamYear.map((y) => y.value).join(",")
+            : "",
+      };
+
+      const response = await api.get("/counsellor/exportRegister", {
+        params,
+        responseType: "blob",
+      });
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Registrations_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error downloading excel:", err);
+      alert("Failed to download Excel file.");
+    } finally {
+      setExporting(false);
+    }
+  };
   const fetchRegistrations = () => {
     setLoading(true);
     const params = {
@@ -317,8 +385,9 @@ const RegistrationTable = () => {
       status: selectedStatus,
       dateFrom: dateFrom,
       dateTo: dateTo,
-      onlyZeroRemaining,
-      onlyNonZeroRemaining,
+      fullCash,
+      halfCash,
+      booking,
       examYear:
         selectedExamYear && selectedExamYear.length > 0
           ? selectedExamYear.map((y) => y.value).join(",")
@@ -356,8 +425,9 @@ const RegistrationTable = () => {
     dateTo,
     showPayment,
     showEditStudent,
-    onlyZeroRemaining,
-    onlyNonZeroRemaining,
+    fullCash,
+    halfCash,
+    booking,
     selectedExamYear,
   ]);
 
@@ -372,8 +442,9 @@ const RegistrationTable = () => {
     selectedStatus,
     dateFrom,
     dateTo,
-    onlyZeroRemaining,
-    onlyNonZeroRemaining,
+    fullCash,
+    halfCash,
+    booking,
     selectedExamYear,
   ]);
 
@@ -534,6 +605,25 @@ const RegistrationTable = () => {
     setCurrentPdfStudent(null);
   };
 
+  const handleViewBookProof = (student) => {
+    if (student.bookPhoto) {
+      setBookProofUrl(`${imgUrl}${student.bookPhoto}`);
+      const fileName = student.studentName
+        ? `${student.studentName.replace(/\s+/g, "_")}_BOOK_PROOF.jpg`
+        : `${student.studentId}_BOOK_PROOF.jpg`;
+      setBookProofFileName(fileName);
+      setShowBookProof(true);
+    } else {
+      alert("No book proof image available.");
+    }
+  };
+
+  const handleCloseBookProof = () => {
+    setShowBookProof(false);
+    setBookProofUrl(null);
+    setBookProofFileName("");
+  };
+
   const handleCloseEditStudent = () => {
     setShowEditStudent(false);
     setEditStudentId(null);
@@ -616,8 +706,16 @@ const RegistrationTable = () => {
               placeholder="Search by name, ID, or contact..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"
+              className="p-2 w-full min-w-40 md:w-1/2 border border-gray-300 rounded-lg"
             />
+            <Button
+              variant="secondary"
+              loading={exporting}
+              startIcon={<Download size={16} />}
+              onClick={handleDownloadExcel}
+            >
+              Download Excel
+            </Button>
 
             {(user.role === "admin" ||
               user.role === "followUp" ||
@@ -685,10 +783,10 @@ const RegistrationTable = () => {
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                checked={onlyZeroRemaining}
+                checked={fullCash}
                 onChange={(e) => {
-                  setOnlyZeroRemaining(e.target.checked);
-                  if (e.target.checked) setOnlyNonZeroRemaining(false);
+                  setFullCash(e.target.checked);
+                  if (e.target.checked) { setHalfCash(false); setBooking(false); }
                 }}
               />
               Full Cash
@@ -697,13 +795,25 @@ const RegistrationTable = () => {
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                checked={onlyNonZeroRemaining}
+                checked={halfCash}
                 onChange={(e) => {
-                  setOnlyNonZeroRemaining(e.target.checked);
-                  if (e.target.checked) setOnlyZeroRemaining(false);
+                  setHalfCash(e.target.checked);
+                  if (e.target.checked) { setFullCash(false); setBooking(false); }
                 }}
               />
-              Booking/Half Cash
+              Half Cash
+            </label>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={booking}
+                onChange={(e) => {
+                  setBooking(e.target.checked);
+                  if (e.target.checked) { setFullCash(false); setHalfCash(false); }
+                }}
+              />
+              Booking
             </label>
           </div>
 
@@ -744,6 +854,35 @@ const RegistrationTable = () => {
             : ""
         }
       />
+
+      {/* Book Proof Image Viewer */}
+      {showBookProof && bookProofUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">
+                  Book Distribution Proof
+                </h2>
+                <p className="text-sm text-gray-500">{bookProofFileName}</p>
+              </div>
+              <button
+                onClick={handleCloseBookProof}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-5 flex items-center justify-center bg-gray-50">
+              <img
+                src={bookProofUrl}
+                alt="Book Proof"
+                className="max-w-full max-h-[70vh] rounded-lg shadow-lg"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {showDeleteDialog && studentToDelete && (
         <DeleteStudentDialog

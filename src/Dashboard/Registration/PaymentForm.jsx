@@ -10,6 +10,7 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
 
   // File upload hook for receipt
   const receiptPhoto = FileUploadHook();
+  const bookPhoto = FileUploadHook();
 
   // Form states with receiptPhoto included in formData like RegistrationForm
   const [formData, setFormData] = useState({
@@ -70,6 +71,13 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
     }
   };
 
+  const handleBookPhotoUpload = async (type) => {
+    const imageUrl = await bookPhoto.uploadImage(type);
+    if (imageUrl) {
+      setFormData({ ...formData, bookPhoto: imageUrl });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitLoader(true);
@@ -92,6 +100,7 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
       newRemainingAmount,
       newDueDate: newDueDate,
       receiptPhoto: formData.receiptPhoto, // Use from formData like RegistrationForm
+      bookPhoto: newRemainingAmount === 0 ? formData.bookPhoto : "", // Only include when payment completes
     };
 
     // console.log("before submit", dataToSend);
@@ -229,8 +238,25 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
           />
         </div>
 
+        {/* Book Distribution Proof - only when payment completes (remaining == 0) */}
+        {newRemainingAmount === 0 && (
+          <div className="mb-6">
+            <FileUpload
+              title="Book Distribution Proof"
+              imageUrl={bookPhoto.imageUrl}
+              error={bookPhoto.error}
+              loader={bookPhoto.loader}
+              isSaved={bookPhoto.isSaved}
+              imageType="books"
+              onFileUpload={bookPhoto.handleFileUpload}
+              onUploadImage={handleBookPhotoUpload}
+              onRemovePhoto={bookPhoto.removePhoto}
+            />
+          </div>
+        )}
+
         <div className="flex gap-2">
-          {!error && receiptPhoto.isSaved ? (
+          {!error && receiptPhoto.isSaved && (newRemainingAmount > 0 || bookPhoto.isSaved) ? (
             <button
               type="submit"
               disabled={submitLoader}
@@ -247,6 +273,11 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
               <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3 mb-2">
                 📸 Please upload and save receipt photo first
               </p>
+              {newRemainingAmount === 0 && !bookPhoto.isSaved && (
+                <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3 mb-2">
+                  📚 Please upload and save Book Distribution Proof
+                </p>
+              )}
             </div>
           )}
           <button
