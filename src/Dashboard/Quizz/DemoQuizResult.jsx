@@ -34,14 +34,14 @@ const DemoQuizResult = () => {
     );
   }
 
-  // Evaluate locally
+  // Evaluate locally — logic MUST match backend quizzAlgorithm.js evaluateAndSubmitQuiz
+  // Backend logic: isCorrect = correct.length === selected.length && correct.every(v => selected.includes(v))
   const evaluated = questions.map((q) => {
     const selected = q.selectedAns || [];
     const correct = q.correctAns || [];
     const isCorrect =
-      selected.length > 0 &&
       correct.length === selected.length &&
-      correct.every((c) => selected.includes(c));
+      correct.every((val) => selected.includes(val));
     const isSkipped = selected.length === 0;
     return { ...q, isCorrect, isSkipped };
   });
