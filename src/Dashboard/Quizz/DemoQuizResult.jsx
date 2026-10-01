@@ -38,7 +38,12 @@ const DemoQuizResult = () => {
   // Backend logic: isCorrect = correct.length === selected.length && correct.every(v => selected.includes(v))
   const evaluated = questions.map((q) => {
     const selected = q.selectedAns || [];
-    const correct = q.correctAns || [];
+    // Handle correctAns being a JSON string (e.g., "[1]") instead of array
+    let correct = q.correctAns || [];
+    if (typeof correct === "string") {
+      try { correct = JSON.parse(correct); } catch { correct = []; }
+    }
+    if (!Array.isArray(correct)) correct = [];
     const isCorrect =
       correct.length === selected.length &&
       correct.every((val) => selected.includes(val));
@@ -202,7 +207,13 @@ const DemoQuizResult = () => {
               {/* Options */}
               <div className="space-y-1.5">
                 {q.options.map((opt) => {
-                  const isCorrect = q.correctAns?.includes(opt.index);
+                  // Handle correctAns being a JSON string
+                  let correctAns = q.correctAns;
+                  if (typeof correctAns === "string") {
+                    try { correctAns = JSON.parse(correctAns); } catch { correctAns = []; }
+                  }
+                  if (!Array.isArray(correctAns)) correctAns = [];
+                  const isCorrect = correctAns.includes(opt.index);
                   const isSelected = q.selectedAns?.includes(opt.index);
 
                   let rowCls = "bg-white border-gray-200 text-gray-600";
