@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, FileSpreadsheet, Eye, ListChecks } from "lucide-react";
+import { Search, FileSpreadsheet, Eye, ListChecks, RotateCcw, AlertCircle } from "lucide-react";
 import api from "../../Api";
 import Button from "../Generic/Button";
 import CustomSelect from "../Generic/CustomSelect";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
+import { useToast } from "../../useToast";
 
 const STATUS_BADGE = {
   NOT_STARTED: "bg-gray-100 text-gray-600",
@@ -50,6 +51,7 @@ const StudentAttemptsTable = ({
   externalBranch,
 }) => {
   const navigate = useNavigate();
+  const { successToast, errorToast } = useToast();
 
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -156,6 +158,23 @@ const StudentAttemptsTable = ({
     }
   };
 
+  const handleReschedule = async (row) => {
+    const confirmMsg = `Reschedule quiz for ${row.studentName} (${row.studentId})?\nThis will delete their attempt so they can reattempt the quiz.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await api.post(`/quiz/${quizId}/reschedule`, { studentId: row.studentId });
+      if (res.data.success) {
+        successToast("Quiz rescheduled successfully. Student can now reattempt.");
+        fetchStudents(); // refresh table
+      } else {
+        errorToast(res.data.message || "Failed to reschedule");
+      }
+    } catch (err) {
+      errorToast(err.response?.data?.message || "Failed to reschedule");
+    }
+  };
+
   const columns = [
     {
       header: "Sr. No.",
@@ -218,13 +237,25 @@ const StudentAttemptsTable = ({
       header: "Action",
       render: (row) =>
         row.isAttempt ? (
-          <Button
-            onClick={() => handleViewResult(row)}
-            variant="secondary"
-            startIcon={<Eye size={16} />}
-          >
-            View
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => handleViewResult(row)}
+              variant="secondary"
+              startIcon={<Eye size={16} />}
+            >
+              View
+            </Button>
+            {(row.status === "SUBMITTED" || row.status === "AUTO_SUBMITTED") && (
+              <Button
+                onClick={() => handleReschedule(row)}
+                variant="warning"
+                startIcon={<RotateCcw size={16} />}
+                title="Reschedule - Delete attempt so student can reattempt"
+              >
+                Reschedule
+              </Button>
+            )}
+          </div>
         ) : (
           "\u2014"
         ),
