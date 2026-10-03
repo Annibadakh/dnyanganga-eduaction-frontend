@@ -188,6 +188,12 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       role: ["student"],
       icon: <FaListAlt className="text-lg" />,
     },
+    {
+      path: "question-bank",
+      label: "Question Bank",
+      role: ["student"],
+      icon: <FaDatabase className="text-lg" />,
+    },
   ];
   // console.log(userRole)
   const isActive = (path) =>
