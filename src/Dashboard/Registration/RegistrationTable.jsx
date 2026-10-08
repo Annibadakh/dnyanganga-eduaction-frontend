@@ -25,6 +25,7 @@ import {
   X,
   MessageSquarePlus,
   Download,
+  Search,
 } from "lucide-react";
 import { followupAccess } from "../../utils/roleArrays";
 
@@ -655,13 +656,119 @@ const RegistrationTable = () => {
             Registration Table
           </h1>
 
-          <div className="flex flex-col md:flex-row justify-start gap-4 mb-4">
-            <div className="flex flex-col md:flex-row gap-4 items-end">
-              <div className="flex flex-row items-center gap-2">
-                <label
-                  htmlFor="dateFrom"
-                  className="text-sm text-gray-600 mb-1"
+          {/* Filters Card */}
+          <div className="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+              {/* Search Input */}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Search
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Name, ID, contact..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 h-[42px] text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Counsellor (Admin / FollowUp / Sub-Admin) */}
+              {(user.role === "admin" ||
+                user.role === "followUp" ||
+                user.role === "sub-admin") && (
+                <div className="w-full">
+                  <CustomMultiSelect
+                    label="Counsellor"
+                    options={users}
+                    value={selectedCounsellor}
+                    onChange={setSelectedCounsellor}
+                    isRequired={false}
+                    placeholder="Select Counsellors"
+                  />
+                </div>
+              )}
+
+              {/* Branch (Admin / FollowUp / Sub-Admin) */}
+              {(user.role === "admin" ||
+                user.role === "followUp" ||
+                user.role === "sub-admin") && (
+                <div className="w-full">
+                  <CustomMultiSelect
+                    label="Branch"
+                    options={branch}
+                    value={selectedBranch}
+                    onChange={setSelectedBranch}
+                    isRequired={false}
+                    placeholder="Select Branch"
+                  />
+                </div>
+              )}
+
+              {/* Exam Centre */}
+              <div className="w-full">
+                <CustomMultiSelect
+                  label="Exam Centre"
+                  options={examCentres}
+                  value={selectedExamCentre}
+                  onChange={setSelectedExamCentre}
+                  isRequired={false}
+                  placeholder="Select Exam Centre"
+                />
+              </div>
+
+              {/* Standard */}
+              <div className="w-full">
+                <CustomMultiSelect
+                  label="Standard"
+                  options={standards.map((std) => ({
+                    label: std.name,
+                    value: std.name,
+                  }))}
+                  value={selectedStandard}
+                  onChange={setSelectedStandard}
+                  isRequired={false}
+                  placeholder="Select Standards"
+                />
+              </div>
+
+              {/* Status */}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition text-gray-700 cursor-pointer"
                 >
+                  <option value="">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {/* Exam Year */}
+              <div className="w-full">
+                <CustomMultiSelect
+                  label="Exam Year"
+                  options={examYearOptions.map((year) => ({
+                    label: year,
+                    value: year,
+                  }))}
+                  value={selectedExamYear}
+                  onChange={setSelectedExamYear}
+                  isRequired={false}
+                  placeholder="Select Exam Years"
+                />
+              </div>
+
+              {/* From Date */}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   From Date
                 </label>
                 <input
@@ -670,151 +777,93 @@ const RegistrationTable = () => {
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
                   max={dateTo || undefined}
-                  className="p-2 border border-gray-300 rounded-lg"
+                  className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition text-gray-700"
                 />
               </div>
-              <div className="flex flex-row items-center gap-2">
-                <label htmlFor="dateTo" className="text-sm text-gray-600 mb-1">
-                  To Date
-                </label>
+
+              {/* To Date */}
+              <div className="w-full">
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-sm font-medium text-gray-700">
+                    To Date
+                  </label>
+                  {(dateFrom || dateTo) && (
+                    <button
+                      onClick={() => {
+                        setDateFrom("");
+                        setDateTo("");
+                      }}
+                      className="text-xs text-red-600 hover:text-red-800 font-medium hover:underline transition"
+                    >
+                      Clear Dates
+                    </button>
+                  )}
+                </div>
                 <input
                   id="dateTo"
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
                   min={dateFrom || undefined}
-                  className="p-2 border border-gray-300 rounded-lg"
+                  className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition text-gray-700"
                 />
               </div>
-              {(dateFrom || dateTo) && (
-                <button
-                  onClick={() => {
-                    setDateFrom("");
-                    setDateTo("");
-                  }}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors whitespace-nowrap"
-                >
-                  Clear Dates
-                </button>
-              )}
             </div>
-          </div>
 
-          <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-            <input
-              type="text"
-              placeholder="Search by name, ID, or contact..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="p-2 w-full min-w-40 md:w-1/2 border border-gray-300 rounded-lg"
-            />
-            <Button
-              variant="secondary"
-              loading={exporting}
-              startIcon={<Download size={16} />}
-              onClick={handleDownloadExcel}
-            >
-              Download Excel
-            </Button>
+            {/* Category Checkboxes & Download Excel Action Bar */}
+            <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+              <div className="flex flex-wrap gap-4 items-center">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Category:</span>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={fullCash}
+                    className="rounded border-gray-300 text-[#094D9E] focus:ring-[#094D9E] w-4 h-4"
+                    onChange={(e) => {
+                      setFullCash(e.target.checked);
+                      if (e.target.checked) { setHalfCash(false); setBooking(false); }
+                    }}
+                  />
+                  Full Cash
+                </label>
 
-            {(user.role === "admin" ||
-              user.role === "followUp" ||
-              user.role === "sub-admin") && (
-              <>
-                <CustomMultiSelect
-                  options={users}
-                  value={selectedCounsellor}
-                  onChange={setSelectedCounsellor}
-                  isRequired={false}
-                  placeholder="Select Counsellors"
-                />
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={halfCash}
+                    className="rounded border-gray-300 text-[#094D9E] focus:ring-[#094D9E] w-4 h-4"
+                    onChange={(e) => {
+                      setHalfCash(e.target.checked);
+                      if (e.target.checked) { setFullCash(false); setBooking(false); }
+                    }}
+                  />
+                  Half Cash
+                </label>
 
-                <CustomMultiSelect
-                  options={branch}
-                  value={selectedBranch}
-                  onChange={setSelectedBranch}
-                  isRequired={false}
-                  placeholder="Select Branch"
-                />
-              </>
-            )}
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={booking}
+                    className="rounded border-gray-300 text-[#094D9E] focus:ring-[#094D9E] w-4 h-4"
+                    onChange={(e) => {
+                      setBooking(e.target.checked);
+                      if (e.target.checked) { setFullCash(false); setHalfCash(false); }
+                    }}
+                  />
+                  Booking
+                </label>
+              </div>
 
-            <CustomMultiSelect
-              options={examCentres}
-              value={selectedExamCentre}
-              onChange={setSelectedExamCentre}
-              isRequired={false}
-              placeholder="Select Exam Centre"
-            />
-
-            <CustomMultiSelect
-              options={standards.map((std) => ({
-                label: std.name,
-                value: std.name,
-              }))}
-              value={selectedStandard}
-              onChange={setSelectedStandard}
-              isRequired={false}
-              placeholder="Select Standards"
-            />
-
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="p-2 w-full md:w-1/4 border border-gray-300 rounded-lg"
-            >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-
-            <CustomMultiSelect
-              options={examYearOptions.map((year) => ({
-                label: year,
-                value: year,
-              }))}
-              value={selectedExamYear}
-              onChange={setSelectedExamYear}
-              isRequired={false}
-              placeholder="Select Exam Years"
-            />
-          </div>
-          <div className="flex flex-wrap gap-4 mb-5">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={fullCash}
-                onChange={(e) => {
-                  setFullCash(e.target.checked);
-                  if (e.target.checked) { setHalfCash(false); setBooking(false); }
-                }}
-              />
-              Full Cash
-            </label>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={halfCash}
-                onChange={(e) => {
-                  setHalfCash(e.target.checked);
-                  if (e.target.checked) { setFullCash(false); setBooking(false); }
-                }}
-              />
-              Half Cash
-            </label>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={booking}
-                onChange={(e) => {
-                  setBooking(e.target.checked);
-                  if (e.target.checked) { setFullCash(false); setHalfCash(false); }
-                }}
-              />
-              Booking
-            </label>
+              <Button
+                variant="secondary"
+                loading={exporting}
+                startIcon={<Download size={16} />}
+                onClick={handleDownloadExcel}
+                className="w-full sm:w-auto"
+              >
+                Download Excel
+              </Button>
+            </div>
           </div>
 
           <DataTable
