@@ -8,7 +8,7 @@ import Pagination from "../Generic/Pagination";
 import ImageViewerModal from "../Generic/ImageViewerModal";
 import PdfViewerModal from "../Generic/PdfViewerModal";
 import Button from "../Generic/Button";
-import { FileText, IndianRupee } from "lucide-react";
+import { FileText, IndianRupee, Search } from "lucide-react";
 
 const capitalizeFirstLetter = (string) => {
   if (!string || typeof string !== "string") {
@@ -398,106 +398,127 @@ const PaymentTable = () => {
         Payment Records
       </h1>
 
-      {/* Filters */}
-      {/* <div className="flex flex-col md:flex-row flex-wrap justify-between items-center gap-2 mb-4"> */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-center gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search by name, student ID, payment ID, or receipt no..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 border border-gray-300"
-        />
+      {/* Filters Card */}
+      <div className="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+          {/* Search Input */}
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Search
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Name, ID, receipt..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 h-[42px] text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition bg-white"
+              />
+            </div>
+          </div>
 
-        {(user.role === "admin" || user.role === "sub-admin") && (
-          <CustomMultiSelect
-            label="Counsellor"
-            options={users}
-            value={selectedCounsellor}
-            onChange={setSelectedCounsellor}
-            isRequired={false}
-            placeholder="Select Counsellors"
-          />
-        )}
-        <div>
-          <select
-            value={paymentType}
-            onChange={(e) => setPaymentType(e.target.value)}
-            className="p-3 w-full border border-gray-300"
-          >
-            <option value="">All Payment Types</option>
-            <option value="INITIAL">INITIAL</option>
-            <option value="RECOLLECTION">RECOLLECTION</option>
-          </select>
-        </div>
-        <div>
-          <CustomMultiSelect
-            label="Standard"
-            options={[
-              { label: "9th+10th", value: "9th+10th" },
-              { label: "10th", value: "10th" },
-              { label: "11th+12th", value: "11th+12th" },
-              { label: "12th", value: "12th" },
-            ]}
-            value={standard}
-            onChange={setStandard}
-            isRequired={false}
-            placeholder="Select Standards"
-          />
-        </div>
+          {/* Counsellor Dropdown (Admin & Sub-Admin) */}
+          {(user.role === "admin" || user.role === "sub-admin") && (
+            <div className="w-full">
+              <CustomMultiSelect
+                label="Counsellor"
+                options={users}
+                value={selectedCounsellor}
+                onChange={setSelectedCounsellor}
+                isRequired={false}
+                placeholder="Select Counsellors"
+              />
+            </div>
+          )}
 
-        <div className="flex flex-nowrap md:flex-row gap-1">
-          <div className="bg-white min-w-52 flex flex-row items-center gap-2 border border-gray-300 p-2">
-            <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
-              From Date:
+          {/* Payment Type */}
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Payment Type
+            </label>
+            <select
+              value={paymentType}
+              onChange={(e) => setPaymentType(e.target.value)}
+              className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition text-gray-700 cursor-pointer"
+            >
+              <option value="">All Payment Types</option>
+              <option value="INITIAL">INITIAL</option>
+              <option value="RECOLLECTION">RECOLLECTION</option>
+            </select>
+          </div>
+
+          {/* Standard Dropdown */}
+          <div className="w-full">
+            <CustomMultiSelect
+              label="Standard"
+              options={[
+                { label: "9th+10th", value: "9th+10th" },
+                { label: "10th", value: "10th" },
+                { label: "11th+12th", value: "11th+12th" },
+                { label: "12th", value: "12th" },
+              ]}
+              value={standard}
+              onChange={setStandard}
+              isRequired={false}
+              placeholder="Select Standards"
+            />
+          </div>
+
+          {/* From Date */}
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              From Date
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="flex-1 outline-none"
+              className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition text-gray-700"
             />
           </div>
-          <div className="bg-white min-w-52 flex flex-row items-center gap-2 border border-gray-300 p-2">
-            <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
-              To Date:
-            </label>
+
+          {/* To Date */}
+          <div className="w-full">
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-gray-700">
+                To Date
+              </label>
+              {(startDate || endDate) && (
+                <button
+                  onClick={clearDateFilters}
+                  className="text-xs text-red-600 hover:text-red-800 font-medium hover:underline transition"
+                >
+                  Clear Dates
+                </button>
+              )}
+            </div>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="flex-1 outline-none"
+              className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition text-gray-700"
             />
           </div>
-
-          {(startDate || endDate) && (
-            <button
-              onClick={clearDateFilters}
-              className="px-3 bg-gray-500 text-white hover:bg-gray-600 text-sm whitespace-nowrap"
-            >
-              Clear Dates
-            </button>
-          )}
         </div>
       </div>
 
-      <div className="mb-4 flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
-        <Button variant="success" onClick={handleDownloadExcel}>
+      {/* Action & Total Bar */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
+        <Button variant="success" onClick={handleDownloadExcel} className="self-start sm:self-auto">
           Download Excel
         </Button>
 
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm min-w-[280px]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Amount Collected</p>
-              <h2 className="text-3xl font-bold text-green-700 mt-1">
-                ₹ {Number(totalAmount || 0).toLocaleString("en-IN")}
-              </h2>
-            </div>
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm min-w-[260px] flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Total Amount Collected</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-green-700 mt-1">
+              ₹ {Number(totalAmount || 0).toLocaleString("en-IN")}
+            </h2>
+          </div>
 
-            <div className="bg-green-100 p-3 rounded-full">
-              <IndianRupee size={28} className="text-green-700" />
-            </div>
+          <div className="bg-green-100 p-3 rounded-full ml-3">
+            <IndianRupee size={24} className="text-green-700" />
           </div>
         </div>
       </div>

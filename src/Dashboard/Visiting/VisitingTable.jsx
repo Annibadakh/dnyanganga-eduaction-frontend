@@ -10,7 +10,7 @@ import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
 import Button from "../Generic/Button";
 import FollowupModal from "../Generic/FollowupModal";
-import { Eye, Edit, Trash2, MessageSquarePlus } from "lucide-react";
+import { Eye, Edit, Trash2, MessageSquarePlus, Search } from "lucide-react";
 import { followupAccess } from "../../utils/roleArrays";
 
 const VisitingTable = () => {
@@ -367,96 +367,118 @@ const VisitingTable = () => {
         Visiting Table
       </h1>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 mb-4">
-        {/* Second Row - Date Range and Standard */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex flex-col md:flex-row gap-4 w-full md:w-3/4">
-            <div className="flex items-center gap-2 w-full md:w-1/3">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                From Date
-              </label>
+      {/* Filters Card */}
+      <div className="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+          {/* Search Input */}
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Search
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="p-2 w-full border border-gray-300 rounded-lg"
+                type="text"
+                placeholder="Search by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 h-[42px] text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition bg-white"
               />
             </div>
-            <div className="flex items-center gap-2 w-full md:w-1/3">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+          </div>
+
+          {/* Standard */}
+          <div className="w-full">
+            <CustomMultiSelect
+              label="Standard"
+              options={[
+                { label: "9th+10th", value: "9th+10th" },
+                { label: "10th", value: "10th" },
+                { label: "11th+12th", value: "11th+12th" },
+                { label: "12th", value: "12th" },
+              ]}
+              value={selectedStandard}
+              onChange={setSelectedStandard}
+              isRequired={false}
+              placeholder="Select Standards"
+            />
+          </div>
+
+          {/* Counsellor (Admin / FollowUp / Sub-Admin) */}
+          {(user.role === "admin" ||
+            user.role === "followUp" ||
+            user.role === "sub-admin") && (
+            <div className="w-full">
+              <CustomMultiSelect
+                label="Counsellor"
+                options={users}
+                value={selectedCounsellor}
+                onChange={setSelectedCounsellor}
+                isRequired={false}
+                placeholder="Select Counsellors"
+              />
+            </div>
+          )}
+
+          {/* Branch (Admin / FollowUp / Sub-Admin) */}
+          {(user.role === "admin" ||
+            user.role === "followUp" ||
+            user.role === "sub-admin") && (
+            <div className="w-full">
+              <CustomMultiSelect
+                label="Branch"
+                options={branch}
+                value={selectedBranch}
+                onChange={setSelectedBranch}
+                isRequired={false}
+                placeholder="Select Branch"
+              />
+            </div>
+          )}
+
+          {/* From Date */}
+          <div className="w-full">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              From Date
+            </label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition text-gray-700"
+            />
+          </div>
+
+          {/* To Date */}
+          <div className="w-full">
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-gray-700">
                 To Date
               </label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="p-2 w-full border border-gray-300 rounded-lg"
-              />
+              {(dateFrom || dateTo) && (
+                <button
+                  onClick={clearDateFilters}
+                  className="text-xs text-red-600 hover:text-red-800 font-medium hover:underline transition"
+                >
+                  Clear Dates
+                </button>
+              )}
             </div>
-            {(dateFrom || dateTo) && (
-              <button
-                onClick={clearDateFilters}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 whitespace-nowrap"
-              >
-                Clear Dates
-              </button>
-            )}
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition text-gray-700"
+            />
           </div>
         </div>
 
-        {/* Third Row - Counsellor and Branch (Admin only) */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <input
-            type="text"
-            placeholder="Search by name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="p-2 w-full md:w-1/2 border border-gray-300 rounded-lg"
-          />
-          <CustomMultiSelect
-            label="Standard"
-            options={[
-              { label: "9th+10th", value: "9th+10th" },
-              { label: "10th", value: "10th" },
-              { label: "11th+12th", value: "11th+12th" },
-              { label: "12th", value: "12th" },
-            ]}
-            value={selectedStandard}
-            onChange={setSelectedStandard}
-            isRequired={false}
-            placeholder="Select Standards"
-            className="w-full md:w-2/4"
-          />
+        {/* Export Excel Action Bar */}
+        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+          <Button variant="success" onClick={handleExportExcel} className="w-full sm:w-auto">
+            Export Excel
+          </Button>
         </div>
-        {(user.role === "admin" ||
-          user.role === "followUp" ||
-          user.role === "sub-admin") && (
-          <div className="flex flex-col md:flex-row gap-4">
-            <CustomMultiSelect
-              label="Counsellor"
-              options={users}
-              value={selectedCounsellor}
-              onChange={setSelectedCounsellor}
-              isRequired={false}
-              placeholder="Select Counsellors"
-            />
-
-            <CustomMultiSelect
-              label="Branch"
-              options={branch}
-              value={selectedBranch}
-              onChange={setSelectedBranch}
-              isRequired={false}
-              placeholder="Select Branch"
-            />
-            <div className="flex justify-start mb-3">
-              <Button variant="success" onClick={handleExportExcel}>
-                Export Excel
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
       <DataTable

@@ -1,6 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, FileSpreadsheet, Eye, ListChecks, RotateCcw, AlertCircle } from "lucide-react";
+import {
+  Search,
+  FileSpreadsheet,
+  Eye,
+  ListChecks,
+  RotateCcw,
+  AlertCircle,
+} from "lucide-react";
 import api from "../../Api";
 import Button from "../Generic/Button";
 import CustomSelect from "../Generic/CustomSelect";
@@ -163,9 +170,13 @@ const StudentAttemptsTable = ({
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      const res = await api.post(`/quiz/${quizId}/reschedule`, { studentId: row.studentId });
+      const res = await api.post(`/quiz/${quizId}/reschedule`, {
+        studentId: row.studentId,
+      });
       if (res.data.success) {
-        successToast("Quiz rescheduled successfully. Student can now reattempt.");
+        successToast(
+          "Quiz rescheduled successfully. Student can now reattempt.",
+        );
         fetchStudents(); // refresh table
       } else {
         errorToast(res.data.message || "Failed to reschedule");
@@ -245,7 +256,8 @@ const StudentAttemptsTable = ({
             >
               View
             </Button>
-            {(row.status === "SUBMITTED" || row.status === "AUTO_SUBMITTED") && (
+            {(row.status === "SUBMITTED" ||
+              row.status === "AUTO_SUBMITTED") && (
               <Button
                 onClick={() => handleReschedule(row)}
                 variant="warning"
