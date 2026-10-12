@@ -42,6 +42,8 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
     // console.log(newDueDate);
   };
 
+  // TEMPORARILY UNUSED — receipt number field commented out; keep for restore
+  // eslint-disable-next-line no-unused-vars
   const handleOnChange = (e) => {
     setReceiptNo(e.target.value);
   };
@@ -64,6 +66,8 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
   };
 
   // Handle receipt photo upload same as RegistrationForm pattern
+  // TEMPORARILY UNUSED — receipt upload commented out; keep for restore
+  // eslint-disable-next-line no-unused-vars
   const handleReceiptPhotoUpload = async (type) => {
     const imageUrl = await receiptPhoto.uploadImage(type);
     if (imageUrl) {
@@ -143,6 +147,7 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
           />
         </div>
 
+        {/* TEMPORARILY COMMENTED — receipt number field disabled
         <div className="mb-3">
           <label className="block">Receipt No.:</label>
           <input
@@ -154,6 +159,7 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
             className="border p-2 w-full"
           />
         </div>
+        */}
 
         <div className="mb-3">
           <label className="block">Remaining Amount:</label>
@@ -223,7 +229,7 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
           placeholder="Select Payment Mode"
         />
 
-        {/* Receipt Photo Upload Section using FileUpload component */}
+        {/* TEMPORARILY COMMENTED — receipt photo upload disabled
         <div className="mb-6">
           <FileUpload
             title="Fees Receipt Photo"
@@ -237,6 +243,7 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
             onRemovePhoto={receiptPhoto.removePhoto}
           />
         </div>
+        */}
 
         {/* Book Distribution Proof - only when payment completes (remaining == 0) */}
         {newRemainingAmount === 0 && (
@@ -256,7 +263,9 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
         )}
 
         <div className="flex gap-2">
-          {!error && receiptPhoto.isSaved && (newRemainingAmount > 0 || bookPhoto.isSaved) ? (
+          {!error &&
+            /* receiptPhoto.isSaved && */ /* TEMPORARILY COMMENTED — receipt upload disabled */
+            (newRemainingAmount > 0 || bookPhoto.isSaved) ? (
             <button
               type="submit"
               disabled={submitLoader}
@@ -270,9 +279,11 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
             </button>
           ) : (
             <div className="mb-4">
+              {/* TEMPORARILY COMMENTED — receipt upload disabled
               <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3 mb-2">
                 📸 Please upload and save receipt photo first
               </p>
+              */}
               {newRemainingAmount === 0 && !bookPhoto.isSaved && (
                 <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3 mb-2">
                   📚 Please upload and save Book Distribution Proof
