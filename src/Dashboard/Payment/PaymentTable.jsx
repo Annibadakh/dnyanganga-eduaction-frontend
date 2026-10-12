@@ -128,14 +128,18 @@ const PaymentTable = () => {
     },
     {
       header: "Receipt",
-      render: (row) => (
-        <button
-          onClick={() => handleViewReceipt(row.receiptPhoto)}
-          className="text-blue-600 hover:underline"
-        >
-          View
-        </button>
-      ),
+      // Only offered when an uploaded receipt path exists — no path, no view.
+      render: (row) =>
+        row.receiptPhoto ? (
+          <button
+            onClick={() => handleViewReceipt(row.receiptPhoto)}
+            className="text-blue-600 hover:underline"
+          >
+            View
+          </button>
+        ) : (
+          <span className="text-gray-400">—</span>
+        ),
     },
     {
       header: "Action",

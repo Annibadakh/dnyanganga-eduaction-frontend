@@ -309,6 +309,8 @@ const RegistrationForm = () => {
     }
   };
 
+  // TEMPORARILY UNUSED — receipt upload commented out; keep for restore
+  // eslint-disable-next-line no-unused-vars
   const handleReceiptPhotoUpload = async (type) => {
     const imageUrl = await receiptPhoto.uploadImage(type);
     if (imageUrl && imageUrl.trim() !== "") {
@@ -740,6 +742,7 @@ const RegistrationForm = () => {
                   </div>
                 )}
 
+                {/* TEMPORARILY COMMENTED — receipt number field disabled
                 <input
                   type="number"
                   name="receiptNo"
@@ -750,6 +753,7 @@ const RegistrationForm = () => {
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm sm:text-base"
                   required
                 />
+                */}
                 <select
                   name="modeOfPayment"
                   value={formData.modeOfPayment}
@@ -798,6 +802,7 @@ const RegistrationForm = () => {
                   onUploadImage={handleStudentPhotoUpload}
                   onRemovePhoto={studentPhoto.removePhoto}
                 />
+                {/* TEMPORARILY COMMENTED — receipt photo upload disabled
                 <FileUpload
                   title="Fees Receipt Photo"
                   imageUrl={receiptPhoto.imageUrl}
@@ -809,6 +814,7 @@ const RegistrationForm = () => {
                   onUploadImage={handleReceiptPhotoUpload}
                   onRemovePhoto={receiptPhoto.removePhoto}
                 />
+                */}
                 {isPaidInFull && (
                   <FileUpload
                     title="Book Distribution Proof"
@@ -827,7 +833,7 @@ const RegistrationForm = () => {
 
             <div className="grid place-items-center w-full">
               {studentPhoto.isSaved &&
-                receiptPhoto.isSaved &&
+                // receiptPhoto.isSaved && /* TEMPORARILY COMMENTED — receipt upload disabled */
                 formData.examCentre &&
                 !paymentError &&
                 (!isPaidInFull || bookPhoto.isSaved) && (
@@ -843,6 +849,9 @@ const RegistrationForm = () => {
                     )}
                   </button>
                 )}
+              {/* TEMPORARILY COMMENTED — receipt upload disabled, so the original
+                  receipt-aware warning block below is unused. Restore it (and drop
+                  the simplified block) when re-enabling receipt upload.
               {(!studentPhoto.isSaved ||
                 !receiptPhoto.isSaved ||
                 !formData.examCentre) && (
@@ -898,6 +907,27 @@ const RegistrationForm = () => {
                         🏫 Please select an Exam Centre
                       </p>
                     )}
+                </div>
+              )}
+              */}
+              {(!studentPhoto.isSaved || !formData.examCentre) && (
+                <div className="mb-4 space-y-2">
+                  {!studentPhoto.isSaved && !formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      📋 Please complete: Upload Student photo and Select Exam
+                      Centre
+                    </p>
+                  )}
+                  {!studentPhoto.isSaved && formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      📸 Please upload and save Student photo
+                    </p>
+                  )}
+                  {studentPhoto.isSaved && !formData.examCentre && (
+                    <p className="text-amber-600 text-sm font-medium bg-amber-50 border border-amber-200 rounded p-3">
+                      🏫 Please select an Exam Centre
+                    </p>
+                  )}
                 </div>
               )}
             </div>
