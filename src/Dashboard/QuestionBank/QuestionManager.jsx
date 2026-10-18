@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   XCircle,
+  Power,
 } from "lucide-react";
 import renderMathText from "../Generic/RenderMathText";
 import MathEditor from "../Generic/MathEditor";
@@ -40,6 +41,13 @@ const DIFFICULTY_MAP = {
 const TYPE_MAP = {
   SINGLE: { label: "Single Choice", cls: "bg-blue-100 text-blue-700" },
   MULTI: { label: "Multi Choice", cls: "bg-purple-100 text-purple-700" },
+};
+
+// Question.usageType: where the question can be used
+const USAGE_MAP = {
+  0: { label: "Quiz Only", cls: "bg-indigo-100 text-indigo-700" },
+  1: { label: "Question Bank Only", cls: "bg-teal-100 text-teal-700" },
+  2: { label: "Quiz + Question Bank", cls: "bg-gray-100 text-gray-700" },
 };
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
@@ -78,7 +86,8 @@ const DeleteConfirmModal = ({ onClose, onConfirm, deleting }) => (
       </div>
       <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Question?</h3>
       <p className="text-sm text-gray-500 mb-6">
-        This action cannot be undone. The question will be permanently removed.
+        This question has never been used in a quiz or attempt, so it will be
+        permanently deleted with its options and images. This cannot be undone.
       </p>
       <div className="flex gap-3">
         <button
@@ -137,6 +146,7 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
   const [topic, setTopic] = useState(initial?.topic ?? "");
   const [type, setType] = useState(initial?.type ?? "SINGLE");
   const [difficulty, setDifficulty] = useState(initial?.difficulty ?? "MEDIUM");
+  const [usageType, setUsageType] = useState(initial?.usageType ?? 2);
   const [marks, setMarks] = useState(initial?.marks ?? "");
   const [solutionDescription, setSolutionDescription] = useState(
     initial?.solutionDescription ?? "",
@@ -251,6 +261,7 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
         topic,
         type,
         difficulty,
+        usageType: Number(usageType),
         marks: marks ? Number(marks) : undefined,
         solutionDescription,
         solutionUrl: solutionImageUrl,
@@ -277,7 +288,7 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
     <div className="flex flex-col gap-0">
       {/* ── Section 1: Details ── */}
       <FormSection label="Details">
-        <div className="grid grid-cols-3 gap-3 mb-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
           <Field label="Topic">
             <input
               className={inputCls}
@@ -305,6 +316,17 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
               <option value="EASY">Easy</option>
               <option value="MEDIUM">Medium</option>
               <option value="HARD">Hard</option>
+            </select>
+          </Field>
+          <Field label="Use In">
+            <select
+              className={inputCls}
+              value={usageType}
+              onChange={(e) => setUsageType(Number(e.target.value))}
+            >
+              <option value={2}>Both</option>
+              <option value={0}>Quiz only</option>
+              <option value={1}>Question bank only</option>
             </select>
           </Field>
         </div>
@@ -357,19 +379,28 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
           </div>
         )}
 
-        {/* ── File upload — compact inline bar ── */}
-        <div className="flex-shrink-0">
-          <FileUpload
-            title=""
-            imageUrl={questionImage.imageUrl}
-            error={questionImage.error}
-            loader={questionImage.loader}
-            isSaved={questionImage.isSaved}
-            imageType="question"
-            onFileUpload={questionImage.handleFileUpload}
-            onUploadImage={handleQuestionImageUpload}
-            onRemovePhoto={questionImage.removePhoto}
-          />
+        {/* ── Image: current stays as-is; generic upload in front to replace ── */}
+        <div className="flex flex-wrap items-start gap-3">
+          {questionImageUrl && !questionImage.imageUrl && (
+            <ImagePreview
+              imagePath={questionImageUrl}
+              alt="Current question image"
+              className="max-h-30"
+            />
+          )}
+          <div className="flex-shrink-0 min-w-52 flex-1">
+            <FileUpload
+              title=""
+              imageUrl={questionImage.imageUrl}
+              error={questionImage.error}
+              loader={questionImage.loader}
+              isSaved={questionImage.isSaved}
+              imageType="question"
+              onFileUpload={questionImage.handleFileUpload}
+              onUploadImage={handleQuestionImageUpload}
+              onRemovePhoto={questionImage.removePhoto}
+            />
+          </div>
         </div>
       </FormSection>
 
@@ -478,19 +509,28 @@ const QuestionForm = ({ chapter, initial, onSave, onClose }) => {
           </div>
         )}
 
-        {/* ── File upload — solution image ── */}
-        <div className="flex-shrink-0">
-          <FileUpload
-            title=""
-            imageUrl={solutionImage.imageUrl}
-            error={solutionImage.error}
-            loader={solutionImage.loader}
-            isSaved={solutionImage.isSaved}
-            imageType="solution"
-            onFileUpload={solutionImage.handleFileUpload}
-            onUploadImage={handleSolutionImageUpload}
-            onRemovePhoto={solutionImage.removePhoto}
-          />
+        {/* ── Image: current stays as-is; generic upload in front to replace ── */}
+        <div className="flex flex-wrap items-start gap-3">
+          {solutionImageUrl && !solutionImage.imageUrl && (
+            <ImagePreview
+              imagePath={solutionImageUrl}
+              alt="Current solution image"
+              className="max-h-30"
+            />
+          )}
+          <div className="flex-shrink-0 min-w-52 flex-1">
+            <FileUpload
+              title=""
+              imageUrl={solutionImage.imageUrl}
+              error={solutionImage.error}
+              loader={solutionImage.loader}
+              isSaved={solutionImage.isSaved}
+              imageType="solution"
+              onFileUpload={solutionImage.handleFileUpload}
+              onUploadImage={handleSolutionImageUpload}
+              onRemovePhoto={solutionImage.removePhoto}
+            />
+          </div>
         </div>
         {/* <textarea
           className={inputCls + " min-h-[80px] resize-y"}
@@ -523,6 +563,7 @@ const QuestionDetailModal = ({ q, onClose }) => (
     <div className="flex flex-wrap gap-2 mb-4">
       <Badge value={q.type} map={TYPE_MAP} />
       <Badge value={q.difficulty} map={DIFFICULTY_MAP} />
+      <Badge value={q.usageType ?? 2} map={USAGE_MAP} />
       {q.topic && (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
           {q.topic}
@@ -617,8 +658,10 @@ const QuestionManager = ({ chapter, onBack }) => {
   const [viewTarget, setViewTarget] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [statusLoadingId, setStatusLoadingId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [usageFilter, setUsageFilter] = useState("");
 
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -635,6 +678,7 @@ const QuestionManager = ({ chapter, onBack }) => {
       const res = await api.get("/question-bank/question", {
         params: {
           chapterId: chapter.id,
+          usageType: usageFilter,
           page,
           limit,
         },
@@ -653,7 +697,7 @@ const QuestionManager = ({ chapter, onBack }) => {
 
   useEffect(() => {
     fetchQuestions();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, usageFilter]);
 
   const confirmDelete = async () => {
     setDeleting(true);
@@ -671,6 +715,24 @@ const QuestionManager = ({ chapter, onBack }) => {
     } finally {
       setDeleting(false);
       setDeleteId(null);
+    }
+  };
+
+  // Activate / deactivate — allowed for every question (never removes data)
+  const toggleStatus = async (row) => {
+    setStatusLoadingId(row.id);
+    try {
+      const res = await api.patch(`/question-bank/question/${row.id}/status`, {
+        status: !row.status,
+      });
+      setQuestions((prev) =>
+        prev.map((q) => (q.id === row.id ? { ...q, status: res.data.status } : q)),
+      );
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to update question status");
+    } finally {
+      setStatusLoadingId(null);
     }
   };
 
@@ -712,6 +774,10 @@ const QuestionManager = ({ chapter, onBack }) => {
     {
       header: "Difficulty",
       render: (row) => <Badge value={row.difficulty} map={DIFFICULTY_MAP} />,
+    },
+    {
+      header: "Use In",
+      render: (row) => <Badge value={row.usageType ?? 2} map={USAGE_MAP} />,
     },
     {
       header: "Marks",
@@ -756,12 +822,23 @@ const QuestionManager = ({ chapter, onBack }) => {
             Edit
           </Button>
           <Button
-            variant="danger"
-            startIcon={<Trash2 size={15} />}
-            onClick={() => setDeleteId(row.id)}
+            variant={row.status ? "outlineDanger" : "success"}
+            loading={statusLoadingId === row.id}
+            startIcon={<Power size={15} />}
+            onClick={() => toggleStatus(row)}
           >
-            Delete
+            {row.status ? "Deactivate" : "Activate"}
           </Button>
+          {/* Permanent delete only for questions never used in a quiz / attempt */}
+          {!row.isUsed && (
+            <Button
+              variant="danger"
+              startIcon={<Trash2 size={15} />}
+              onClick={() => setDeleteId(row.id)}
+            >
+              Delete
+            </Button>
+          )}
         </div>
       ),
     },
@@ -831,6 +908,28 @@ const QuestionManager = ({ chapter, onBack }) => {
           ))}
         </div>
       )}
+
+      {/* ── Use In Filter ── */}
+      <div className="flex justify-end mb-3">
+        <div className="w-full sm:w-64">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Use In
+          </label>
+          <select
+            value={usageFilter}
+            onChange={(e) => {
+              setUsageFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white cursor-pointer"
+          >
+            <option value="">All</option>
+            <option value="0">Quiz only</option>
+            <option value="1">Question bank only</option>
+            <option value="2">Both</option>
+          </select>
+        </div>
+      </div>
 
       {/* ── Table ── */}
       <DataTable

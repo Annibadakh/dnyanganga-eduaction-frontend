@@ -48,7 +48,8 @@ export const visitingEditAccess = [counsellor, subAdmin, admin, followUp];
 export const visitingExportAccess = [admin, subAdmin, counsellor, followUp];
 export const visitingFollowUpAccess = [admin, followUp];
 export const studentReadAccess = [admin, subAdmin, counsellor];
-export const studentUpdateAccess = [admin, subAdmin, counsellor];
+// Full student edit is admin-only; owners use the limited updateStudentByOwner flow
+export const studentUpdateAccess = [admin];
 export const studentDeleteAccess = [admin];
 export const collectionAccess = [admin, subAdmin, counsellor];
 export const collectionManageAccess = [admin];
@@ -74,5 +75,7 @@ export const bulkPdfAccess = [admin];
 export const caAccess = [ca];
 export const userListAccess = [admin, subAdmin, logistics, followUp];
 export const userManageAccess = [admin];
+// User menu: admin manages everyone, sub-admin views own team (read-only)
+export const userMenuAccess = [admin, subAdmin];
 export const examCenterReadAccess = [admin, subAdmin, counsellor, followUp];
 export const examCenterManageAccess = [admin];

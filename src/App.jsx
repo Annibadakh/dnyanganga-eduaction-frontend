@@ -20,6 +20,7 @@ import Quizz from "./Dashboard/Quizz";
 import CounsellorReport from "./Dashboard/CounsellorReport";
 import StudentLogin from "./Components/StudentLogin";
 import StudentQuizPlay from "./Dashboard/Student/StudentQuizPlay";
+import PracticeTest from "./Dashboard/Student/PracticeTest";
 import StudentAllQuizzes from "./Dashboard/Student/StudentAllQuizzes";
 import StudentQuizView from "./Dashboard/Student/StudentQuizView";
 import StudentQuizResult from "./Dashboard/Student/StudentQuizResult";
@@ -35,7 +36,7 @@ import {
   challanAccess,
   registrationTableAccess,
   adminControlsAccess,
-  userManageAccess,
+  userMenuAccess,
   marksAccess,
   questionBankManageAccess,
   quizManageAccess,
@@ -75,6 +76,9 @@ const StandardReceiptBills = lazy(
 );
 const AddUser = lazy(() => import("./Dashboard/AdminControls/AddUser"));
 const AddCenter = lazy(() => import("./Dashboard/AdminControls/AddCenter"));
+const VisitingConversions = lazy(
+  () => import("./Dashboard/AdminControls/VisitingConversions"),
+);
 const AdminCollection = lazy(
   () => import("./Dashboard/Collection/AdminCollection"),
 );
@@ -277,6 +281,10 @@ function App() {
                     element={<GSTReceiptManagement />}
                   />
                   <Route path="examcenter" element={<AddCenter />} />
+                  <Route
+                    path="visiting-conversions"
+                    element={<VisitingConversions />}
+                  />
                   <Route path="collection" element={<AdminCollection />} />
                   <Route
                     path="template"
@@ -288,7 +296,7 @@ function App() {
 
                 <Route
                   element={
-                    <ProtectedRoleBasedRoute allowedRoles={userManageAccess} />
+                    <ProtectedRoleBasedRoute allowedRoles={userMenuAccess} />
                   }
                 >
                   <Route path="user" element={<AddUser />} />
@@ -345,6 +353,7 @@ function App() {
                   element={<StudentQuestions />}
                 />
                 <Route path="quizzes" element={<StudentAllQuizzes />} />
+                <Route path="practice" element={<PracticeTest />} />
                 <Route path="view-quiz/:quizId" element={<StudentQuizView />} />
                 <Route
                   path="result/:studentQuizId"
@@ -352,6 +361,10 @@ function App() {
                 />
               </Route>
               <Route path="play/:quizId" element={<StudentQuizPlay />} />
+              <Route
+                path="practice/play"
+                element={<StudentQuizPlay practice />}
+              />
             </Route>
 
             {/* 404 */}

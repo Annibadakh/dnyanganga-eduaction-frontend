@@ -32,7 +32,7 @@ const StudentQuizResult = () => {
       setTotalPages(res.data.totalPages);
       setTotalQuestions(res.data.totalQuestions);
     } catch (err) {
-      navigate("../history");
+      navigate("/student/home"); // there is no /student/history route
       alert(err.response?.data?.message || "Error");
     }
   };
@@ -55,7 +55,7 @@ const StudentQuizResult = () => {
       <div className="p-2 container mx-auto">
         {/* ── Page Title ── */}
         <h1 className="text-3xl text-center font-bold text-primary mb-2">
-          Quiz Result
+          {data.quizType === "PRACTICE" ? "Practice Result" : "Quiz Result"}
         </h1>
         <p className="text-center text-sm text-gray-400 mb-6">
           Student Quiz ID: {studentQuizId}

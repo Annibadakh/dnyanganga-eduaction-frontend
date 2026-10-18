@@ -49,7 +49,13 @@ const QuizCreate = () => {
     const all = res.data?.data || [];
     setChapters(all);
     setChapterData(
-      all.map((ch) => ({ chapterId: ch.id, name: ch.name, queCount: 0 })),
+      all.map((ch) => ({
+        chapterId: ch.id,
+        name: ch.name,
+        queCount: 0,
+        // active questions usable in a quiz (quiz only / both)
+        available: Number(ch.questionCount) || 0,
+      })),
     );
   };
 
@@ -76,7 +82,13 @@ const QuizCreate = () => {
   const updateCount = (chapterId, value) =>
     setChapterData((prev) =>
       prev.map((ch) =>
-        ch.chapterId === chapterId ? { ...ch, queCount: Number(value) } : ch,
+        ch.chapterId === chapterId
+          ? {
+              ...ch,
+              // never ask for more questions than the chapter has for quizzes
+              queCount: Math.min(Math.max(Number(value) || 0, 0), ch.available),
+            }
+          : ch,
       ),
     );
 
@@ -195,10 +207,20 @@ const QuizCreate = () => {
                 key={ch.chapterId}
                 className="flex items-center justify-between py-2.5"
               >
-                <span className="text-sm text-gray-700">{ch.name}</span>
+                <div>
+                  <span className="text-sm text-gray-700">{ch.name}</span>
+                  <p
+                    className={`text-xs ${ch.available === 0 ? "text-red-500" : "text-gray-400"}`}
+                  >
+                    {ch.available} quiz question
+                    {ch.available !== 1 ? "s" : ""} available
+                  </p>
+                </div>
                 <input
                   type="number"
                   min="0"
+                  max={ch.available}
+                  disabled={ch.available === 0}
                   value={ch.queCount}
                   onChange={(e) => updateCount(ch.chapterId, e.target.value)}
                   className="w-24 p-2 border border-gray-300 rounded-lg text-sm text-center

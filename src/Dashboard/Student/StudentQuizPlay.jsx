@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import api from "../../Api";
 import Button from "../Generic/Button";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useToast } from "../../useToast";
 import {
   ChevronLeft,
@@ -61,9 +61,14 @@ const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const StudentQuizPlay = () => {
+// practice = true → student self-practice: started via /quiz/practice/start with the
+// setup chosen on the Practice Test page (or resumes the open practice attempt)
+const StudentQuizPlay = ({ practice = false }) => {
   const { quizId } = useParams();
+  const location = useLocation();
+  const practiceConfig = location.state?.practiceConfig;
   const navigate = useNavigate();
+  const exitPath = practice ? "/student/practice" : "/student/home";
   const { successToast, errorToast, infoToast } = useToast();
 
   const [meta, setMeta] = useState(null);
@@ -81,6 +86,7 @@ const StudentQuizPlay = () => {
 
   const pausedRef = useRef(false); // sync ref for timer callback
   const submitCalled = useRef(false); // guard against double-submit
+  const startCalled = useRef(false); // guard against double-start
 
   // ── Pause / resume helpers ────────────────────────────────────────────────
   const pauseQuiz = useCallback(() => {
@@ -139,8 +145,12 @@ const StudentQuizPlay = () => {
 
   // ── Start quiz ────────────────────────────────────────────────────────────
   const startQuiz = async () => {
+    if (startCalled.current) return;
+    startCalled.current = true;
     try {
-      const res = await api.post(`/quiz/${quizId}/start`);
+      const res = practice
+        ? await api.post("/quiz/practice/start", practiceConfig || { resume: true })
+        : await api.post(`/quiz/${quizId}/start`);
       const { meta: quizMeta, studentQuizId: sqId } = res.data;
 
       setMeta(quizMeta);
@@ -154,11 +164,18 @@ const StudentQuizPlay = () => {
 
       fetchBatch(sqId, 0);
     } catch (err) {
+      startCalled.current = false;
       const msg = err.response?.data?.message || "Failed to start quiz";
       errorToast(msg);
-      if (msg === "Quiz already submitted") navigate("/student/home");
+      if (practice) navigate(exitPath);
+      else if (msg === "Quiz already submitted") navigate("/student/home");
     }
   };
+
+  // iOS has no Fullscreen API, so the gate is skipped — start straight away
+  useEffect(() => {
+    if (isIOS) startQuiz();
+  }, []); // eslint-disable-line
 
   // Called once after user clicks "Enter Fullscreen & Begin"
   const handleEnterAndStart = async () => {
@@ -176,7 +193,7 @@ const StudentQuizPlay = () => {
 
       if (res.data.autoSubmit) {
         infoToast("Time up! Auto submitted.");
-        navigate("/student/home");
+        navigate(exitPath);
         return;
       }
 
@@ -192,7 +209,7 @@ const StudentQuizPlay = () => {
       const msg = err.response?.data?.message || "Failed to load questions";
       errorToast(msg);
       if (msg === "Quiz already submitted" || msg === "Time up")
-        navigate("/student/home");
+        navigate(exitPath);
     }
   };
 
@@ -278,7 +295,7 @@ const StudentQuizPlay = () => {
       const msg = err.response?.data?.message || "Error saving answer";
       errorToast(msg);
       if (msg === "Time up" || msg === "Quiz already submitted")
-        navigate("/student/home");
+        navigate(exitPath);
     }
   };
 
@@ -294,12 +311,13 @@ const StudentQuizPlay = () => {
       fsApi.exit(); // leave fullscreen cleanly on submit
       await api.post("/quiz/submit", { studentQuizId });
       successToast("Quiz submitted ✅");
-      navigate("/student/history");
+      // Practice results are available right away; scheduled quiz results after the quiz window
+      navigate(practice ? `/student/result/${studentQuizId}` : "/student/quizzes");
     } catch (err) {
       submitCalled.current = false;
       const msg = err.response?.data?.message || "Submit failed";
       errorToast(msg);
-      if (msg === "Already submitted") navigate("/student/home");
+      if (msg === "Already submitted") navigate(exitPath);
     }
   };
 
@@ -352,7 +370,7 @@ const StudentQuizPlay = () => {
           onClick={handleEnterAndStart}
           className="px-8 py-3 bg-primary text-white rounded-xl font-semibold text-sm shadow-sm hover:opacity-90 active:scale-95 transition-all"
         >
-          Enter Fullscreen &amp; Begin Quiz
+          Enter Fullscreen &amp; Begin {practice ? "Practice" : "Quiz"}
         </button>
       </div>
     );

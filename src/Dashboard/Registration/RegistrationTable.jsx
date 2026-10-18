@@ -3,6 +3,7 @@ import { useAuth } from "../../Context/AuthContext";
 import api from "../../Api";
 import PaymentForm from "./PaymentForm";
 import StudentEditPage from "./StudentEditPage";
+import OwnerStudentEdit from "./OwnerStudentEdit";
 import DeleteStudentDialog from "./DeleteStudentDialog";
 import { DashboardContext } from "../../Context/DashboardContext";
 import CustomMultiSelect from "../Generic/CustomMultiSelect";
@@ -31,6 +32,12 @@ import { followupAccess } from "../../utils/roleArrays";
 
 const imgUrl = import.meta.env.VITE_IMG_URL;
 
+const categoryOptions = [
+  { label: "Full Cash", value: "full" },
+  { label: "Half Cash", value: "half" },
+  { label: "Booking", value: "booking" },
+];
+
 const RegistrationTable = () => {
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState([]);
@@ -50,6 +57,7 @@ const RegistrationTable = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [loadingPdfId, setLoadingPdfId] = useState(null);
   const [loadingStatusId, setLoadingStatusId] = useState(null);
+  const [dateField, setDateField] = useState("createdAt");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,13 +70,12 @@ const RegistrationTable = () => {
   const [currentPdfStudent, setCurrentPdfStudent] = useState(null);
   const [showEditStudent, setShowEditStudent] = useState(false);
   const [editStudentId, setEditStudentId] = useState(null);
+  const [ownerEditStudent, setOwnerEditStudent] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [loadingDeleteId, setLoadingDeleteId] = useState(null);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [fullCash, setFullCash] = useState(false);
-  const [halfCash, setHalfCash] = useState(false);
-  const [booking, setBooking] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState([]);
   const [showQuizDetails, setShowQuizDetails] = useState(false);
   const [quizData, setQuizData] = useState(null);
   const [quizLoading, setQuizLoading] = useState(false);
@@ -100,6 +107,26 @@ const RegistrationTable = () => {
       header: "Sr. No.",
       render: (_, index) => (currentPage - 1) * itemsPerPage + index + 1,
     },
+    // Owner edit (photo, Med/Grp, mother name) — counsellor / sub-admin, own students only
+    ...(user.role === "counsellor" || user.role === "sub-admin"
+      ? [
+          {
+            header: "Edit",
+            render: (row) =>
+              row.createdBy === user.uuid ? (
+                <Button
+                  variant="warning"
+                  startIcon={<Edit size={16} />}
+                  onClick={() => setOwnerEditStudent(row)}
+                >
+                  Edit
+                </Button>
+              ) : (
+                "-"
+              ),
+          },
+        ]
+      : []),
     {
       header: "Register Date",
       render: (row) => new Date(row.createdAt).toLocaleDateString("en-GB"),
@@ -327,11 +354,13 @@ const RegistrationTable = () => {
             ? selectedStandard.map((s) => s.value).join(",")
             : "",
         status: selectedStatus,
+        dateField,
         dateFrom,
         dateTo,
-        fullCash,
-        halfCash,
-        booking,
+        category:
+          selectedCategory?.length > 0
+            ? selectedCategory.map((c) => c.value).join(",")
+            : "",
         examYear:
           selectedExamYear?.length > 0
             ? selectedExamYear.map((y) => y.value).join(",")
@@ -384,11 +413,13 @@ const RegistrationTable = () => {
           ? selectedStandard.map((s) => s.value).join(",")
           : "",
       status: selectedStatus,
+      dateField,
       dateFrom: dateFrom,
       dateTo: dateTo,
-      fullCash,
-      halfCash,
-      booking,
+      category:
+        selectedCategory && selectedCategory.length > 0
+          ? selectedCategory.map((c) => c.value).join(",")
+          : "",
       examYear:
         selectedExamYear && selectedExamYear.length > 0
           ? selectedExamYear.map((y) => y.value).join(",")
@@ -422,13 +453,12 @@ const RegistrationTable = () => {
     selectedExamCentre,
     selectedStandard,
     selectedStatus,
+    dateField,
     dateFrom,
     dateTo,
     showPayment,
     showEditStudent,
-    fullCash,
-    halfCash,
-    booking,
+    selectedCategory,
     selectedExamYear,
   ]);
 
@@ -441,11 +471,10 @@ const RegistrationTable = () => {
     selectedExamCentre,
     selectedStandard,
     selectedStatus,
+    dateField,
     dateFrom,
     dateTo,
-    fullCash,
-    halfCash,
-    booking,
+    selectedCategory,
     selectedExamYear,
   ]);
 
@@ -650,6 +679,13 @@ const RegistrationTable = () => {
 
   return (
     <div className="p-2 container mx-auto">
+      {ownerEditStudent && (
+        <OwnerStudentEdit
+          student={ownerEditStudent}
+          onClose={() => setOwnerEditStudent(null)}
+          onSaved={fetchRegistrations}
+        />
+      )}
       {!showPayment ? (
         <>
           <h1 className="text-3xl text-center font-bold text-primary mb-6">
@@ -766,6 +802,21 @@ const RegistrationTable = () => {
                 />
               </div>
 
+              {/* Date Field (which date the From/To range applies to) */}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date Type
+                </label>
+                <select
+                  value={dateField}
+                  onChange={(e) => setDateField(e.target.value)}
+                  className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none transition text-gray-700 cursor-pointer"
+                >
+                  <option value="createdAt">Registration Date</option>
+                  <option value="dueDate">Due Date</option>
+                </select>
+              </div>
+
               {/* From Date */}
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -810,48 +861,18 @@ const RegistrationTable = () => {
               </div>
             </div>
 
-            {/* Category Checkboxes & Download Excel Action Bar */}
-            <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-              <div className="flex flex-wrap gap-4 items-center">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Category:</span>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={fullCash}
-                    className="rounded border-gray-300 text-[#094D9E] focus:ring-[#094D9E] w-4 h-4"
-                    onChange={(e) => {
-                      setFullCash(e.target.checked);
-                      if (e.target.checked) { setHalfCash(false); setBooking(false); }
-                    }}
-                  />
-                  Full Cash
-                </label>
-
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={halfCash}
-                    className="rounded border-gray-300 text-[#094D9E] focus:ring-[#094D9E] w-4 h-4"
-                    onChange={(e) => {
-                      setHalfCash(e.target.checked);
-                      if (e.target.checked) { setFullCash(false); setBooking(false); }
-                    }}
-                  />
-                  Half Cash
-                </label>
-
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={booking}
-                    className="rounded border-gray-300 text-[#094D9E] focus:ring-[#094D9E] w-4 h-4"
-                    onChange={(e) => {
-                      setBooking(e.target.checked);
-                      if (e.target.checked) { setFullCash(false); setHalfCash(false); }
-                    }}
-                  />
-                  Booking
-                </label>
+            {/* Category Multi-Select & Download Excel Action Bar */}
+            <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-end">
+              <div className="w-full sm:w-80">
+                <CustomMultiSelect
+                  label="Category"
+                  options={categoryOptions}
+                  value={selectedCategory}
+                  onChange={setSelectedCategory}
+                  isRequired={false}
+                  isSearchable={false}
+                  placeholder="Select Categories"
+                />
               </div>
 
               <Button
