@@ -28,7 +28,7 @@ import {
   counsellorLikeRoles,
   reportAccess,
   adminControlsAccess,
-  userManageAccess,
+  userMenuAccess,
   registrationTableAccess,
   paymentTableAccess,
   challanAccess,
@@ -83,7 +83,7 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
     {
       path: "user",
       label: "User Details",
-      role: userManageAccess,
+      role: userMenuAccess,
       icon: <FaUsers className="text-lg" />,
     },
     {
@@ -115,6 +115,12 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       label: "Visiting Table",
       role: registrationTableAccess,
       icon: <FaTable className="text-lg" />,
+    },
+    {
+      path: "visiting-conversions",
+      label: "Visit Convert",
+      role: adminControlsAccess,
+      icon: <FaClipboardCheck className="text-lg" />,
     },
     {
       path: "paymenttable",
@@ -187,6 +193,12 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       label: "Quizzes",
       role: ["student"],
       icon: <FaListAlt className="text-lg" />,
+    },
+    {
+      path: "practice",
+      label: "Practice Test",
+      role: ["student"],
+      icon: <FaPlayCircle className="text-lg" />,
     },
     {
       path: "question-bank",

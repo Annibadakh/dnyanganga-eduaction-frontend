@@ -5,6 +5,12 @@ import { DashboardContext } from "../../Context/DashboardContext";
 import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import DateField from "../Generic/DateField";
 
+const categoryOptions = [
+  { label: "Full Cash", value: "full" },
+  { label: "Half Cash", value: "half" },
+  { label: "Booking", value: "booking" },
+];
+
 const Excel = () => {
   const { counsellor, examCenter } = useContext(DashboardContext);
 
@@ -20,8 +26,7 @@ const Excel = () => {
   const [selectedExamYear, setSelectedExamYear] = useState([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [onlyZeroRemaining, setOnlyZeroRemaining] = useState(false);
-  const [onlyNonZeroRemaining, setOnlyNonZeroRemaining] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
 
   const allColumns = [
@@ -191,8 +196,10 @@ const Excel = () => {
             : null,
         fromDate: fromDate || null,
         toDate: toDate || null,
-        onlyZeroRemaining,
-        onlyNonZeroRemaining,
+        category:
+          selectedCategory && selectedCategory.length > 0
+            ? selectedCategory.map((c) => c.value).join(",")
+            : null,
       };
 
       const { data } = await api.post(
@@ -211,8 +218,7 @@ const Excel = () => {
     selectedExamYear,
     fromDate,
     toDate,
-    onlyZeroRemaining,
-    onlyNonZeroRemaining,
+    selectedCategory,
     validateDateRange,
   ]);
 
@@ -250,8 +256,10 @@ const Excel = () => {
             : null,
         fromDate: fromDate || null,
         toDate: toDate || null,
-        onlyZeroRemaining,
-        onlyNonZeroRemaining,
+        category:
+          selectedCategory && selectedCategory.length > 0
+            ? selectedCategory.map((c) => c.value).join(",")
+            : null,
         columns: selectedColumns,
       };
       const { data: filteredStudents } = await api.post(
@@ -381,33 +389,16 @@ const Excel = () => {
           disabled={loading}
         />
 
-        <div className="flex flex-col space-y-2">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={onlyZeroRemaining}
-              onChange={(e) => {
-                setOnlyZeroRemaining(e.target.checked);
-                if (e.target.checked) setOnlyNonZeroRemaining(false);
-              }}
-              disabled={loading}
-            />
-            <span>Full Cash</span>
-          </label>
-
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={onlyNonZeroRemaining}
-              onChange={(e) => {
-                setOnlyNonZeroRemaining(e.target.checked);
-                if (e.target.checked) setOnlyZeroRemaining(false);
-              }}
-              disabled={loading}
-            />
-            <span>Booking/Half Cash</span>
-          </label>
-        </div>
+        <CustomMultiSelect
+          label="Category"
+          options={categoryOptions}
+          value={selectedCategory}
+          onChange={setSelectedCategory}
+          isRequired={false}
+          isSearchable={false}
+          isDisabled={loading}
+          placeholder="Select Categories"
+        />
       </div>
 
       <div>

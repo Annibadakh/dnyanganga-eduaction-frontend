@@ -17,8 +17,17 @@ export const FileUploadHook = () => {
    * The file is already cropped/framed — we just compress it.
    */
   const handleFileUpload = async (e) => {
-    const selectedFile = e.target.files[0];
+    let selectedFile = e.target.files[0];
     if (!selectedFile) return;
+
+    // Some phone galleries hand over files with an empty MIME type — infer it from the extension
+    if (!selectedFile.type) {
+      const ext = (selectedFile.name.split(".").pop() || "").toLowerCase();
+      const byExt = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", pdf: "application/pdf" };
+      if (byExt[ext]) {
+        selectedFile = new File([selectedFile], selectedFile.name, { type: byExt[ext] });
+      }
+    }
 
     const validTypes = [
       "image/jpeg",
@@ -40,6 +49,15 @@ export const FileUploadHook = () => {
     setError("");
 
     if (selectedFile.type.startsWith("image/")) {
+      const ext = selectedFile.name.split(".").pop() || "jpg";
+      // Show the preview (with Remove / Save) straight away — compressing a full-size
+      // phone photo ("No Edit") can take seconds; Save shows a spinner until it's ready.
+      setSaved(false);
+      setImageUrl(URL.createObjectURL(selectedFile));
+      setLoader(true);
+      // Let the browser paint the preview + buttons before the (CPU-heavy) compression starts
+      // (plain timer, not requestAnimationFrame — rAF never fires in a background tab)
+      await new Promise((resolve) => setTimeout(resolve, 80));
       try {
         const options = {
           maxSizeMB: 4, // 300 KB target
@@ -47,7 +65,6 @@ export const FileUploadHook = () => {
         };
 
         const compressedFile = await imageCompression(selectedFile, options);
-        const ext = selectedFile.name.split(".").pop() || "jpg";
         const renamedFile = new File([compressedFile], `${Date.now()}.${ext}`, {
           type: compressedFile.type,
         });
@@ -55,8 +72,11 @@ export const FileUploadHook = () => {
         setFile(renamedFile);
         setImageUrl(URL.createObjectURL(renamedFile));
       } catch (err) {
-        console.error("Compression error:", err);
-        setError("Image compression failed");
+        // Compression failed (e.g. low-memory phone) — upload the original instead
+        console.error("Compression error, using original image:", err);
+        setFile(new File([selectedFile], `${Date.now()}.${ext}`, { type: selectedFile.type }));
+      } finally {
+        setLoader(false);
       }
     } else {
       setFile(selectedFile);

@@ -4,10 +4,15 @@ import { DashboardContext } from "../../Context/DashboardContext";
 import { useToast } from "../../useToast";
 import Pagination from "../Generic/Pagination";
 import DataTable from "../Generic/DataTable";
+import CustomMultiSelect from "../Generic/CustomMultiSelect";
+import { useAuth } from "../../Context/AuthContext";
 
 const AddUser = () => {
   const { getCounsellor } = useContext(DashboardContext);
   const { successToast, errorToast, infoToast } = useToast();
+  const { user } = useAuth();
+  // Sub-admin gets a read-only view of their own team
+  const isAdmin = user?.role === "admin";
 
   const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -52,6 +57,8 @@ const AddUser = () => {
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedSubAdmins, setSelectedSubAdmins] = useState([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -70,14 +77,19 @@ const AddUser = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, itemsPerPage, debouncedSearch]);
+  }, [currentPage, itemsPerPage, debouncedSearch, selectedStatus, selectedSubAdmins]);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedStatus, selectedSubAdmins]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
     api
       .get("/admin/subAdmins")
       .then((res) => setSubAdmins(res.data.data || []))
       .catch((err) => console.error("Error fetching sub-admins", err));
-  }, []);
+  }, [isAdmin]);
 
   const fetchUsers = () => {
     api
@@ -86,6 +98,11 @@ const AddUser = () => {
           page: currentPage,
           limit: itemsPerPage,
           search: debouncedSearch,
+          status: selectedStatus,
+          subAdmin:
+            isAdmin && selectedSubAdmins.length > 0
+              ? selectedSubAdmins.map((s) => s.value).join(",")
+              : "",
         },
       })
       .then((res) => {
@@ -355,6 +372,15 @@ const AddUser = () => {
       render: (row) => row.counsellorBranch || "-",
     },
     {
+      header: "Team Leader",
+      render: (row) =>
+        row.role === "sub-admin" ? (
+          <span className="text-xs font-semibold text-primary">Team Lead</span>
+        ) : (
+          row.subAdmin?.name || "-"
+        ),
+    },
+    {
       header: "Status",
       render: (row) => (
         <span
@@ -368,7 +394,10 @@ const AddUser = () => {
         </span>
       ),
     },
-    {
+  ];
+
+  if (isAdmin) {
+    columns.push({
       header: "Actions",
       render: (row) => (
         <div className="flex justify-left gap-2">
@@ -397,16 +426,16 @@ const AddUser = () => {
           </button>
         </div>
       ),
-    },
-  ];
+    });
+  }
 
   return (
     <div className="p-2 container mx-auto">
       <h1 className="text-3xl font-bold text-center text-primary mb-6">
-        User Management
+        {isAdmin ? "User Management" : "My Team"}
       </h1>
 
-      {!showForm && (
+      {isAdmin && !showForm && (
         <button
           onClick={() => setShowForm(true)}
           className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -415,7 +444,7 @@ const AddUser = () => {
         </button>
       )}
 
-      {showForm && (
+      {isAdmin && showForm && (
         <div className="mt-6 bg-white md:p-6 p-2 shadow-custom">
           <h2 className="text-xl font-semibold mb-4 text-secondary">
             Add New User
@@ -578,7 +607,7 @@ const AddUser = () => {
         </div>
       )}
 
-      {showEditForm && (
+      {isAdmin && showEditForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white m-2 p-4 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl text-secondary font-bold mb-4">Edit User</h2>
@@ -773,14 +802,50 @@ const AddUser = () => {
 
       <div className="mt-6 md:p-6 p-2 bg-white shadow-custom">
         <div className="overflow-x-auto">
-          <div className="flex justify-start">
-            <input
-              type="text"
-              placeholder="Search by name, email, contact..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border rounded-md px-3 py-2 w-full md:w-80"
-            />
+          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-2">
+            <div className="w-full md:w-80">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <input
+                type="text"
+                placeholder="Search by name, email, contact..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border rounded-lg px-3 h-[42px] w-full text-sm"
+              />
+            </div>
+
+            <div className="w-full md:w-48">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white cursor-pointer"
+              >
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            {isAdmin && (
+              <div className="w-full md:w-80">
+                <CustomMultiSelect
+                  label="Sub-admin"
+                  options={subAdmins.map((sa) => ({
+                    label: `${sa.name} (${sa.counsellorBranch || "?"})`,
+                    value: sa.uuid,
+                  }))}
+                  value={selectedSubAdmins}
+                  onChange={setSelectedSubAdmins}
+                  isRequired={false}
+                  placeholder="Select Sub-admins"
+                />
+              </div>
+            )}
           </div>
           <DataTable
             columns={columns}

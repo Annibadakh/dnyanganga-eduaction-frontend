@@ -44,12 +44,22 @@ const STAT_CARDS = [
   { key: "bestScore", title: "Best Score", icon: Award, color: { bg: "bg-amber-50", border: "border-amber-100", iconBg: "bg-amber-100", icon: "text-amber-600" } },
 ];
 
+// Which attempts the statistics cover
+const STAT_TYPES = [
+  { value: "quiz", label: "Quizzes" },
+  { value: "practice", label: "Practice Tests" },
+  { value: "all", label: "All" },
+];
+
 const StudentQuizzDashboard = () => {
   const [data, setData] = useState(null);
+  const [statType, setStatType] = useState("quiz");
 
   const fetchDashboard = async () => {
     try {
-      const res = await api.get("/quiz/student/dashboard");
+      const res = await api.get("/quiz/student/dashboard", {
+        params: { type: statType },
+      });
       setData(res.data);
     } catch (err) {
       console.error(err);
@@ -58,7 +68,7 @@ const StudentQuizzDashboard = () => {
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
+  }, [statType]);
 
   if (!data) return <p>Loading...</p>;
 
@@ -67,6 +77,25 @@ const StudentQuizzDashboard = () => {
       <h1 className="text-2xl text-center font-bold text-primary mb-4">
         Dashboard
       </h1>
+
+      {/* Quiz / Practice switch */}
+      <div className="flex justify-center mb-5">
+        <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+          {STAT_TYPES.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setStatType(t.value)}
+              className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
+                statType === t.value
+                  ? "bg-primary text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
