@@ -488,14 +488,8 @@ const RegistrationTable = () => {
   };
 
   const handlePayment = (student) => {
-    const newStudent = {
-      studentId: student.studentId,
-      studentName: student.studentName,
-      counsellor: user.userName,
-      createdBy: user.uuid,
-      amountRemaining: student.amountRemaining,
-    };
-    setPaymentData(newStudent);
+    // full row: the payment form shows the student's fee details
+    setPaymentData(student);
     setShowPayment(true);
   };
 
