@@ -9,6 +9,7 @@ import SignaturePad from "./SignaturePad";
 import { CONSENT_CHECKBOX_LABEL } from "./consentRules";
 import consentImage from "./formRules.png";
 import { validateStep1, validateStep2 } from "./registrationValidation";
+import { PAYMENT_MODES } from "./paymentValidation";
 
 const STEPS = ["Student Info", "Documents & Consent", "Review & Submit"];
 
@@ -1020,9 +1021,11 @@ const RegistrationForm = () => {
                         className={inputCls("modeOfPayment")}
                       >
                         <option value="">Select Payment Mode</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Online">Online</option>
-                        <option value="cheque">Cheque</option>
+                        {PAYMENT_MODES.map((m) => (
+                          <option key={m} value={m}>
+                            {m}
+                          </option>
+                        ))}
                       </select>
                       <FieldError msg={errors.modeOfPayment} />
                     </div>

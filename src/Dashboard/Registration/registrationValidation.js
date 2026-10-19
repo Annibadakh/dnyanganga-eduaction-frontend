@@ -1,4 +1,5 @@
 import * as yup from "yup";
+import { PAYMENT_MODES } from "./paymentValidation";
 
 const NAME_REGEX = /^[A-Za-z][A-Za-z .']{1,99}$/;
 const MOBILE_REGEX = /^[6-9]\d{9}$/;
@@ -114,7 +115,10 @@ export const step1Schema = yup.object({
       const total = Number(this.parent.totalamount) || 0;
       return v === undefined || v <= total;
     }),
-  modeOfPayment: yup.string().required("Please select payment mode"),
+  modeOfPayment: yup
+    .string()
+    .required("Please select payment mode")
+    .oneOf(PAYMENT_MODES, "Please select payment mode"),
   dueDate: yup.string().test("due-date", "", function (v) {
     const total = Number(this.parent.totalamount) || 0;
     const paid = Number(this.parent.amountPaid) || 0;
