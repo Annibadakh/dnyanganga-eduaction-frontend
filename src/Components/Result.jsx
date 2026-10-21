@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { readDownloadError } from "../utils/downloadError";
 import logo from '../Images/logo3.png';
 
 const Result = () => {
@@ -50,29 +51,24 @@ const Result = () => {
         setError("");
     };
 
-    const getErrorMessage = (err) => {
+    // Messages chosen by the server's error `code` (not by the HTTP status number)
+    const RESULT_ERROR_MESSAGES = {
+        RESULT_DISABLED: "Results are not declared yet.",
+        MISSING_INPUT: "Please fill all the fields.",
+        INVALID_SEAT_NUMBER: "Please check seat number",
+        STUDENT_NOT_FOUND: "Student not found. Please verify your seat number.",
+        MOTHER_NAME_MISMATCH: "Mother's name does not match our records. Please check and try again.",
+        NOT_ELIGIBLE: "Result is not available for this standard.",
+    };
+
+    const getErrorMessage = async (err) => {
         if (err.response) {
-            const status = err.response.status;
-            const errorData = err.response.data;
-            
-            // If backend sends JSON error
-            if (errorData?.error) {
-                return errorData.error;
-            }
-            
-            // Status-based messages
-            switch (status) {
-                case 400:
-                    return "Please check seat number";
-                case 403:
-                    return "Student not found. Please verify your seat number.";
-                case 404:
-                    return "Mother's name does not match our records. Please check and try again.";
-                case 500:
-                    return "Server error. Please try again later.";
-                default:
-                    return "An unexpected error occurred. Please try again.";
-            }
+            const { code, message } = await readDownloadError(err);
+            if (code && RESULT_ERROR_MESSAGES[code]) return RESULT_ERROR_MESSAGES[code];
+            if (message) return message;
+            return err.response.status >= 500
+                ? "Server error. Please try again later."
+                : "An unexpected error occurred. Please try again.";
         } else if (err.request) {
             return "Network error. Please check your internet connection.";
         } else {
@@ -117,7 +113,7 @@ const Result = () => {
             setError("");
         } catch (err) {
             console.error("Error fetching result:", err);
-            const errorMessage = getErrorMessage(err);
+            const errorMessage = await getErrorMessage(err);
             setError(errorMessage);
         } finally {
             setGenerateLoader(false);

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { readDownloadError } from "../utils/downloadError";
 import { useNavigate } from "react-router-dom";
 import logo from '../Images/logo3.png';
 
@@ -37,18 +38,17 @@ const HallTicket = () => {
             setPdfUrl(url);
             setShowPreview(true);
         } catch (err) {
-            if(err.status == 403){
-                alert("Student not found !!");
-            }
-            else if(err.status == 404){
-                alert("Mother name does not match !!");
-            }
-            else if(err.status == 405){
-                alert(`Hall Ticket is only available for ${new Date().getFullYear()+1} exam year.`);
-            }
-            else {
-                alert("An error occurred while generating the hall ticket.");
-            }
+            // Message chosen by the server's error `code` (not by the HTTP status number)
+            const HALLTICKET_ERROR_MESSAGES = {
+                HALLTICKET_DISABLED: "Hall tickets are not available yet.",
+                MISSING_INPUT: "Please enter Student ID or name, and mother's name.",
+                STUDENT_NOT_FOUND: "Student not found !!",
+                MOTHER_NAME_MISMATCH: "Mother name does not match !!",
+                STANDARD_NOT_FOUND: "Student's standard is not configured. Please contact the office.",
+            };
+            const { code, message } = await readDownloadError(err);
+            // NOT_EXAM_YEAR / NOT_ELIGIBLE carry a specific message from the server
+            alert(HALLTICKET_ERROR_MESSAGES[code] || message || "An error occurred while generating the hall ticket.");
         } finally {
             setGenerateLoader(false);
         }
