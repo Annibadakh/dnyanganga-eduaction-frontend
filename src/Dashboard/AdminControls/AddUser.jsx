@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import api from "../../Api";
 import { DashboardContext } from "../../Context/DashboardContext";
 import { useToast } from "../../useToast";
@@ -6,54 +6,20 @@ import Pagination from "../Generic/Pagination";
 import DataTable from "../Generic/DataTable";
 import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import { useAuth } from "../../Context/AuthContext";
+import UserForm from "./UserForm";
 
 const AddUser = () => {
   const { getCounsellor } = useContext(DashboardContext);
-  const { successToast, errorToast, infoToast } = useToast();
+  const { infoToast } = useToast();
   const { user } = useAuth();
   // Sub-admin gets a read-only view of their own team
   const isAdmin = user?.role === "admin";
 
   const [users, setUsers] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [submitLoader, setSubmitLoader] = useState(false);
   const [updateLoader, setUpdateLoader] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showReenterPassword, setShowReenterPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [editLoader, setEditLoader] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isEditingPassword, setIsEditingPassword] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    name: "",
-    email: "",
-    role: "counsellor",
-    contactNum: "",
-    counsellorBranch: "",
-    commission: "",
-    dob: "",
-    joiningDate: "",
-    password: "",
-    reenterPassword: "",
-  });
-
   const [subAdmins, setSubAdmins] = useState([]);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    role: "counsellor",
-    contactNum: "",
-    counsellorBranch: "",
-    commission: "",
-    dob: "",
-    joiningDate: "",
-    subAdminId: "",
-    password: "",
-    reenterPassword: "",
-  });
+  // Add / Edit form: null = list view, "new" = add, a user row = edit
+  const [formUser, setFormUser] = useState(null);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -117,156 +83,6 @@ const AddUser = () => {
       });
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const updated = { ...formData, [name]: value };
-    setFormData(updated);
-
-    if (name === "password" || name === "reenterPassword") {
-      const password = name === "password" ? value : formData.password;
-      const reenterPassword =
-        name === "reenterPassword" ? value : formData.reenterPassword;
-      if (reenterPassword && password !== reenterPassword) {
-        setPasswordError("Passwords do not match");
-      } else if (password && password.length < 6) {
-        setPasswordError("Password must be at least 6 characters long");
-      } else {
-        setPasswordError("");
-      }
-    }
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    const updated = { ...editFormData, [name]: value };
-    setEditFormData(updated);
-
-    if (name === "password" || name === "reenterPassword") {
-      const password = name === "password" ? value : editFormData.password;
-      const reenterPassword =
-        name === "reenterPassword" ? value : editFormData.reenterPassword;
-      if (reenterPassword && password !== reenterPassword) {
-        setPasswordError("Passwords do not match");
-      } else if (password && password.length < 6) {
-        setPasswordError("Password must be at least 6 characters long");
-      } else {
-        setPasswordError("");
-      }
-    }
-  };
-
-  const validatePasswords = () => {
-    if (formData.password !== formData.reenterPassword) {
-      setPasswordError("Passwords do not match");
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setPasswordError("Password must be at least 6 characters long");
-      return false;
-    }
-    return true;
-  };
-
-  const validateEditPasswords = () => {
-    if (isEditingPassword) {
-      if (editFormData.password !== editFormData.reenterPassword) {
-        setPasswordError("Passwords do not match");
-        return false;
-      }
-      if (editFormData.password && editFormData.password.length < 6) {
-        setPasswordError("Password must be at least 6 characters long");
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!validatePasswords()) return;
-
-    const newUser = {
-      ...formData,
-      counsellorBranch:
-        formData.role === "counsellor" || formData.role === "sub-admin"
-          ? formData.counsellorBranch
-          : null,
-    };
-    delete newUser.reenterPassword;
-
-    setSubmitLoader(true);
-    api
-      .post("/auth/register", newUser)
-      .then((res) => {
-        successToast(res.data.message);
-        fetchUsers();
-        getCounsellor();
-        setShowForm(false);
-        setFormData({
-          name: "",
-          email: "",
-          role: "counsellor",
-          contactNum: "",
-          counsellorBranch: "",
-          commission: "",
-          dob: "",
-          joiningDate: "",
-          subAdminId: "",
-          password: "",
-          reenterPassword: "",
-        });
-      })
-      .catch((err) => {
-        console.error("Error adding user", err);
-        errorToast(err.response?.data?.message || "Something went wrong");
-      })
-      .finally(() => {
-        setSubmitLoader(false);
-      });
-  };
-
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    if (!validateEditPasswords()) return;
-
-    setEditLoader(true);
-    const updateData = {
-      name: editFormData.name,
-      email: editFormData.email,
-      role: editFormData.role,
-      contactNum: editFormData.contactNum,
-      counsellorBranch: editFormData.counsellorBranch,
-      commission: editFormData.commission,
-      dob: editFormData.dob,
-      joiningDate: editFormData.joiningDate,
-    };
-
-    if (editFormData.role === "counsellor") {
-      updateData.subAdminId = editFormData.subAdminId || null;
-    }
-
-    // Only include password if it's being changed
-    if (isEditingPassword && editFormData.password) {
-      updateData.password = editFormData.password;
-    }
-
-    api
-      .put(`/admin/editUser/${selectedUser.uuid}`, updateData)
-      .then((res) => {
-        successToast(res.data.message);
-        fetchUsers();
-        getCounsellor();
-        closeEditForm();
-      })
-      .catch((err) => {
-        console.error("Error updating user", err);
-        errorToast(err.response?.data?.message || "Something went wrong");
-      })
-      .finally(() => {
-        setEditLoader(false);
-      });
-  };
-
   const handleDelete = (uuid) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this user?\nIf user has no registration then user get deleted else deactivated !!",
@@ -286,44 +102,6 @@ const AddUser = () => {
         console.error("Error deleting user", err);
         setUpdateLoader(null);
       });
-  };
-
-  const openEditForm = (user) => {
-    setSelectedUser(user);
-    setEditFormData({
-      name: user.name || "",
-      email: user.email || "",
-      role: user.role || "counsellor",
-      contactNum: user.contactNum || "",
-      counsellorBranch: user.counsellorBranch || "",
-      commission: user.commission || "",
-      dob: user.dob ? user.dob.split("T")[0] : "",
-      subAdminId: user.subAdminId || "",
-      password: "",
-      reenterPassword: "",
-    });
-    setIsEditingPassword(false);
-    setShowEditForm(true);
-  };
-
-  const closeEditForm = () => {
-    setShowEditForm(false);
-    setSelectedUser(null);
-    setEditFormData({
-      name: "",
-      email: "",
-      role: "counsellor",
-      contactNum: "",
-      counsellorBranch: "",
-      commission: "",
-      dob: "",
-      password: "",
-      reenterPassword: "",
-    });
-    setPasswordError("");
-    setShowPassword(false);
-    setShowReenterPassword(false);
-    setIsEditingPassword(false);
   };
 
   const handlePageChange = (page) => {
@@ -402,7 +180,7 @@ const AddUser = () => {
       render: (row) => (
         <div className="flex justify-left gap-2">
           <button
-            onClick={() => openEditForm(row)}
+            onClick={() => setFormUser(row)}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
           >
             Edit
@@ -429,375 +207,36 @@ const AddUser = () => {
     });
   }
 
+  if (isAdmin && formUser) {
+    return (
+      <div className="p-2 container mx-auto">
+        <UserForm
+          user={formUser === "new" ? null : formUser}
+          subAdmins={subAdmins}
+          onCancel={() => setFormUser(null)}
+          onSaved={() => {
+            setFormUser(null);
+            fetchUsers();
+            getCounsellor();
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="p-2 container mx-auto">
       <h1 className="text-3xl font-bold text-center text-primary mb-6">
         {isAdmin ? "User Management" : "My Team"}
       </h1>
 
-      {isAdmin && !showForm && (
+      {isAdmin && (
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => setFormUser("new")}
           className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700"
         >
           Add User
         </button>
-      )}
-
-      {isAdmin && showForm && (
-        <div className="mt-6 bg-white md:p-6 p-2 shadow-custom">
-          <h2 className="text-xl font-semibold mb-4 text-secondary">
-            Add New User
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="name"
-                placeholder="Name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="p-2 border rounded-md"
-              />
-              <input
-                type="text"
-                name="contactNum"
-                placeholder="Contact Number"
-                value={formData.contactNum}
-                onChange={handleChange}
-                required
-                className="p-2 border rounded-md"
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="p-2 border rounded-md"
-              />
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="p-2 pr-10 border rounded-md w-full"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-2 text-gray-500"
-                >
-                  {showPassword ? "👁️" : "👁️‍🗨️"}
-                </button>
-              </div>
-              <div className="relative">
-                <input
-                  type={showReenterPassword ? "text" : "password"}
-                  name="reenterPassword"
-                  placeholder="Re-enter Password"
-                  value={formData.reenterPassword}
-                  onChange={handleChange}
-                  required
-                  className={`p-2 pr-10 border rounded-md w-full ${passwordError ? "border-red-500" : ""}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowReenterPassword(!showReenterPassword)}
-                  className="absolute right-2 top-2 text-gray-500"
-                >
-                  {showReenterPassword ? "👁️" : "👁️‍🗨️"}
-                </button>
-                {passwordError && (
-                  <p className="text-red-500 text-sm mt-1">{passwordError}</p>
-                )}
-              </div>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="p-2 border rounded-md"
-              >
-                <option value="counsellor">Counsellor</option>
-                <option value="sub-admin">Sub-admin</option>
-                <option value="teacher">Teacher</option>
-                <option value="logistics">Logistics</option>
-                <option value="followUp">Follow-up</option>
-                <option value="ca">CA</option>
-              </select>
-
-              <div className="flex flex-row items-center gap-2">
-                <p>DOB:</p>
-                <input
-                  type="date"
-                  name="dob"
-                  placeholder="Date of Birth"
-                  value={formData.dob}
-                  onChange={handleChange}
-                  required
-                  className="p-2 border w-full rounded-md"
-                />
-              </div>
-              <div className="flex flex-row items-center gap-2">
-                <p>Joining Date:</p>
-                <input
-                  type="date"
-                  name="joiningDate"
-                  placeholder="Joining Date"
-                  value={formData.joiningDate}
-                  onChange={handleChange}
-                  required
-                  className="p-2 border w-full rounded-md"
-                />
-              </div>
-              {formData.role === "counsellor" && (
-                  <select
-                    name="subAdminId"
-                    value={formData.subAdminId || ""}
-                    onChange={handleChange}
-                    className="p-2 border rounded-md"
-                  >
-                    <option value="">No leader (report directly to admin)</option>
-                    {subAdmins.map((sa) => (
-                      <option key={sa.uuid} value={sa.uuid}>
-                        {sa.name} ({sa.counsellorBranch || "?"})
-                      </option>
-                    ))}
-                  </select>
-                )}
-                {(formData.role === "counsellor" || formData.role === "sub-admin") && (
-                <input
-                  type="text"
-                  name="counsellorBranch"
-                  placeholder="Branch"
-                  value={formData.counsellorBranch}
-                  onChange={handleChange}
-                  required
-                  className="p-2 border rounded-md"
-                />
-              )}
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={submitLoader}
-                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:opacity-50"
-              >
-                {submitLoader ? (
-                  <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block"></span>
-                ) : (
-                  "Submit"
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                disabled={submitLoader}
-                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {isAdmin && showEditForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white m-2 p-4 rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl text-secondary font-bold mb-4">Edit User</h2>
-            <p className="text-sm mb-4 text-gray-700">
-              Editing user:{" "}
-              <strong className="text-primary">{selectedUser?.name}</strong>
-            </p>
-
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Name"
-                  value={editFormData.name}
-                  onChange={handleEditChange}
-                  required
-                  className="p-2 border rounded-md"
-                />
-                <input
-                  type="text"
-                  name="contactNum"
-                  placeholder="Contact Number"
-                  value={editFormData.contactNum}
-                  onChange={handleEditChange}
-                  required
-                  className="p-2 border rounded-md"
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={editFormData.email}
-                  onChange={handleEditChange}
-                  required
-                  className="p-2 border rounded-md"
-                />
-                <select
-                  name="role"
-                  value={editFormData.role}
-                  onChange={handleEditChange}
-                  className="p-2 border rounded-md"
-                >
-                  <option value="counsellor">Counsellor</option>
-                  <option value="sub-admin">Sub-admin</option>
-                  <option value="teacher">Teacher</option>
-                  <option value="logistics">Logistics</option>
-                  <option value="followUp">Follow-up</option>
-                  <option value="ca">CA</option>
-                </select>
-                {(editFormData.role === "counsellor" || editFormData.role === "sub-admin") && (
-                  <input
-                    type="text"
-                    name="counsellorBranch"
-                    placeholder="Branch"
-                    value={editFormData.counsellorBranch}
-                    onChange={handleEditChange}
-                    required
-                    className="p-2 border rounded-md"
-                  />
-                )}
-                {editFormData.role === "counsellor" && (
-                  <select
-                    name="subAdminId"
-                    value={editFormData.subAdminId || ""}
-                    onChange={handleEditChange}
-                    className="p-2 border rounded-md"
-                  >
-                    <option value="">No leader (report directly to admin)</option>
-                    {subAdmins.map((sa) => (
-                      <option key={sa.uuid} value={sa.uuid}>
-                        {sa.name} ({sa.counsellorBranch || "?"})
-                      </option>
-                    ))}
-                  </select>
-                )}
-                <div className="flex flex-row items-center gap-2">
-                  <p>DOB:</p>
-                  <input
-                    type="date"
-                    name="dob"
-                    placeholder="Date of Birth"
-                    value={editFormData.dob}
-                    onChange={handleEditChange}
-                    required
-                    className="p-2 border rounded-md"
-                  />
-                </div>
-                <div className="flex flex-row items-center gap-2">
-                  <p>Joining Date:</p>
-                  <input
-                    type="date"
-                    name="joiningDate"
-                    placeholder="Joining Date"
-                    value={editFormData.joiningDate}
-                    onChange={handleEditChange}
-                    required
-                    className="p-2 border rounded-md"
-                  />
-                </div>
-              </div>
-
-              {/* Password Change Section */}
-              <div className="border-t pt-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <input
-                    type="checkbox"
-                    id="changePassword"
-                    checked={isEditingPassword}
-                    onChange={(e) => setIsEditingPassword(e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <label
-                    htmlFor="changePassword"
-                    className="text-sm font-medium"
-                  >
-                    Change Password
-                  </label>
-                </div>
-
-                {isEditingPassword && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        placeholder="New Password"
-                        value={editFormData.password}
-                        onChange={handleEditChange}
-                        className="w-full p-2 pr-10 border rounded-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2 top-2 text-gray-500"
-                      >
-                        {showPassword ? "👁️" : "👁️‍🗨️"}
-                      </button>
-                    </div>
-                    <div className="relative">
-                      <input
-                        type={showReenterPassword ? "text" : "password"}
-                        name="reenterPassword"
-                        placeholder="Re-enter New Password"
-                        value={editFormData.reenterPassword}
-                        onChange={handleEditChange}
-                        className={`w-full p-2 pr-10 border rounded-md ${passwordError ? "border-red-500" : ""}`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowReenterPassword(!showReenterPassword)
-                        }
-                        className="absolute right-2 top-2 text-gray-500"
-                      >
-                        {showReenterPassword ? "👁️" : "👁️‍🗨️"}
-                      </button>
-                    </div>
-                    {passwordError && (
-                      <p className="text-red-500 text-sm col-span-full">
-                        {passwordError}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <button
-                  type="submit"
-                  disabled={editLoader}
-                  className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:opacity-50"
-                >
-                  {editLoader ? (
-                    <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full inline-block"></span>
-                  ) : (
-                    "Update User"
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={closeEditForm}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
       )}
 
       <div className="mt-6 md:p-6 p-2 bg-white shadow-custom">

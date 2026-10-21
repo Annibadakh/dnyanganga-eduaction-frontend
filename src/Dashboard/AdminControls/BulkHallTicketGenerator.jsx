@@ -35,66 +35,114 @@ export default function BulkHallTicketGenerator({ centerId, onClose }) {
     };
   }, []);
 
+  // Server-Sent Events read through fetch() so the admin's login token can be sent
+  // (the browser EventSource API cannot send an Authorization header).
+  const handleEvent = (data) => {
+    if (data.stage === "error") {
+      setError(data.message);
+      return true;
+    }
+
+    if (data.stage === "complete") {
+      setProgress({
+        stage: "complete",
+        message: data.message,
+        current: data.totalGenerated,
+        total: data.totalGenerated,
+        totalStudents: data.totalGenerated,
+      });
+
+      // Convert base64 to blob
+      const byteCharacters = atob(data.pdfData);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+      setPdfBlob(blob);
+      setIsComplete(true);
+      return true;
+    }
+
+    setProgress(data);
+    return false;
+  };
+
   const generateTickets = async () => {
     setError("");
     setPdfUrl(null);
     setIsComplete(false);
 
+    const controller = new AbortController();
+    eventSourceRef.current = { close: () => controller.abort() };
+
     try {
-      // Create EventSource for SSE
       const apiBaseUrl =
         import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const eventSource = new EventSource(
-        `${apiBaseUrl}/pdf/bulk-generate-progress?centerId=${centerId}`,
+      let token = "";
+      try {
+        token = JSON.parse(localStorage.getItem("user"))?.token || "";
+      } catch {
+        token = "";
+      }
+
+      const response = await fetch(
+        `${apiBaseUrl}/pdf/bulk-generate-progress?centerId=${encodeURIComponent(centerId)}`,
+        {
+          headers: { Authorization: `Bearer ${token}`, Accept: "text/event-stream" },
+          signal: controller.signal,
+        },
       );
-      eventSourceRef.current = eventSource;
 
-      eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        // console.log('SSE Data:', data);
-        if (data.stage === "error") {
-          setError(data.message);
-          eventSource.close();
-          return;
+      if (response.status === 401) {
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+        return;
+      }
+      if (!response.ok || !response.body) {
+        let message = "Error generating hall tickets.";
+        try {
+          message = (await response.json()).message || message;
+        } catch {
+          // non-JSON error body
         }
+        setError(message);
+        return;
+      }
 
-        if (data.stage === "complete") {
-          setProgress({
-            stage: "complete",
-            message: data.message,
-            current: data.totalGenerated,
-            total: data.totalGenerated,
-            totalStudents: data.totalGenerated,
-          });
-
-          // Convert base64 to blob
-          const byteCharacters = atob(data.pdfData);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
+      // Parse the SSE stream: events are separated by a blank line, data lines start with "data: "
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let finished = false;
+      while (!finished) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let sep;
+        while ((sep = buffer.indexOf("\n\n")) !== -1) {
+          const rawEvent = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          const dataLines = rawEvent
+            .split("\n")
+            .filter((line) => line.startsWith("data:"))
+            .map((line) => line.slice(5).trimStart());
+          if (dataLines.length === 0) continue; // heartbeat / comment
+          if (handleEvent(JSON.parse(dataLines.join("\n")))) {
+            finished = true;
+            controller.abort();
+            break;
           }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: "application/pdf" });
-
-          const url = URL.createObjectURL(blob);
-          setPdfUrl(url);
-          setPdfBlob(blob);
-          setIsComplete(true);
-          eventSource.close();
-          return;
         }
-
-        setProgress(data);
-      };
-
-      eventSource.onerror = (err) => {
-        console.error("EventSource error:", err);
-        setError("Connection error. Please try again.");
-        eventSource.close();
-      };
+      }
     } catch (err) {
-      setError(err.message || "Error generating hall tickets.");
-      console.error(err);
+      if (err.name === "AbortError") return;
+      console.error("Bulk hall ticket stream error:", err);
+      setError("Connection error. Please try again.");
     }
   };
 
