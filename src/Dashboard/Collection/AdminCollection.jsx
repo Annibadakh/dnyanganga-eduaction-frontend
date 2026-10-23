@@ -5,11 +5,11 @@ import EditTransactionModal from "./EditTransactionModal";
 import Pagination from "../Generic/Pagination";
 import { useToast } from "../../useToast";
 import { Pencil, Trash2 } from "lucide-react";
+import { fileUrl } from "../../utils/fileUrl";
 
 const AdminCollection = () => {
   const { successToast, errorToast, infoToast } = useToast();
 
-  const imgUrl = import.meta.env.VITE_IMG_URL;
   const [users, setUsers] = useState([]);
   const [transactions, setTransactions] = useState([]);
 
@@ -152,7 +152,7 @@ const AdminCollection = () => {
 
   const handleViewProof = (url) => {
     if (url) {
-      setSelectedProofUrl(`${imgUrl}${url}`);
+      setSelectedProofUrl(fileUrl(url));
       setShowProofModal(true);
     } else {
       infoToast("No proof image available.");

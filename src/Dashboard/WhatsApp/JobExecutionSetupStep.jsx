@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
+import { fileUrl } from "../../utils/fileUrl";
 
 const JobExecutionSetupStep = ({
   template,
@@ -232,7 +233,7 @@ const JobExecutionSetupStep = ({
                   ? "Job Header Video"
                   : "Job Header Document"
             }
-            imageUrl={jobHeaderFile.imageUrl || jobHeaderUrl}
+            imageUrl={jobHeaderFile.imageUrl || fileUrl(jobHeaderUrl)}
             error={jobHeaderFile.error}
             loader={jobHeaderFile.loader}
             isSaved={jobHeaderFile.isSaved || !!jobHeaderUrl}

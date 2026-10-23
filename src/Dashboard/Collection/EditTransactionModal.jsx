@@ -4,10 +4,10 @@ import api from "../../Api";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
 import {useToast} from "../../useToast";
+import { fileUrl } from "../../utils/fileUrl";
 
 
 const EditTransactionModal = ({ isOpen, onClose, transaction, onSuccess }) => {
-  const imgUrl = import.meta.env.VITE_IMG_URL;
     const { successToast, errorToast, infoToast } = useToast();
   
   
@@ -204,7 +204,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onSuccess }) => {
                             {transaction.proofUrl ? (
                               <div className="relative">
                                 <img
-                                  src={`${imgUrl}${transaction.proofUrl}`}
+                                  src={fileUrl(transaction.proofUrl)}
                                   alt="Current payment proof"
                                   className="w-40 h-48 object-cover border-2 border-gray-300 rounded-lg shadow-md"
                                   onError={(e) => {

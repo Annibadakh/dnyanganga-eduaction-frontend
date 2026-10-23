@@ -10,6 +10,7 @@ import { CONSENT_CHECKBOX_LABEL } from "./consentRules";
 import consentImage from "./formRules.png";
 import { validateStep1, validateStep2 } from "./registrationValidation";
 import { PAYMENT_MODES } from "./paymentValidation";
+import { fileUrl } from "../../utils/fileUrl";
 
 const STEPS = ["Student Info", "Documents & Consent", "Review & Submit"];
 
@@ -1253,7 +1254,7 @@ const RegistrationForm = () => {
                       <p className="text-sm text-gray-600 mb-1">Signature</p>
                       {formData.signatureUrl && (
                         <img
-                          src={`${import.meta.env.VITE_IMG_URL}${formData.signatureUrl}`}
+                          src={fileUrl(formData.signatureUrl)}
                           alt="Signature"
                           className="max-h-24 w-auto object-contain border rounded bg-white p-1"
                         />

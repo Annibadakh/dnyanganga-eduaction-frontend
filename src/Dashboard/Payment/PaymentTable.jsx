@@ -9,6 +9,7 @@ import ImageViewerModal from "../Generic/ImageViewerModal";
 import PdfViewerModal from "../Generic/PdfViewerModal";
 import Button from "../Generic/Button";
 import { FileText, IndianRupee, Search } from "lucide-react";
+import { fileUrl } from "../../utils/fileUrl";
 
 const capitalizeFirstLetter = (string) => {
   if (!string || typeof string !== "string") {
@@ -51,7 +52,6 @@ const PaymentTable = () => {
 
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-  const imgUrl = import.meta.env.VITE_IMG_URL;
 
   const columns = [
     {
@@ -278,7 +278,7 @@ const PaymentTable = () => {
 
   const handleViewReceipt = (receiptPhoto) => {
     if (receiptPhoto) {
-      setSelectedReceiptUrl(`${imgUrl}${receiptPhoto}`);
+      setSelectedReceiptUrl(fileUrl(receiptPhoto));
       setShowReceiptModal(true);
     } else {
       alert("No receipt image available.");

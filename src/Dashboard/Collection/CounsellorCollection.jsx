@@ -6,6 +6,7 @@ import FileUpload from "../FileUpload/FileUpload";
 import { Dialog, Transition } from "@headlessui/react";
 import Pagination from "../Generic/Pagination";
 import {useToast} from "../../useToast";
+import { fileUrl } from "../../utils/fileUrl";
 
 const CounsellorCollection = () => {
   const { user } = useAuth();
@@ -54,7 +55,6 @@ const CounsellorCollection = () => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  const imgUrl = import.meta.env.VITE_IMG_URL;
 
   // Fetch collection summary
   const fetchCollection = async (counsellorId) => {
@@ -194,7 +194,7 @@ const CounsellorCollection = () => {
   const handleViewProof = (url) => {
     if (url) {
       setProofLoading(true);
-      setSelectedReceiptUrl(`${imgUrl}${url}`);
+      setSelectedReceiptUrl(fileUrl(url));
       setShowReceiptModal(true);
     } else {
       infoToast("No proof available.");

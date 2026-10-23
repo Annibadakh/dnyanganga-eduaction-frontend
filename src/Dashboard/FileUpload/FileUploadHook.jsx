@@ -2,10 +2,9 @@
 import { useState } from "react";
 import imageCompression from "browser-image-compression";
 import api from "../../Api";
+import { fileUrl } from "../../utils/fileUrl";
 
 export const FileUploadHook = () => {
-  const imgUrl = import.meta.env.VITE_IMG_URL;
-
   const [imageUrl, setImageUrl] = useState("");
   const [file, setFile] = useState(null);
   const [isSaved, setSaved] = useState(false);
@@ -99,13 +98,14 @@ export const FileUploadHook = () => {
       });
 
       if (response.data.imageUrl) {
-        setImageUrl(`${imgUrl}${response.data.imageUrl}`);
+        setImageUrl(fileUrl(response.data.imageUrl));
         setSaved(true);
         return response.data.imageUrl;
       }
     } catch (error) {
       console.error("Error uploading file:", error);
-      setError("Failed to upload file. Please try again.");
+      // the server explains size / type problems (e.g. "File is too large (max 10 MB)")
+      setError(error.response?.data?.error || "Failed to upload file. Please try again.");
       return null;
     } finally {
       setLoader(false);
