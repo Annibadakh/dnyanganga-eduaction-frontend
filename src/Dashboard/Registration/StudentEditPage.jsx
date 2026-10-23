@@ -3,9 +3,9 @@ import api from "../../Api";
 import { useAuth } from "../../Context/AuthContext";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
+import { fileUrl } from "../../utils/fileUrl";
 
 const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
-  const imgUrl = import.meta.env.VITE_IMG_URL;
   const { user } = useAuth();
 
   // Student data states
@@ -337,8 +337,8 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   };
 
   // Handle photo upload
-  const handleStudentPhotoUpload = async () => {
-    const imageUrl = await studentPhoto.uploadImage();
+  const handleStudentPhotoUpload = async (type = "students") => {
+    const imageUrl = await studentPhoto.uploadImage(type);
 
     if (imageUrl && imageUrl.trim() !== "") {
       setFormData((prevData) => ({
@@ -457,7 +457,7 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                           {studentData.studentPhoto ? (
                             <div className="relative">
                               <img
-                                src={`${imgUrl}${studentData.studentPhoto}`}
+                                src={fileUrl(studentData.studentPhoto)}
                                 alt="Current student photo"
                                 className="w-32 sm:w-40 h-40 sm:h-48 object-cover border-2 border-gray-300 rounded-lg shadow-md"
                                 onError={(e) => {

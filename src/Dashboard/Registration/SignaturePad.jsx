@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../../Api";
+import { fileUrl } from "../../utils/fileUrl";
 
 // Draw-to-sign pad (finger / stylus / mouse). On "Save Signature" the drawing is
 // uploaded as a PNG to uploads/signature and onSaved(url) receives the stored path.
 const SignaturePad = ({ savedUrl, onSaved, onCleared }) => {
-  const imgUrl = import.meta.env.VITE_IMG_URL;
   const canvasRef = useRef(null);
   const wrapperRef = useRef(null);
   const drawing = useRef(false);
@@ -126,7 +126,7 @@ const SignaturePad = ({ savedUrl, onSaved, onCleared }) => {
       <div className="w-full md:w-1/2">
         <div className="border rounded bg-white p-2 flex justify-center">
           <img
-            src={`${imgUrl}${savedUrl}`}
+            src={fileUrl(savedUrl)}
             alt="Signature"
             className="max-h-[140px] w-auto object-contain"
           />

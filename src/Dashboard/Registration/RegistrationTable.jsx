@@ -29,8 +29,8 @@ import {
   Search,
 } from "lucide-react";
 import { followupAccess } from "../../utils/roleArrays";
+import { fileUrl } from "../../utils/fileUrl";
 
-const imgUrl = import.meta.env.VITE_IMG_URL;
 
 const categoryOptions = [
   { label: "Full Cash", value: "full" },
@@ -631,7 +631,7 @@ const RegistrationTable = () => {
 
   const handleViewBookProof = (student) => {
     if (student.bookPhoto) {
-      setBookProofUrl(`${imgUrl}${student.bookPhoto}`);
+      setBookProofUrl(fileUrl(student.bookPhoto));
       const fileName = student.studentName
         ? `${student.studentName.replace(/\s+/g, "_")}_BOOK_PROOF.jpg`
         : `${student.studentId}_BOOK_PROOF.jpg`;

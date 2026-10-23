@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
+import { fileUrl } from "../../utils/fileUrl";
 
 const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
   const headerFile = FileUploadHook();
@@ -274,7 +275,7 @@ const TemplateForm = ({ onSubmit, onCancel, initialData = null }) => {
                     ? "Template Header Video"
                     : "Template Header Document"
               }
-              imageUrl={headerFile.imageUrl || formData.headerFileUrl}
+              imageUrl={headerFile.imageUrl || fileUrl(formData.headerFileUrl)}
               error={headerFile.error}
               loader={headerFile.loader}
               isSaved={headerFile.isSaved || !!formData.headerFileUrl}

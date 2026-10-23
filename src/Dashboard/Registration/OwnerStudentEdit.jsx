@@ -5,11 +5,11 @@ import { useToast } from "../../useToast";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
 import Button from "../Generic/Button";
+import { fileUrl } from "../../utils/fileUrl";
 
 // Limited edit for the student's owner (the counsellor / sub-admin who registered them).
 // Only Student Photo, Med/Grp and Mother Name are editable — everything else is read-only.
 const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
-  const imgUrl = import.meta.env.VITE_IMG_URL;
   const { successToast, errorToast } = useToast();
   const studentPhoto = FileUploadHook();
 
@@ -136,7 +136,7 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
                 </p>
                 {student.studentPhoto ? (
                   <img
-                    src={`${imgUrl}${student.studentPhoto}`}
+                    src={fileUrl(student.studentPhoto)}
                     alt="Student"
                     className="w-32 h-40 object-cover rounded border"
                   />

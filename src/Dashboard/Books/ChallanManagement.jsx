@@ -9,6 +9,7 @@ import Button from "../Generic/Button";
 import { Eye } from "lucide-react";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
+import { fileUrl } from "../../utils/fileUrl";
 
 const ChallanManagement = () => {
   const { user } = useAuth();
@@ -359,7 +360,7 @@ const ChallanManagement = () => {
     // instead of allowing the counsellor to edit/overwrite it again.
     if (challan.receiverReceiptUrl) {
       setImageViewerUrl(
-        `${import.meta.env.VITE_IMG_URL}${challan.receiverReceiptUrl}`,
+        fileUrl(challan.receiverReceiptUrl),
       );
       return;
     }
@@ -860,12 +861,12 @@ const ChallanManagement = () => {
                     {selectedChallan.senderReceiptUrl ? (
                       <div>
                         <img
-                          src={`${import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000"}${selectedChallan.senderReceiptUrl}`}
+                          src={fileUrl(selectedChallan.senderReceiptUrl)}
                           alt="Sender Receipt"
                           className="h-40 w-auto rounded-lg border border-gray-200 object-cover cursor-pointer hover:opacity-90 transition"
                           onClick={() =>
                             setImageViewerUrl(
-                              `${import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000"}${selectedChallan.senderReceiptUrl}`,
+                              fileUrl(selectedChallan.senderReceiptUrl),
                             )
                           }
                         />
@@ -891,12 +892,12 @@ const ChallanManagement = () => {
                     {selectedChallan.receiverReceiptUrl ? (
                       <div>
                         <img
-                          src={`${import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000"}${selectedChallan.receiverReceiptUrl}`}
+                          src={fileUrl(selectedChallan.receiverReceiptUrl)}
                           alt="Receiver Receipt"
                           className="h-40 w-auto rounded-lg border border-gray-200 object-cover cursor-pointer hover:opacity-90 transition"
                           onClick={() =>
                             setImageViewerUrl(
-                              `${import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:5000"}${selectedChallan.receiverReceiptUrl}`,
+                              fileUrl(selectedChallan.receiverReceiptUrl),
                             )
                           }
                         />

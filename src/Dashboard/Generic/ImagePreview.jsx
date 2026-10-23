@@ -2,15 +2,14 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { ZoomIn, X } from "lucide-react";
-
-const imgUrl = import.meta.env.VITE_IMG_URL;
+import { fileUrl } from "../../utils/fileUrl";
 
 const ImagePreview = ({ imagePath, alt = "Preview", className = "" }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!imagePath) return null;
 
-  const fullSrc = `${imgUrl}${imagePath}`;
+  const fullSrc = fileUrl(imagePath);
 
   return (
     <>

@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { fileUrl } from "../../utils/fileUrl";
 
 const TemplatesList = ({ templates, onEdit, onDelete, onTest, loading }) => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const imgUrl = import.meta.env.VITE_IMG_URL;
 
   if (loading) {
     return (
@@ -55,7 +55,7 @@ const TemplatesList = ({ templates, onEdit, onDelete, onTest, loading }) => {
           {template.header_url && template.header_type === "image" && (
             <div className="mb-3 flex justify-center">
               <img
-                src={`${imgUrl}${template.header_url}`}
+                src={fileUrl(template.header_url)}
                 alt="Header"
                 className="w-40 h-40 object-contain rounded"
               />
@@ -70,7 +70,7 @@ const TemplatesList = ({ templates, onEdit, onDelete, onTest, loading }) => {
                 className="w-40 h-40 object-contain rounded bg-black"
               >
                 <source
-                  src={`${imgUrl}${template.header_url}`}
+                  src={fileUrl(template.header_url)}
                   type="video/mp4"
                 />
                 Your browser does not support the video tag.
@@ -83,7 +83,7 @@ const TemplatesList = ({ templates, onEdit, onDelete, onTest, loading }) => {
             <div className="mb-3 flex flex-col gap-2 items-center">
               <button className="bg-secondary p-2 rounded-md text-white">
                 <a
-                  href={`${imgUrl}${template.header_url}`}
+                  href={fileUrl(template.header_url)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
