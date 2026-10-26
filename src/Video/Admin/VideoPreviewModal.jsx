@@ -33,6 +33,7 @@ const VideoPreviewModal = ({ video, onClose }) => {
         ) : playback ? (
           <VideoPlayer
             src={playback.manifestUrl}
+            signedQuery={playback.signedQuery}
             videoId={`admin-${video.id}`}
             title={playback.title}
             expiresAt={playback.expiresAt}
