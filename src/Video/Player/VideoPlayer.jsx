@@ -111,6 +111,7 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
         xhrSetup: (xhr, url) => {
           const query = queryRef.current;
           xhr.open("GET", query ? `${url}${url.includes("?") ? "&" : "?"}${query}` : url, true);
+          if (!query) xhr.withCredentials = true; // older server without signedQuery: fall back to the cookies
         },
         capLevelToPlayerSize: true,
         startLevel: -1,
