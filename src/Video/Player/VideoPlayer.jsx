@@ -22,7 +22,8 @@ import { formatDuration } from "../uploadVideo";
 //  - resumes where the viewer left off (per video, on this device)
 //  - playback cookies are renewed before they expire, and once more if a request is refused
 //
-// Props: src (HLS manifest URL), videoId, title, expiresAt, renew (async () => { expiresAt })
+// Props: src (HLS manifest URL), signedQuery (CloudFront signature as URL parameters), videoId,
+//        title, expiresAt, renew (async () => { expiresAt })
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 const HIDE_AFTER_MS = 3000;
 const RENEW_BEFORE_MS = 10 * 60 * 1000;
@@ -44,7 +45,7 @@ const savePosition = (videoId, seconds) => {
   }
 };
 
-const VideoPlayer = ({ src, videoId, title, expiresAt, renew }) => {
+const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => {
   const containerRef = useRef(null);
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
@@ -52,6 +53,8 @@ const VideoPlayer = ({ src, videoId, title, expiresAt, renew }) => {
   const lastTap = useRef({ time: 0, side: null });
   const lastSaved = useRef(0);
   const renewing = useRef(false);
+  const queryRef = useRef(signedQuery);
+  queryRef.current = signedQuery; // renewed signature is used by the next request without a reload
 
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
@@ -103,8 +106,11 @@ const VideoPlayer = ({ src, videoId, title, expiresAt, renew }) => {
 
     if (Hls.isSupported()) {
       const hls = new Hls({
-        xhrSetup: (xhr) => {
-          xhr.withCredentials = true; // send the CloudFront signed cookies
+        // Signature goes on every request (manifests and segments) instead of cookies, so the video
+        // domain can answer with "Access-Control-Allow-Origin: *" (CloudFront managed SimpleCORS)
+        xhrSetup: (xhr, url) => {
+          const query = queryRef.current;
+          xhr.open("GET", query ? `${url}${url.includes("?") ? "&" : "?"}${query}` : url, true);
         },
         capLevelToPlayerSize: true,
         startLevel: -1,

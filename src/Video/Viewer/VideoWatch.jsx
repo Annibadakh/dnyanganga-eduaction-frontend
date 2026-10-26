@@ -50,6 +50,7 @@ const VideoWatch = () => {
         <>
           <VideoPlayer
             src={playback.manifestUrl}
+            signedQuery={playback.signedQuery}
             videoId={playback.id}
             title={playback.title}
             expiresAt={playback.expiresAt}
