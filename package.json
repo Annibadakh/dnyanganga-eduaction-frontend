@@ -20,6 +20,7 @@
             "dotenv": "^16.4.7",
             "file-saver": "^2.0.5",
             "framer-motion": "^12.23.12",
+            "hls.js": "^1.6.19",
             "html2canvas": "^1.4.1",
             "html2pdf.js": "^0.14.0",
             "i18next": "^25.3.2",

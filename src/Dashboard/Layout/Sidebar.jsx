@@ -23,6 +23,8 @@ import {
   FaPlayCircle,
   FaHistory,
   FaDatabase,
+  FaUserGraduate,
+  FaVideo,
 } from "react-icons/fa";
 import {
   counsellorLikeRoles,
@@ -163,6 +165,18 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       label: "Marks Entry",
       role: marksAccess,
       icon: <FaClipboardCheck className="text-lg" />,
+    },
+    {
+      path: "video-users",
+      label: "Video Users",
+      role: adminControlsAccess,
+      icon: <FaUserGraduate className="text-lg" />,
+    },
+    {
+      path: "videos",
+      label: "Videos",
+      role: adminControlsAccess,
+      icon: <FaVideo className="text-lg" />,
     },
     {
       path: "template",
