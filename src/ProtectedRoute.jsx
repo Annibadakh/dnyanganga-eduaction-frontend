@@ -5,6 +5,7 @@ const ProtectedRoute = () => {
   const { user } = useAuth();
   const location = useLocation();
 
+  if (user?.role === "videoUser") return <Navigate to="/video" replace />;
   return user ? (
     <Outlet />
   ) : (
@@ -39,10 +40,24 @@ const StudentProtectedRoute = () => {
 
   // logged in but not a student
   if (user.role !== "student") {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={user.role === "videoUser" ? "/video" : "/dashboard"} replace />;
   }
 
   return <Outlet />;
 };
 
-export { ProtectedRoute, ProtectedRoleBasedRoute, StudentProtectedRoute };
+// Video platform: only video users (admins preview videos from the dashboard)
+const VideoProtectedRoute = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+
+  if (!user) {
+    return <Navigate to="/video/login" replace state={{ from: location.pathname }} />;
+  }
+  if (user.role !== "videoUser") {
+    return <Navigate to={user.role === "student" ? "/student" : "/dashboard"} replace />;
+  }
+  return <Outlet />;
+};
+
+export { ProtectedRoute, ProtectedRoleBasedRoute, StudentProtectedRoute, VideoProtectedRoute };

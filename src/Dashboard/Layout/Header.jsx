@@ -10,9 +10,10 @@ const Header = () => {
   const dropdownRef = useRef(null);
 
   const handleLogout = () => {
+    const wasVideoUser = user?.role === "videoUser";
     setDropdownOpen(false);
     logout();
-    navigate("/");
+    navigate(wasVideoUser ? "/video/login" : "/");
   };
 
   // Close dropdown when clicking outside

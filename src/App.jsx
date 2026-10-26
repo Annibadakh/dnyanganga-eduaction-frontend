@@ -8,6 +8,7 @@ import {
   ProtectedRoute,
   ProtectedRoleBasedRoute,
   StudentProtectedRoute,
+  VideoProtectedRoute,
 } from "./ProtectedRoute";
 
 import "./App.css";
@@ -117,6 +118,15 @@ const CaStudents = lazy(() => import("./Dashboard/CA/CaStudents"));
 
 const PageNotFound = lazy(() => import("./Pages/PageNotFound"));
 
+// Video module (separate video users)
+const VideoUsers = lazy(() => import("./Video/Admin/VideoUsers"));
+const VideosAdmin = lazy(() => import("./Video/Admin/Videos"));
+const VideoLogin = lazy(() => import("./Video/Viewer/VideoLogin"));
+const VideoLayout = lazy(() => import("./Video/Viewer/VideoLayout"));
+const VideoStandards = lazy(() => import("./Video/Viewer/VideoStandards"));
+const VideoList = lazy(() => import("./Video/Viewer/VideoList"));
+const VideoWatch = lazy(() => import("./Video/Viewer/VideoWatch"));
+
 // Send each role to its own landing page after login
 const DashboardIndexRedirect = () => {
   const { user } = useAuth();
@@ -164,6 +174,7 @@ function App() {
             {/* Public Routes */}
             <Route path="login" element={<Login />} />
             <Route path="student-login" element={<StudentLogin />} />
+            <Route path="video/login" element={<VideoLogin />} />
 
             <Route
               path="hallticket"
@@ -292,6 +303,8 @@ function App() {
                   />
                   <Route path="jobCreation" element={<JobCreation />} />
                   <Route path="jobs" element={<JobsList />} />
+                  <Route path="video-users" element={<VideoUsers />} />
+                  <Route path="videos" element={<VideosAdmin />} />
                 </Route>
 
                 <Route
@@ -365,6 +378,15 @@ function App() {
                 path="practice/play"
                 element={<StudentQuizPlay practice />}
               />
+            </Route>
+
+            {/* Video platform */}
+            <Route path="video" element={<VideoProtectedRoute />}>
+              <Route element={<VideoLayout />}>
+                <Route index element={<VideoStandards />} />
+                <Route path="standards/:standardId" element={<VideoList />} />
+                <Route path="watch/:id" element={<VideoWatch />} />
+              </Route>
             </Route>
 
             {/* 404 */}

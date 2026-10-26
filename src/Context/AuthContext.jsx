@@ -12,7 +12,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (userData) => {
     localStorage.setItem("user", JSON.stringify(userData));
     clearFileToken(); // a token left by the previous user
-    ensureFileToken(userData?.token);
+    // video users don't use the main API's file links
+    if (userData?.role !== "videoUser") ensureFileToken(userData?.token);
     setUser(userData);
   };
 
