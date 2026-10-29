@@ -51,6 +51,21 @@ const VisitingTable = () => {
       header: "Sr. No.",
       render: (_, index) => (currentPage - 1) * itemsPerPage + index + 1,
     },
+    ...(user.role === "admin" || user.role === "followUp"
+      ? [
+          {
+            header: "Flag",
+            render: (row) => (
+              <input
+                type="checkbox"
+                checked={row.followUp || false}
+                onChange={() => handleFollowUpChange(row.id, row.followUp)}
+                className="w-5 h-5 cursor-pointer accent-primary"
+              />
+            ),
+          },
+        ]
+      : []),
     {
       header: "Visit Date",
       render: (row) => new Date(row.createdAt).toLocaleDateString("en-GB"),
@@ -61,7 +76,17 @@ const VisitingTable = () => {
     },
     {
       header: "Student Name",
-      accessor: "studentName",
+      render: (row) => {
+        if (row.followUp == true) {
+          return (
+            <span className="text-red-600 font-semibold">
+              {row.studentName}
+            </span>
+          );
+        }
+        return row.studentName;
+      },
+      // accessor: "studentName",
     },
     {
       header: "Standard",
@@ -99,22 +124,6 @@ const VisitingTable = () => {
           {
             header: "Counsellor Branch",
             render: (row) => row.User?.counsellorBranch,
-          },
-        ]
-      : []),
-
-    ...(user.role === "admin" || user.role === "followUp"
-      ? [
-          {
-            header: "Follow-up",
-            render: (row) => (
-              <input
-                type="checkbox"
-                checked={row.followUp || false}
-                onChange={() => handleFollowUpChange(row.id, row.followUp)}
-                className="w-5 h-5 cursor-pointer accent-primary"
-              />
-            ),
           },
         ]
       : []),
