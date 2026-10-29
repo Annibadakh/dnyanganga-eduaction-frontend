@@ -22,7 +22,8 @@ import { formatDuration } from "../uploadVideo";
 //  - hls.js where supported (Chrome, Edge, Firefox, Android); native HLS on iPhone/iPad
 //  - settings menu: quality, playback speed, aspect ratio (fit / crop / stretch / 16:9 / 4:3)
 //  - seek bar: drag shows the time and seeks once on release; hover shows the time (mouse)
-//  - phones: tap shows the controls (centre ⟲ ▶ ⟳), double-tap left/right skips 10 s
+//  - tap / click on the picture shows or hides the controls (phones: centre ⟲ ▶ ⟳); double-click
+//    = fullscreen; phones: double-tap left/right skips 10 s
 //    (taps add up: 10, 20, 30 s), hold for 2× speed, pinch in fullscreen to crop / fit
 //  - fullscreen on a phone turns to landscape (portrait videos stay portrait); turning the
 //    phone sideways while playing goes fullscreen where the browser allows it
@@ -259,7 +260,10 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
       timeupdate: onTime,
       progress: onProgress,
       play: () => setPlaying(true),
-      pause: () => setPlaying(false),
+      pause: () => {
+        setPlaying(false);
+        setControlsVisible(true); // paused → controls come back
+      },
       waiting: () => setWaiting(true),
       seeking: () => setWaiting(true),
       playing: () => setWaiting(false),
@@ -397,6 +401,11 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
     [],
   );
 
+  // when playback starts (play button, resume, keyboard…) the controls and header fade out after a moment
+  useEffect(() => {
+    if (playing) showControls();
+  }, [playing, showControls]);
+
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -510,8 +519,8 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
   };
 
   // ---------- touch / click on the picture ----------
-  // hold → 2× while held; tap → controls (touch) or play/pause (mouse);
-  // quick second tap on the left/right third → skip 10 s
+  // hold → 2× while held; tap / click → show or hide the controls; double-click → fullscreen;
+  // quick second tap on the left/right third (phones) → skip 10 s
   const endHold = () => {
     clearTimeout(holdTimer.current);
     if (holding.current == null) return false;
@@ -550,9 +559,11 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
       skip(side === "left" ? -10 : 10);
       return;
     }
-    if (e.pointerType === "mouse") togglePlay();
-    else if (controlsVisible && playing) setControlsVisible(false);
-    else showControls();
+    // tap / click on the picture: controls shown → hide them, hidden → show them
+    if (controlsVisible) {
+      clearTimeout(hideTimer.current);
+      setControlsVisible(false);
+    } else showControls();
   };
 
   // pinch in fullscreen: spread → fill screen (crop), pinch → fit
@@ -575,7 +586,7 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
   };
 
   // ---------- render ----------
-  const shown = controlsVisible || !playing || menu != null || scrub != null;
+  const shown = controlsVisible || menu != null || scrub != null;
   const seekTime = scrub ?? current;
   const playedPct = duration ? (seekTime / duration) * 100 : 0;
   const bufferedPct = duration ? (buffered / duration) * 100 : 0;
@@ -595,12 +606,6 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
         })()
       : { width: "100%", height: "100%", objectFit: ratio ? "contain" : fit };
 
-  const brandBar = (
-    <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-white border-b shrink-0">
-      <img src={logo} className="h-8 sm:h-10" alt="Dnyanganga logo" draggable={false} />
-      <p className="text-secondary font-bold text-sm sm:text-lg truncate">Dnyanganga Education Pvt. Ltd.</p>
-    </div>
-  );
 
   const menuRow = (label, value, target) => (
     <button
@@ -648,9 +653,6 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
         fullscreen ? "h-full" : "rounded-lg shadow-lg"
       }`}
     >
-      {/* brand bar — same on every video; in fullscreen it sits over the picture and hides with the controls */}
-      {!fullscreen && brandBar}
-
       <div
         ref={frameRef}
         className={`relative w-full overflow-hidden ${fullscreen ? "flex-1 min-h-0" : "aspect-video"} ${
@@ -678,6 +680,7 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
           className="absolute inset-0"
           onPointerDown={onSurfacePointerDown}
           onPointerUp={onSurfacePointerUp}
+          onDoubleClick={() => !touch && toggleFullscreen()}
           onPointerCancel={endHold}
           onPointerLeave={endHold}
         />
@@ -724,7 +727,7 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
         )}
 
         {/* mouse: big play button when paused */}
-        {!touch && !playing && !spinner && !error && (
+        {!touch && shown && !playing && !spinner && !error && (
           <button
             type="button"
             onClick={togglePlay}
@@ -749,7 +752,7 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
 
         {/* hold for 2× */}
         {fastHold && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm font-semibold px-3 py-1.5 rounded-full pointer-events-none">
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm font-semibold px-3 py-1.5 rounded-full pointer-events-none">
             2× »
           </div>
         )}
@@ -761,14 +764,21 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
           </div>
         )}
 
-        {/* top: brand bar (fullscreen) + title */}
+        {/* brand header — same on every video: logo, company name, video title. Over the picture
+            on a see-through background; shown with the controls, hidden while the video plays */}
         <div
-          className={`absolute top-0 inset-x-0 bg-gradient-to-b from-black/70 to-transparent pointer-events-none transition-opacity duration-200 ${
+          className={`absolute top-0 inset-x-0 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 pt-2 pb-6 bg-gradient-to-b from-black/75 via-black/40 to-transparent pointer-events-none transition-opacity duration-200 ${
             shown ? "opacity-100" : "opacity-0"
           }`}
         >
-          {fullscreen && brandBar}
-          {title && <p className="px-3 py-2 text-white text-sm sm:text-base font-semibold truncate">{title}</p>}
+          {/* the logo has dark lettering, so it keeps a small white backing on the dark header */}
+          <img src={logo} className="h-8 sm:h-10 shrink-0 bg-white/90 rounded px-1 py-0.5" alt="Dnyanganga logo" draggable={false} />
+          <div className="flex-1 min-w-0 text-center">
+            <p className="text-white font-bold text-sm sm:text-lg leading-tight truncate">Dnyanganga Education Pvt. Ltd.</p>
+            {title && <p className="text-gray-200 text-xs sm:text-sm leading-tight truncate">{title}</p>}
+          </div>
+          {/* same width as the logo on the right, so the text sits in the true centre */}
+          <img src={logo} className="h-8 sm:h-10 shrink-0 px-1 py-0.5 invisible" alt="" aria-hidden="true" draggable={false} />
         </div>
 
         {/* controls */}
@@ -843,7 +853,7 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
                     step={0.05}
                     value={muted ? 0 : volume}
                     onChange={(e) => changeVolume(Number(e.target.value))}
-                    className="w-0 group-hover/vol:w-20 focus:w-20 transition-all duration-200 accent-white cursor-pointer"
+                    className="w-0 opacity-0 group-hover/vol:w-20 group-hover/vol:opacity-100 focus:w-20 focus:opacity-100 transition-all duration-200 accent-white cursor-pointer"
                     aria-label="Volume"
                   />
                 </div>
