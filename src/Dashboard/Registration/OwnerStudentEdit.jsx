@@ -5,10 +5,12 @@ import { useToast } from "../../useToast";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
 import Button from "../Generic/Button";
+import CustomSelect from "../Generic/CustomSelect";
 import { fileUrl } from "../../utils/fileUrl";
 
 // Limited edit for the student's owner (the counsellor / sub-admin who registered them).
-// Only Student Photo, Med/Grp and Mother Name are editable — everything else is read-only.
+// Only Student Photo, Med/Grp, Mother Name and Exam Centre are editable — everything else is read-only.
+// The exam centre is locked once a seat number is assigned (the server checks this too).
 const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
   const { successToast, errorToast } = useToast();
   const studentPhoto = FileUploadHook();
@@ -18,6 +20,17 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
   const [newPhotoUrl, setNewPhotoUrl] = useState("");
   const [branchOptions, setBranchOptions] = useState([]);
   const [branchType, setBranchType] = useState("");
+  const [examCentre, setExamCentre] = useState(student.examCentre ? String(student.examCentre) : "");
+  const [examCentres, setExamCentres] = useState([]);
+  const seatAssigned = Number(student.SeatNum) > 0;
+
+  // Searchable exam centre select, same as the registration form ({ value, label } options).
+  // The current centre stays selectable until the list has loaded.
+  const centreOptions = examCentres.map((c) => ({ value: String(c.centerId), label: c.centerName }));
+  if (examCentre && !centreOptions.some((o) => o.value === examCentre)) {
+    centreOptions.unshift({ value: examCentre, label: student.ExamCenter?.centerName || examCentre });
+  }
+  const selectedCentre = centreOptions.find((o) => o.value === examCentre) || null;
   const [saving, setSaving] = useState(false);
 
   // Med/Grp options come from the student's standard
@@ -45,6 +58,13 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
       .catch((err) => console.error("Error fetching standards", err));
   }, [student.standardId, student.standard]);
 
+  useEffect(() => {
+    api
+      .get("/admin/getExamCenters")
+      .then((response) => setExamCentres(response.data.data || []))
+      .catch((err) => console.error("Error fetching exam centres", err));
+  }, []);
+
   const handlePhotoUpload = async (type) => {
     const url = await studentPhoto.uploadImage(type);
     if (url && url.trim() !== "") setNewPhotoUrl(url);
@@ -61,6 +81,10 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
       errorToast("Please save the new photo first");
       return;
     }
+    if (!examCentre) {
+      errorToast("Please select an exam centre");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -69,6 +93,7 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
         {
           motherName,
           branch,
+          examCentre: examCentre ? Number(examCentre) : undefined,
           studentPhoto: newPhotoUrl || undefined,
         },
       );
@@ -93,7 +118,6 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
     { label: "Date Of Birth", value: formatDate(student.dob) },
     { label: "Standard", value: student.standard },
     { label: "Exam Year", value: student.examYear },
-    { label: "Exam Centre", value: student.ExamCenter?.centerName },
     { label: "Student No.", value: student.studentNo },
     { label: "Parent No.", value: student.parentsNo },
     { label: "Email", value: student.email },
@@ -212,6 +236,25 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Exam Centre
+                </label>
+                <CustomSelect
+                  options={centreOptions}
+                  value={selectedCentre}
+                  onChange={(v) => setExamCentre(v?.value ?? "")}
+                  isDisabled={seatAssigned}
+                  isRequired={true}
+                  placeholder="Select Exam Centre"
+                />
+                {seatAssigned && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Locked: a seat number is already assigned at this centre.
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import DataTable from "../../Dashboard/Generic/DataTable";
 import Pagination from "../../Dashboard/Generic/Pagination";
 import { useToast } from "../../useToast";
@@ -17,7 +17,6 @@ const STATUS_STYLE = {
   failed: "bg-red-100 text-red-700",
 };
 const STATUS_LABEL = { uploading: "Uploading", processing: "Converting", ready: "Ready", failed: "Failed" };
-const REFRESH_MS = 15000;
 
 // Admin → Videos: upload, follow the conversion, edit, preview, delete.
 const Videos = () => {
@@ -76,14 +75,6 @@ const Videos = () => {
   }, [fetchVideos]);
 
   useEffect(() => setPage(1), [standardId, status, active, debouncedSearch, limit]);
-
-  // while something is converting, refresh quietly so it turns "Ready" by itself
-  const pending = videos.some((v) => v.status === "processing" || v.status === "uploading");
-  useEffect(() => {
-    if (!pending) return undefined;
-    const t = setInterval(() => fetchVideos(true), REFRESH_MS);
-    return () => clearInterval(t);
-  }, [pending, fetchVideos]);
 
   const run = async (id, action, okMessage) => {
     setBusy(id);
@@ -201,11 +192,22 @@ const Videos = () => {
     <div className="p-2 container mx-auto">
       <h1 className="text-3xl font-bold text-center text-primary mb-6">Videos</h1>
 
-      {!showUpload && (
-        <button onClick={() => setShowUpload(true)} className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700">
-          Upload Video
+      <div className="flex flex-wrap gap-2">
+        {!showUpload && (
+          <button onClick={() => setShowUpload(true)} className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700">
+            Upload Video
+          </button>
+        )}
+        {/* No auto refresh: loading the list also updates videos still converting */}
+        <button
+          onClick={() => fetchVideos()}
+          disabled={loading}
+          className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 inline-flex items-center gap-2"
+        >
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          Refresh List
         </button>
-      )}
+      </div>
       {showUpload && (
         <VideoUploadPanel
           standardOptions={standardOptions}

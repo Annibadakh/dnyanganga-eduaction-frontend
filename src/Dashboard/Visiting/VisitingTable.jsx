@@ -103,21 +103,21 @@ const VisitingTable = () => {
         ]
       : []),
 
-    // ...(user.role === "admin" || user.role === "followUp"
-    //   ? [
-    //       {
-    //         header: "Follow-up",
-    //         render: (row) => (
-    //           <input
-    //             type="checkbox"
-    //             checked={row.followUp || false}
-    //             onChange={() => handleFollowUpChange(row.id, row.followUp)}
-    //             className="w-5 h-5 cursor-pointer accent-primary"
-    //           />
-    //         ),
-    //       },
-    //     ]
-    //   : []),
+    ...(user.role === "admin" || user.role === "followUp"
+      ? [
+          {
+            header: "Follow-up",
+            render: (row) => (
+              <input
+                type="checkbox"
+                checked={row.followUp || false}
+                onChange={() => handleFollowUpChange(row.id, row.followUp)}
+                className="w-5 h-5 cursor-pointer accent-primary"
+              />
+            ),
+          },
+        ]
+      : []),
 
     {
       header: "Actions",
@@ -301,6 +301,27 @@ const VisitingTable = () => {
     fetchVisitingData(); // Refresh the table data
   };
 
+  // Follow-up checkbox: tick/untick straight away, put it back if the save fails
+  const handleFollowUpChange = async (visitId, currentFollowUp) => {
+    const followUp = !currentFollowUp;
+    const setRowFollowUp = (value) =>
+      setVisitingData((prev) =>
+        prev.map((visit) =>
+          visit.id == visitId ? { ...visit, followUp: value } : visit,
+        ),
+      );
+    setRowFollowUp(followUp);
+    try {
+      await api.put(`/counsellor/updateVisitingFollowUp/${visitId}`, {
+        followUp,
+      });
+    } catch (error) {
+      console.error("Error updating follow-up status:", error);
+      setRowFollowUp(currentFollowUp);
+      alert("Failed to update follow-up status.");
+    }
+  };
+
   const handleDeleteVisit = async (visitId) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this visiting record?",
@@ -475,7 +496,11 @@ const VisitingTable = () => {
 
         {/* Export Excel Action Bar */}
         <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-          <Button variant="success" onClick={handleExportExcel} className="w-full sm:w-auto">
+          <Button
+            variant="success"
+            onClick={handleExportExcel}
+            className="w-full sm:w-auto"
+          >
             Export Excel
           </Button>
         </div>

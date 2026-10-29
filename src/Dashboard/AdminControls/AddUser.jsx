@@ -7,6 +7,7 @@ import DataTable from "../Generic/DataTable";
 import CustomMultiSelect from "../Generic/CustomMultiSelect";
 import { useAuth } from "../../Context/AuthContext";
 import UserForm from "./UserForm";
+import UserBatchModal from "./UserBatchModal";
 
 const AddUser = () => {
   const { getCounsellor } = useContext(DashboardContext);
@@ -18,6 +19,8 @@ const AddUser = () => {
   const [users, setUsers] = useState([]);
   const [updateLoader, setUpdateLoader] = useState(null);
   const [subAdmins, setSubAdmins] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [showBatches, setShowBatches] = useState(false);
   // Add / Edit form: null = list view, "new" = add, a user row = edit
   const [formUser, setFormUser] = useState(null);
 
@@ -25,6 +28,7 @@ const AddUser = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedSubAdmins, setSelectedSubAdmins] = useState([]);
+  const [selectedBatches, setSelectedBatches] = useState([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -43,11 +47,22 @@ const AddUser = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, itemsPerPage, debouncedSearch, selectedStatus, selectedSubAdmins]);
+  }, [currentPage, itemsPerPage, debouncedSearch, selectedStatus, selectedSubAdmins, selectedBatches]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedStatus, selectedSubAdmins]);
+  }, [selectedStatus, selectedSubAdmins, selectedBatches]);
+
+  // All batches (active + inactive): the filter and the Add Batch list; the user form offers the active ones
+  const fetchBatches = () =>
+    api
+      .get("/admin/userBatches")
+      .then((res) => setBatches(res.data.data || []))
+      .catch((err) => console.error("Error fetching batches", err));
+
+  useEffect(() => {
+    fetchBatches();
+  }, []);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -68,6 +83,10 @@ const AddUser = () => {
           subAdmin:
             isAdmin && selectedSubAdmins.length > 0
               ? selectedSubAdmins.map((s) => s.value).join(",")
+              : "",
+          batch:
+            selectedBatches.length > 0
+              ? selectedBatches.map((b) => b.value).join(",")
               : "",
         },
       })
@@ -150,6 +169,10 @@ const AddUser = () => {
       render: (row) => row.counsellorBranch || "-",
     },
     {
+      header: "Batch",
+      render: (row) => row.batch?.title || "-",
+    },
+    {
       header: "Team Leader",
       render: (row) =>
         row.role === "sub-admin" ? (
@@ -213,10 +236,12 @@ const AddUser = () => {
         <UserForm
           user={formUser === "new" ? null : formUser}
           subAdmins={subAdmins}
+          batches={batches}
           onCancel={() => setFormUser(null)}
           onSaved={() => {
             setFormUser(null);
             fetchUsers();
+            fetchBatches();
             getCounsellor();
           }}
         />
@@ -231,12 +256,27 @@ const AddUser = () => {
       </h1>
 
       {isAdmin && (
-        <button
-          onClick={() => setFormUser("new")}
-          className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700"
-        >
-          Add User
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setFormUser("new")}
+            className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Add User
+          </button>
+          <button
+            onClick={() => setShowBatches(true)}
+            className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Add Batch
+          </button>
+        </div>
+      )}
+      {isAdmin && showBatches && (
+        <UserBatchModal
+          batches={batches}
+          onClose={() => setShowBatches(false)}
+          onChanged={() => Promise.all([fetchBatches(), fetchUsers()])}
+        />
       )}
 
       <div className="mt-6 md:p-6 p-2 bg-white shadow-custom">
@@ -285,6 +325,20 @@ const AddUser = () => {
                 />
               </div>
             )}
+
+            <div className="w-full md:w-80">
+              <CustomMultiSelect
+                label="Batch"
+                options={batches.map((b) => ({
+                  label: b.isActive ? b.title : `${b.title} (inactive)`,
+                  value: b.id,
+                }))}
+                value={selectedBatches}
+                onChange={setSelectedBatches}
+                isRequired={false}
+                placeholder="Select Batches"
+              />
+            </div>
           </div>
           <DataTable
             columns={columns}

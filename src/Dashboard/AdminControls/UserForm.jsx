@@ -12,7 +12,8 @@ const toDateInput = (value) => (value ? String(value).split("T")[0] : "");
 
 // Add / Edit staff user — same look as the student registration form.
 // user: the row being edited (null = add). subAdmins: active sub-admins for "Team Leader".
-const UserForm = ({ user = null, subAdmins = [], onCancel, onSaved }) => {
+// batches: all user batches — the optional Batch dropdown offers the active ones (plus the user's current one).
+const UserForm = ({ user = null, subAdmins = [], batches = [], onCancel, onSaved }) => {
   const editing = !!user;
   const { successToast, errorToast } = useToast();
 
@@ -23,6 +24,7 @@ const UserForm = ({ user = null, subAdmins = [], onCancel, onSaved }) => {
     role: user?.role || "counsellor",
     counsellorBranch: user?.counsellorBranch || "",
     subAdminId: user?.subAdminId || "",
+    batchId: user?.batchId ? String(user.batchId) : "",
     dob: toDateInput(user?.dob),
     joiningDate: toDateInput(user?.joiningDate),
     password: "",
@@ -34,6 +36,7 @@ const UserForm = ({ user = null, subAdmins = [], onCancel, onSaved }) => {
   const [saving, setSaving] = useState(false);
 
   const isBranchRole = BRANCH_ROLES.includes(formData.role);
+  const batchOptions = batches.filter((b) => b.isActive || String(b.id) === String(user?.batchId || ""));
 
   const sectionCls = "mb-4 sm:mb-6 w-full border rounded-lg shadow-sm p-2 sm:p-4 lg:p-6";
   const headingCls = "text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-tertiary";
@@ -77,6 +80,7 @@ const UserForm = ({ user = null, subAdmins = [], onCancel, onSaved }) => {
       counsellorBranch: isBranchRole ? formData.counsellorBranch.trim() : null,
       dob: formData.dob,
       joiningDate: formData.joiningDate,
+      batchId: formData.batchId ? Number(formData.batchId) : null,
     };
     if (formData.role === "counsellor") payload.subAdminId = formData.subAdminId || null;
     if (changePassword) payload.password = formData.password;
@@ -250,6 +254,22 @@ const UserForm = ({ user = null, subAdmins = [], onCancel, onSaved }) => {
                   </select>
                 </div>
               )}
+              <div className="w-full">
+                <select
+                  name="batchId"
+                  value={formData.batchId}
+                  onChange={handleChange}
+                  className={inputCls("batchId")}
+                >
+                  <option value="">No batch (optional)</option>
+                  {batchOptions.map((b) => (
+                    <option key={b.id} value={String(b.id)}>
+                      {b.title}
+                      {b.isActive ? "" : " (inactive)"}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
