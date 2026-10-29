@@ -647,7 +647,9 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
       ref={containerRef}
       tabIndex={0}
       onKeyDown={onKeyDown}
-      onMouseMove={showControls}
+      // real mouse only: phones fire a fake mouse move after every tap, which would show
+      // the controls again right after a tap hid them
+      onPointerMove={(e) => e.pointerType === "mouse" && showControls()}
       onContextMenu={(e) => e.preventDefault()}
       className={`w-full flex flex-col bg-black overflow-hidden select-none outline-none ${
         fullscreen ? "h-full" : "rounded-lg shadow-lg"
@@ -788,7 +790,8 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
           }`}
         >
           {/* seek bar */}
-          <div className="relative h-5 flex items-center group" onMouseMove={onSeekHover} onMouseLeave={() => setHover(null)}>
+          <div className="relative h-5 flex items-center group" onPointerMove={(e) => e.pointerType === "mouse" && onSeekHover(e)}
+            onPointerLeave={() => setHover(null)}>
             <div
               className={`absolute inset-x-0 rounded-full bg-white/25 transition-all ${
                 scrub != null ? "h-1.5" : "h-1 group-hover:h-1.5"
