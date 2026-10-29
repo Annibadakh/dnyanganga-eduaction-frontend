@@ -12,51 +12,88 @@ import {
   Minimize,
   Settings,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Check,
 } from "lucide-react";
 import { formatDuration } from "../uploadVideo";
 
-// Simple HLS player on the native <video> element.
+// HLS player on the native <video> element, with YouTube-style controls.
 //  - hls.js where supported (Chrome, Edge, Firefox, Android); native HLS on iPhone/iPad
-//  - play/pause, seek bar with buffered range, ±10 s, volume, speed, quality, fullscreen
-//  - keyboard: Space/K play, ←/→ 10 s, ↑/↓ volume, F fullscreen, M mute
-//  - double-tap left/right third on phones to skip 10 s
+//  - settings menu: quality, playback speed, aspect ratio (fit / crop / stretch / 16:9 / 4:3)
+//  - seek bar: drag shows the time and seeks once on release; hover shows the time (mouse)
+//  - phones: tap shows the controls (centre ⟲ ▶ ⟳), double-tap left/right skips 10 s
+//    (taps add up: 10, 20, 30 s), hold for 2× speed, pinch in fullscreen to crop / fit
+//  - fullscreen on a phone turns to landscape (portrait videos stay portrait); turning the
+//    phone sideways while playing goes fullscreen where the browser allows it
+//  - keyboard: Space/K play, ←/→ or J/L 10 s, ↑/↓ volume, 0–9 jump to 0–90 %, F fullscreen, M mute
 //  - resumes where the viewer left off (per video, on this device)
-//  - playback cookies are renewed before they expire, and once more if a request is refused
+//  - playback access is renewed before it expires, and once more if a request is refused
 //
 // Props: src (HLS manifest URL), signedQuery (CloudFront signature as URL parameters), videoId,
 //        title, expiresAt, renew (async () => { expiresAt })
-const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+const FITS = [
+  { value: "contain", label: "Fit (original)" },
+  { value: "cover", label: "Fill screen (crop)" },
+  { value: "fill", label: "Stretch" },
+  { value: "16:9", label: "16:9" },
+  { value: "4:3", label: "4:3" },
+];
+const FIXED_RATIOS = { "16:9": 16 / 9, "4:3": 4 / 3 };
 const HIDE_AFTER_MS = 3000;
 const RENEW_BEFORE_MS = 10 * 60 * 1000;
+const DOUBLE_TAP_MS = 300;
+const HOLD_MS = 500;
 
+const store = {
+  get(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null; // storage blocked: settings / resume just aren't remembered
+    }
+  },
+  set(key, value) {
+    try {
+      if (value == null) localStorage.removeItem(key);
+      else localStorage.setItem(key, value);
+    } catch {
+      // storage blocked
+    }
+  },
+};
 const positionKey = (videoId) => `video-position-${videoId}`;
-const savedPosition = (videoId) => {
-  try {
-    return Number(localStorage.getItem(positionKey(videoId))) || 0;
-  } catch {
-    return 0;
-  }
+const savedPosition = (videoId) => Number(store.get(positionKey(videoId))) || 0;
+const savePosition = (videoId, seconds) =>
+  store.set(positionKey(videoId), seconds > 0 ? String(Math.floor(seconds)) : null);
+const savedFit = () => {
+  const value = store.get("video-fit");
+  return FITS.some((f) => f.value === value) ? value : "contain";
 };
-const savePosition = (videoId, seconds) => {
-  try {
-    if (seconds > 0) localStorage.setItem(positionKey(videoId), String(Math.floor(seconds)));
-    else localStorage.removeItem(positionKey(videoId));
-  } catch {
-    // storage blocked: resume just won't work
-  }
-};
+
+const isTouchDevice = () => typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+
+const fullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
 
 const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => {
   const containerRef = useRef(null);
+  const frameRef = useRef(null);
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
   const hideTimer = useRef(null);
   const lastTap = useRef({ time: 0, side: null });
+  const skipTimer = useRef(null);
+  const holdTimer = useRef(null);
+  const holding = useRef(null); // playback rate before the 2× hold
+  const pinch = useRef(null); // starting finger distance
   const lastSaved = useRef(0);
   const renewing = useRef(false);
+  const scrubRef = useRef(null);
   const queryRef = useRef(signedQuery);
   queryRef.current = signedQuery; // renewed signature is used by the next request without a reload
 
+  const [touch] = useState(isTouchDevice);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -67,12 +104,18 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
   const [levels, setLevels] = useState([]); // [{ index, height }]
   const [level, setLevel] = useState(-1); // -1 = Auto
   const [activeHeight, setActiveHeight] = useState(null);
+  const [fit, setFit] = useState(savedFit);
+  const [frame, setFrame] = useState({ w: 0, h: 0 });
   const [fullscreen, setFullscreen] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [menu, setMenu] = useState(null); // null | "settings"
+  const [menu, setMenu] = useState(null); // null | "main" | "quality" | "speed" | "fit"
   const [waiting, setWaiting] = useState(true);
+  const [spinner, setSpinner] = useState(false);
   const [error, setError] = useState("");
-  const [skipHint, setSkipHint] = useState(null); // "-10" | "+10"
+  const [skipHint, setSkipHint] = useState(null); // { side: "left" | "right", seconds }
+  const [fastHold, setFastHold] = useState(false);
+  const [scrub, setScrub] = useState(null); // seconds while the seek bar is dragged
+  const [hover, setHover] = useState(null); // { pct, time } mouse over the seek bar
   const [reloadToken, setReloadToken] = useState(0);
   const resumeAt = useRef(null);
 
@@ -116,6 +159,9 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
         },
         capLevelToPlayerSize: true,
         startLevel: -1,
+        // a bit more buffer ahead → fewer stalls on mobile data
+        maxBufferLength: 30,
+        backBufferLength: 30,
       });
       hlsRef.current = hls;
       hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
@@ -165,7 +211,7 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
     return undefined;
   }, [src, reloadToken, reloadAfterRenew]);
 
-  // renew the playback cookies shortly before they expire
+  // renew the playback access shortly before it expires
   useEffect(() => {
     if (!expiresAt || !renew) return undefined;
     const ms = new Date(expiresAt).getTime() - Date.now() - RENEW_BEFORE_MS;
@@ -177,8 +223,6 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return undefined;
-    const on = (name, fn) => video.addEventListener(name, fn);
-    const off = (name, fn) => video.removeEventListener(name, fn);
 
     const onLoaded = () => {
       setDuration(video.duration || 0);
@@ -208,58 +252,150 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
         }
       }
     };
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
-    const onWaiting = () => setWaiting(true);
-    const onPlaying = () => setWaiting(false);
-    const onCanPlay = () => setWaiting(false);
-    const onEnded = () => {
-      setPlaying(false);
-      savePosition(videoId, 0);
-    };
-    const onVolume = () => {
-      setVolume(video.volume);
-      setMuted(video.muted);
-    };
-    const onRate = () => setRate(video.playbackRate);
 
     const handlers = {
       loadedmetadata: onLoaded,
       durationchange: () => setDuration(video.duration || 0),
       timeupdate: onTime,
       progress: onProgress,
-      play: onPlay,
-      pause: onPause,
-      waiting: onWaiting,
-      playing: onPlaying,
-      canplay: onCanPlay,
-      ended: onEnded,
-      volumechange: onVolume,
-      ratechange: onRate,
+      play: () => setPlaying(true),
+      pause: () => setPlaying(false),
+      waiting: () => setWaiting(true),
+      seeking: () => setWaiting(true),
+      playing: () => setWaiting(false),
+      canplay: () => setWaiting(false),
+      seeked: () => setWaiting(false),
+      ended: () => {
+        setPlaying(false);
+        savePosition(videoId, 0);
+      },
+      volumechange: () => {
+        setVolume(video.volume);
+        setMuted(video.muted);
+      },
+      ratechange: () => {
+        if (holding.current == null) setRate(video.playbackRate);
+      },
     };
-    Object.entries(handlers).forEach(([n, f]) => on(n, f));
-    return () => Object.entries(handlers).forEach(([n, f]) => off(n, f));
+    Object.entries(handlers).forEach(([n, f]) => video.addEventListener(n, f));
+    return () => Object.entries(handlers).forEach(([n, f]) => video.removeEventListener(n, f));
   }, [videoId]);
 
-  // fullscreen state
+  // spinner only for waits longer than a moment, so quick seeks don't flicker
   useEffect(() => {
-    const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
-    document.addEventListener("fullscreenchange", onChange);
-    return () => document.removeEventListener("fullscreenchange", onChange);
+    if (!waiting) {
+      setSpinner(false);
+      return undefined;
+    }
+    const t = setTimeout(() => setSpinner(true), 250);
+    return () => clearTimeout(t);
+  }, [waiting]);
+
+  // size of the picture area, for the fixed aspect ratios
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setFrame({ w: width, h: height });
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
+
+  // ---------- fullscreen + orientation ----------
+  const lockOrientation = useCallback(async () => {
+    const video = videoRef.current;
+    const portraitVideo = video && video.videoHeight > video.videoWidth;
+    try {
+      await window.screen.orientation?.lock?.(portraitVideo ? "portrait" : "landscape");
+    } catch {
+      // desktop / iPhone: no orientation lock — the phone turns with the device
+    }
+  }, []);
+
+  const unlockOrientation = () => {
+    try {
+      window.screen.orientation?.unlock?.();
+    } catch {
+      // nothing locked
+    }
+  };
+
+  const enterFullscreen = useCallback(async () => {
+    const container = containerRef.current;
+    const video = videoRef.current;
+    try {
+      if (container?.requestFullscreen) await container.requestFullscreen({ navigationUI: "hide" });
+      else if (container?.webkitRequestFullscreen) await container.webkitRequestFullscreen(); // older Safari / iPad
+      else if (video?.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen(); // iPhone: native player, turns with the phone
+        return;
+      } else return;
+      if (touch) await lockOrientation();
+    } catch {
+      // refused (no user gesture, iframe without permission…)
+    }
+  }, [touch, lockOrientation]);
+
+  const exitFullscreen = useCallback(() => {
+    unlockOrientation();
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    else document.webkitExitFullscreen?.();
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (fullscreenElement()) exitFullscreen();
+    else enterFullscreen();
+  }, [enterFullscreen, exitFullscreen]);
+
+  useEffect(() => {
+    const onChange = () => {
+      const isFull = fullscreenElement() === containerRef.current;
+      setFullscreen(isFull);
+      if (!isFull) unlockOrientation();
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("webkitfullscreenchange", onChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      document.removeEventListener("webkitfullscreenchange", onChange);
+    };
+  }, []);
+
+  // like YouTube: phone turned sideways while playing → fullscreen (browsers that allow it
+  // without a tap); turned back upright → leave fullscreen
+  useEffect(() => {
+    const orientation = window.screen.orientation;
+    if (!touch || !orientation) return undefined;
+    const onRotate = () => {
+      const video = videoRef.current;
+      const landscape = orientation.type.startsWith("landscape");
+      if (landscape && video && !video.paused && !fullscreenElement()) enterFullscreen();
+    };
+    orientation.addEventListener("change", onRotate);
+    return () => orientation.removeEventListener("change", onRotate);
+  }, [touch, enterFullscreen]);
 
   // ---------- actions ----------
   const showControls = useCallback(() => {
     setControlsVisible(true);
     clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => {
-      if (videoRef.current && !videoRef.current.paused) {
+      if (videoRef.current && !videoRef.current.paused && scrubRef.current == null) {
         setControlsVisible(false);
         setMenu(null);
       }
     }, HIDE_AFTER_MS);
   }, []);
-  useEffect(() => () => clearTimeout(hideTimer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(hideTimer.current);
+      clearTimeout(skipTimer.current);
+      clearTimeout(holdTimer.current);
+    },
+    [],
+  );
 
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
@@ -269,13 +405,16 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
     showControls();
   }, [showControls]);
 
+  // skip; repeated skips in the same direction add up in the hint (10, 20, 30 s…)
   const skip = useCallback(
     (seconds) => {
       const video = videoRef.current;
       if (!video) return;
       video.currentTime = Math.min(Math.max(video.currentTime + seconds, 0), video.duration || Infinity);
-      setSkipHint(seconds < 0 ? "-10" : "+10");
-      setTimeout(() => setSkipHint(null), 600);
+      const side = seconds < 0 ? "left" : "right";
+      setSkipHint((prev) => ({ side, seconds: prev?.side === side ? prev.seconds + Math.abs(seconds) : Math.abs(seconds) }));
+      clearTimeout(skipTimer.current);
+      skipTimer.current = setTimeout(() => setSkipHint(null), 700);
       showControls();
     },
     [showControls],
@@ -295,14 +434,6 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
     if (!video.muted && video.volume === 0) video.volume = 0.5;
   }, []);
 
-  const toggleFullscreen = useCallback(() => {
-    const container = containerRef.current;
-    const video = videoRef.current;
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else if (container?.requestFullscreen) container.requestFullscreen().catch(() => {});
-    else if (video?.webkitEnterFullscreen) video.webkitEnterFullscreen(); // iPhone
-  }, []);
-
   const chooseSpeed = (value) => {
     if (videoRef.current) videoRef.current.playbackRate = value;
     setMenu(null);
@@ -314,23 +445,63 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
     setMenu(null);
   };
 
-  const seekTo = (value) => {
+  const chooseFit = (value) => {
+    setFit(value);
+    store.set("video-fit", value);
+    setMenu(null);
+  };
+
+  // seek bar: dragging only moves the marker; the video seeks once, on release
+  const startScrub = (value) => {
+    scrubRef.current = value;
+    setScrub(value);
+    setControlsVisible(true);
+    clearTimeout(hideTimer.current);
+  };
+  const endScrub = () => {
+    const value = scrubRef.current;
+    if (value == null) return;
+    scrubRef.current = null;
+    setScrub(null);
     const video = videoRef.current;
-    if (video && Number.isFinite(video.duration)) video.currentTime = value;
+    if (video && Number.isFinite(video.duration)) {
+      video.currentTime = value;
+      setCurrent(value);
+    }
+    showControls();
+  };
+
+  const onSeekHover = (e) => {
+    if (!duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+    setHover({ pct: pct * 100, time: pct * duration });
   };
 
   const onKeyDown = (e) => {
     if (e.target.tagName === "INPUT" && e.target.type !== "range") return;
+    const video = videoRef.current;
+    if (/^[0-9]$/.test(e.key) && video && Number.isFinite(video.duration)) {
+      e.preventDefault();
+      video.currentTime = (Number(e.key) / 10) * video.duration;
+      showControls();
+      return;
+    }
     const keys = {
       " ": togglePlay,
       k: togglePlay,
+      j: () => skip(-10),
+      l: () => skip(10),
       ArrowLeft: () => skip(-10),
       ArrowRight: () => skip(10),
-      ArrowUp: () => changeVolume((videoRef.current?.volume || 0) + 0.1),
-      ArrowDown: () => changeVolume((videoRef.current?.volume || 0) - 0.1),
+      ArrowUp: () => changeVolume((video?.volume || 0) + 0.1),
+      ArrowDown: () => changeVolume((video?.volume || 0) - 0.1),
       f: toggleFullscreen,
       m: toggleMute,
+      Escape: () => setMenu(null),
     };
+    // the seek bar handles its own arrow keys
+    if (e.target.type === "range" && e.key.startsWith("Arrow")) return;
     const action = keys[e.key] || keys[e.key.toLowerCase?.()];
     if (action) {
       e.preventDefault();
@@ -338,17 +509,44 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
     }
   };
 
-  // taps on the picture: one tap shows/hides the controls (touch) or plays/pauses (mouse);
-  // a quick second tap on the left/right third skips 10 s
+  // ---------- touch / click on the picture ----------
+  // hold → 2× while held; tap → controls (touch) or play/pause (mouse);
+  // quick second tap on the left/right third → skip 10 s
+  const endHold = () => {
+    clearTimeout(holdTimer.current);
+    if (holding.current == null) return false;
+    if (videoRef.current) videoRef.current.playbackRate = holding.current;
+    holding.current = null;
+    setFastHold(false);
+    return true;
+  };
+
+  const onSurfacePointerDown = (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    clearTimeout(holdTimer.current);
+    holdTimer.current = setTimeout(() => {
+      const video = videoRef.current;
+      if (!video || video.paused || pinch.current) return;
+      holding.current = video.playbackRate;
+      video.playbackRate = 2;
+      setFastHold(true);
+    }, HOLD_MS);
+  };
+
   const onSurfacePointerUp = (e) => {
+    if (endHold()) return; // it was a hold, not a tap
+    if (menu) {
+      setMenu(null);
+      return;
+    }
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const side = x < 1 / 3 ? "left" : x > 2 / 3 ? "right" : "middle";
     const now = Date.now();
-    const double = now - lastTap.current.time < 300 && lastTap.current.side === side;
+    const double = now - lastTap.current.time < DOUBLE_TAP_MS && lastTap.current.side === side;
     lastTap.current = { time: now, side };
 
-    if (double && side !== "middle" && e.pointerType !== "mouse") {
+    if (e.pointerType !== "mouse" && side !== "middle" && (double || skipHint?.side === side)) {
       skip(side === "left" ? -10 : 10);
       return;
     }
@@ -357,9 +555,87 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
     else showControls();
   };
 
-  const playedPct = duration ? (current / duration) * 100 : 0;
+  // pinch in fullscreen: spread → fill screen (crop), pinch → fit
+  const onTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      endHold();
+      const [a, b] = e.touches;
+      pinch.current = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    }
+  };
+  const onTouchMove = (e) => {
+    if (!pinch.current || e.touches.length !== 2 || !fullscreen) return;
+    const [a, b] = e.touches;
+    const ratio = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / pinch.current;
+    if (ratio > 1.15 && fit !== "cover") setFit("cover");
+    if (ratio < 0.87 && fit !== "contain") setFit("contain");
+  };
+  const onTouchEnd = (e) => {
+    if (e.touches.length < 2) pinch.current = null;
+  };
+
+  // ---------- render ----------
+  const shown = controlsVisible || !playing || menu != null || scrub != null;
+  const seekTime = scrub ?? current;
+  const playedPct = duration ? (seekTime / duration) * 100 : 0;
   const bufferedPct = duration ? (buffered / duration) * 100 : 0;
-  const qualityLabel = level === -1 ? `Auto${activeHeight ? ` (${activeHeight}p)` : ""}` : `${levels.find((l) => l.index === level)?.height}p`;
+  const levelLabel = (index) => `${levels.find((l) => l.index === index)?.height}p`;
+  const qualityLabel = level === -1 ? `Auto${activeHeight ? ` (${activeHeight}p)` : ""}` : levelLabel(level);
+  const speedLabel = rate === 1 ? "Normal" : `${rate}×`;
+  const fitLabel = FITS.find((f) => f.value === fit)?.label;
+  const hd = (level === -1 ? activeHeight : levels.find((l) => l.index === level)?.height) >= 720;
+
+  // a fixed ratio is drawn as the largest box of that ratio inside the picture area
+  const ratio = FIXED_RATIOS[fit];
+  const videoStyle =
+    ratio && frame.w && frame.h
+      ? (() => {
+          const width = Math.min(frame.w, frame.h * ratio);
+          return { width, height: width / ratio, objectFit: "fill" };
+        })()
+      : { width: "100%", height: "100%", objectFit: ratio ? "contain" : fit };
+
+  const brandBar = (
+    <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-white border-b shrink-0">
+      <img src={logo} className="h-8 sm:h-10" alt="Dnyanganga logo" draggable={false} />
+      <p className="text-secondary font-bold text-sm sm:text-lg truncate">Dnyanganga Education Pvt. Ltd.</p>
+    </div>
+  );
+
+  const menuRow = (label, value, target) => (
+    <button
+      type="button"
+      onClick={() => setMenu(target)}
+      className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded hover:bg-white/10"
+    >
+      <span>{label}</span>
+      <span className="flex items-center gap-1 text-gray-300 text-xs sm:text-sm">
+        {value}
+        <ChevronRight className="w-4 h-4" />
+      </span>
+    </button>
+  );
+  const menuBack = (label) => (
+    <button
+      type="button"
+      onClick={() => setMenu("main")}
+      className="w-full flex items-center gap-1 px-2 py-2 mb-1 border-b border-white/15 font-semibold hover:bg-white/10 rounded-t"
+    >
+      <ChevronLeft className="w-4 h-4" />
+      {label}
+    </button>
+  );
+  const menuOption = (key, label, selected, onClick) => (
+    <button
+      type="button"
+      key={key}
+      onClick={onClick}
+      className="w-full flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10 text-left"
+    >
+      <Check className={`w-4 h-4 shrink-0 ${selected ? "opacity-100" : "opacity-0"}`} />
+      {label}
+    </button>
+  );
 
   return (
     <div
@@ -372,38 +648,83 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
         fullscreen ? "h-full" : "rounded-lg shadow-lg"
       }`}
     >
-      {/* brand bar — same on every video, stays in fullscreen too */}
-      <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 bg-white border-b shrink-0">
-        <img src={logo} className="h-8 sm:h-10" alt="Dnyanganga logo" draggable={false} />
-        <p className="text-secondary font-bold text-sm sm:text-lg truncate">Dnyanganga Education Pvt. Ltd.</p>
-      </div>
+      {/* brand bar — same on every video; in fullscreen it sits over the picture and hides with the controls */}
+      {!fullscreen && brandBar}
 
       <div
+        ref={frameRef}
         className={`relative w-full overflow-hidden ${fullscreen ? "flex-1 min-h-0" : "aspect-video"} ${
-          controlsVisible || !playing ? "cursor-default" : "cursor-none"
+          shown ? "cursor-default" : "cursor-none"
         }`}
+        style={{ touchAction: fullscreen ? "none" : "manipulation" }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
-        <video
-          ref={videoRef}
-          className="absolute inset-0 w-full h-full object-contain"
-          playsInline
-          preload="metadata"
-          controlsList="nodownload noremoteplayback"
-          disablePictureInPicture
-        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <video
+            ref={videoRef}
+            style={videoStyle}
+            className="block transition-[width,height] duration-200"
+            playsInline
+            preload="metadata"
+            controlsList="nodownload noremoteplayback"
+            disablePictureInPicture
+          />
+        </div>
 
         {/* tap / click surface */}
-        <div className="absolute inset-0" onPointerUp={onSurfacePointerUp} />
+        <div
+          className="absolute inset-0"
+          onPointerDown={onSurfacePointerDown}
+          onPointerUp={onSurfacePointerUp}
+          onPointerCancel={endHold}
+          onPointerLeave={endHold}
+        />
 
         {/* loading */}
-        {waiting && !error && (
+        {spinner && !error && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <Loader2 className="w-12 h-12 text-white animate-spin" />
           </div>
         )}
 
-        {/* big play button when paused */}
-        {!playing && !waiting && !error && (
+        {/* phones: centre controls, like YouTube */}
+        {touch && shown && !error && (
+          <div className="absolute inset-0 flex items-center justify-center gap-10 sm:gap-16 pointer-events-none">
+            <button
+              type="button"
+              onClick={() => skip(-10)}
+              className="pointer-events-auto p-3 rounded-full bg-black/40 text-white"
+              aria-label="Back 10 seconds"
+            >
+              <RotateCcw className="w-7 h-7" />
+            </button>
+            {spinner ? (
+              <span className="w-16 h-16" />
+            ) : (
+              <button
+                type="button"
+                onClick={togglePlay}
+                className="pointer-events-auto w-16 h-16 rounded-full bg-black/50 text-white flex items-center justify-center"
+                aria-label={playing ? "Pause" : "Play"}
+              >
+                {playing ? <Pause className="w-8 h-8" fill="currentColor" /> : <Play className="w-8 h-8 ml-1" fill="currentColor" />}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => skip(10)}
+              className="pointer-events-auto p-3 rounded-full bg-black/40 text-white"
+              aria-label="Forward 10 seconds"
+            >
+              <RotateCw className="w-7 h-7" />
+            </button>
+          </div>
+        )}
+
+        {/* mouse: big play button when paused */}
+        {!touch && !playing && !spinner && !error && (
           <button
             type="button"
             onClick={togglePlay}
@@ -414,12 +735,22 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
           </button>
         )}
 
-        {/* skip hint */}
+        {/* double-tap skip hint, on the side that was tapped */}
         {skipHint && (
           <div
-            className={`absolute top-1/2 -translate-y-1/2 ${skipHint === "-10" ? "left-[12%]" : "right-[12%]"} bg-black/60 text-white text-sm font-semibold px-3 py-2 rounded-full pointer-events-none`}
+            className={`absolute inset-y-0 ${skipHint.side === "left" ? "left-0 rounded-r-[50%]" : "right-0 rounded-l-[50%]"} w-1/3 bg-white/10 flex items-center justify-center pointer-events-none`}
           >
-            {skipHint === "-10" ? "« 10 s" : "10 s »"}
+            <span className="flex flex-col items-center text-white text-sm font-semibold">
+              {skipHint.side === "left" ? <RotateCcw className="w-6 h-6 mb-1" /> : <RotateCw className="w-6 h-6 mb-1" />}
+              {skipHint.seconds} seconds
+            </span>
+          </div>
+        )}
+
+        {/* hold for 2× */}
+        {fastHold && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm font-semibold px-3 py-1.5 rounded-full pointer-events-none">
+            2× »
           </div>
         )}
 
@@ -430,120 +761,146 @@ const VideoPlayer = ({ src, signedQuery, videoId, title, expiresAt, renew }) => 
           </div>
         )}
 
-        {/* title */}
-        {title && (controlsVisible || !playing) && (
-          <div className="absolute top-0 inset-x-0 p-3 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
-            <p className="text-white text-sm sm:text-base font-semibold truncate">{title}</p>
-          </div>
-        )}
+        {/* top: brand bar (fullscreen) + title */}
+        <div
+          className={`absolute top-0 inset-x-0 bg-gradient-to-b from-black/70 to-transparent pointer-events-none transition-opacity duration-200 ${
+            shown ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          {fullscreen && brandBar}
+          {title && <p className="px-3 py-2 text-white text-sm sm:text-base font-semibold truncate">{title}</p>}
+        </div>
 
         {/* controls */}
         <div
-          className={`absolute bottom-0 inset-x-0 px-2 sm:px-4 pb-2 pt-8 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-200 ${
-            controlsVisible || !playing ? "opacity-100" : "opacity-0 pointer-events-none"
+          className={`absolute bottom-0 inset-x-0 px-2 sm:px-4 pb-1 sm:pb-2 pt-10 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-200 ${
+            shown ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
           {/* seek bar */}
-          <div className="relative h-4 flex items-center group">
-            <div className="absolute inset-x-0 h-1 group-hover:h-1.5 rounded-full bg-white/25 transition-all">
+          <div className="relative h-5 flex items-center group" onMouseMove={onSeekHover} onMouseLeave={() => setHover(null)}>
+            <div
+              className={`absolute inset-x-0 rounded-full bg-white/25 transition-all ${
+                scrub != null ? "h-1.5" : "h-1 group-hover:h-1.5"
+              }`}
+            >
               <div className="absolute inset-y-0 left-0 rounded-full bg-white/40" style={{ width: `${bufferedPct}%` }} />
+              {hover && <div className="absolute inset-y-0 left-0 rounded-full bg-white/30" style={{ width: `${hover.pct}%` }} />}
               <div className="absolute inset-y-0 left-0 rounded-full bg-primary" style={{ width: `${playedPct}%` }} />
             </div>
+            {/* knob */}
+            <div
+              className={`absolute w-3.5 h-3.5 -ml-[7px] rounded-full bg-primary ring-2 ring-white/80 pointer-events-none transition-transform ${
+                scrub != null || touch ? "scale-100" : "scale-0 group-hover:scale-100"
+              }`}
+              style={{ left: `${playedPct}%` }}
+            />
+            {/* time bubble while dragging or hovering */}
+            {(scrub != null || hover) && duration > 0 && (
+              <div
+                className="absolute bottom-6 -translate-x-1/2 bg-black/80 text-white text-xs font-semibold tabular-nums px-2 py-1 rounded pointer-events-none"
+                style={{ left: `${Math.min(Math.max(scrub != null ? playedPct : hover.pct, 4), 96)}%` }}
+              >
+                {formatDuration(scrub != null ? scrub : hover.time)}
+              </div>
+            )}
             <input
               type="range"
               min={0}
               max={duration || 0}
               step="0.1"
-              value={current}
-              onChange={(e) => seekTo(Number(e.target.value))}
-              className="video-seek absolute inset-x-0 w-full h-4 opacity-0 cursor-pointer"
+              value={seekTime}
+              onChange={(e) => startScrub(Number(e.target.value))}
+              onPointerUp={endScrub}
+              onTouchEnd={endScrub}
+              onKeyUp={endScrub}
+              onBlur={endScrub}
+              className="absolute inset-x-0 w-full h-5 opacity-0 cursor-pointer"
               aria-label="Seek"
             />
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2 text-white mt-1">
-            <button type="button" onClick={togglePlay} className="p-2 hover:text-blue-300" aria-label={playing ? "Pause" : "Play"}>
-              {playing ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5" fill="currentColor" />}
-            </button>
-            <button type="button" onClick={() => skip(-10)} className="p-2 hover:text-blue-300" aria-label="Back 10 seconds">
-              <RotateCcw className="w-5 h-5" />
-            </button>
-            <button type="button" onClick={() => skip(10)} className="p-2 hover:text-blue-300" aria-label="Forward 10 seconds">
-              <RotateCw className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-1 sm:gap-2 text-white">
+            {!touch && (
+              <>
+                <button type="button" onClick={togglePlay} className="p-2 hover:text-blue-300" aria-label={playing ? "Pause" : "Play"}>
+                  {playing ? <Pause className="w-5 h-5" fill="currentColor" /> : <Play className="w-5 h-5" fill="currentColor" />}
+                </button>
+                <button type="button" onClick={() => skip(-10)} className="p-2 hover:text-blue-300" aria-label="Back 10 seconds">
+                  <RotateCcw className="w-5 h-5" />
+                </button>
+                <button type="button" onClick={() => skip(10)} className="p-2 hover:text-blue-300" aria-label="Forward 10 seconds">
+                  <RotateCw className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-1 group/vol">
+                  <button type="button" onClick={toggleMute} className="p-2 hover:text-blue-300" aria-label={muted ? "Unmute" : "Mute"}>
+                    {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                  </button>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={muted ? 0 : volume}
+                    onChange={(e) => changeVolume(Number(e.target.value))}
+                    className="w-0 group-hover/vol:w-20 focus:w-20 transition-all duration-200 accent-white cursor-pointer"
+                    aria-label="Volume"
+                  />
+                </div>
+              </>
+            )}
 
-            <div className="hidden sm:flex items-center gap-1">
-              <button type="button" onClick={toggleMute} className="p-2 hover:text-blue-300" aria-label={muted ? "Unmute" : "Mute"}>
-                {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </button>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={muted ? 0 : volume}
-                onChange={(e) => changeVolume(Number(e.target.value))}
-                className="w-20 accent-white cursor-pointer"
-                aria-label="Volume"
-              />
-            </div>
-
-            <span className="text-xs sm:text-sm tabular-nums ml-1 whitespace-nowrap">
-              {formatDuration(current)} / {formatDuration(duration)}
+            <span className="text-xs sm:text-sm tabular-nums px-1 whitespace-nowrap">
+              {formatDuration(seekTime)} / {formatDuration(duration)}
             </span>
 
             <div className="ml-auto flex items-center gap-1 relative">
               <button
                 type="button"
-                onClick={() => setMenu(menu ? null : "settings")}
-                className="p-2 hover:text-blue-300 flex items-center gap-1"
+                onClick={() => setMenu(menu ? null : "main")}
+                className="p-2 hover:text-blue-300 relative"
                 aria-label="Settings"
               >
-                <Settings className="w-5 h-5" />
-                {rate !== 1 && <span className="text-xs font-semibold">{rate}×</span>}
+                <Settings className={`w-5 h-5 transition-transform duration-200 ${menu ? "rotate-45" : ""}`} />
+                {hd && (
+                  <span className="absolute top-0.5 right-0 bg-primary text-[9px] font-bold leading-none px-1 py-0.5 rounded">HD</span>
+                )}
               </button>
               <button type="button" onClick={toggleFullscreen} className="p-2 hover:text-blue-300" aria-label="Fullscreen">
                 {fullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
               </button>
 
-              {menu === "settings" && (
-                <div className="absolute bottom-12 right-0 w-56 max-h-72 overflow-y-auto bg-black/90 rounded-lg p-2 text-sm shadow-xl z-10">
-                  <p className="px-2 pt-1 pb-1 text-xs uppercase tracking-wider text-gray-400">Speed</p>
-                  <div className="grid grid-cols-3 gap-1 mb-2">
-                    {SPEEDS.map((s) => (
-                      <button
-                        type="button"
-                        key={s}
-                        onClick={() => chooseSpeed(s)}
-                        className={`py-1.5 rounded ${rate === s ? "bg-primary" : "hover:bg-white/10"}`}
-                      >
-                        {s === 1 ? "Normal" : `${s}×`}
-                      </button>
-                    ))}
-                  </div>
-                  {levels.length > 0 && (
+              {menu && (
+                <div
+                  className="absolute bottom-12 right-0 w-60 sm:w-64 max-h-[60vh] overflow-y-auto bg-black/90 rounded-lg p-1.5 text-sm text-white shadow-xl z-10"
+                  onPointerUp={(e) => e.stopPropagation()}
+                >
+                  {menu === "main" && (
                     <>
-                      <p className="px-2 pt-1 pb-1 text-xs uppercase tracking-wider text-gray-400">Quality</p>
-                      <button
-                        type="button"
-                        onClick={() => chooseLevel(-1)}
-                        className={`w-full text-left px-2 py-1.5 rounded ${level === -1 ? "bg-primary" : "hover:bg-white/10"}`}
-                      >
-                        Auto{activeHeight && level === -1 ? ` (${activeHeight}p)` : ""}
-                      </button>
-                      {levels.map((l) => (
-                        <button
-                          type="button"
-                          key={l.index}
-                          onClick={() => chooseLevel(l.index)}
-                          className={`w-full text-left px-2 py-1.5 rounded ${level === l.index ? "bg-primary" : "hover:bg-white/10"}`}
-                        >
-                          {l.height}p
-                        </button>
-                      ))}
+                      {levels.length > 0 && menuRow("Quality", qualityLabel, "quality")}
+                      {menuRow("Playback speed", speedLabel, "speed")}
+                      {menuRow("Aspect ratio", fitLabel, "fit")}
                     </>
                   )}
-                  {levels.length > 0 && <p className="px-2 pt-2 text-xs text-gray-400">Now: {qualityLabel}</p>}
+                  {menu === "quality" && (
+                    <>
+                      {menuBack("Quality")}
+                      {levels.map((l) => menuOption(l.index, `${l.height}p${l.height >= 720 ? " HD" : ""}`, level === l.index, () => chooseLevel(l.index)))}
+                      {menuOption("auto", `Auto${activeHeight && level === -1 ? ` (${activeHeight}p)` : ""}`, level === -1, () => chooseLevel(-1))}
+                    </>
+                  )}
+                  {menu === "speed" && (
+                    <>
+                      {menuBack("Playback speed")}
+                      {SPEEDS.map((s) => menuOption(s, s === 1 ? "Normal" : `${s}×`, rate === s, () => chooseSpeed(s)))}
+                    </>
+                  )}
+                  {menu === "fit" && (
+                    <>
+                      {menuBack("Aspect ratio")}
+                      {FITS.map((f) => menuOption(f.value, f.label, fit === f.value, () => chooseFit(f.value)))}
+                    </>
+                  )}
                 </div>
               )}
             </div>
