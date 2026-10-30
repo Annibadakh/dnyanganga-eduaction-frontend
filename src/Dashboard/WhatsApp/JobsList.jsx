@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import api from "../../Api";
 import JobCreation from "./JobCreation";
 import ReceiverList from "./ReceiverList";
@@ -10,6 +11,9 @@ const JobsList = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // Success message after creating a job (from JobCreation, here or on its own route)
+  const location = useLocation();
+  const [notice, setNotice] = useState(location.state?.message || "");
   const [showCreate, setShowCreate] = useState(false);
   const [retryingJobId, setRetryingJobId] = useState(null);
   const [viewingJobId, setViewingJobId] = useState(null);
@@ -132,6 +136,12 @@ const JobsList = () => {
     fetchJobs();
   }, [currentPage, itemsPerPage]);
 
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(""), 6000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
   const fetchJobs = async () => {
     try {
       setLoading(true);
@@ -229,18 +239,15 @@ const JobsList = () => {
 
   if (showCreate) {
     return (
-      <div>
-        <div className="mb-4">
-          <button
-            onClick={() => setShowCreate(false)}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            ← Back to Jobs
-          </button>
-        </div>
-
-        <JobCreation />
-      </div>
+      <JobCreation
+        onCancel={() => setShowCreate(false)}
+        onCreated={(message) => {
+          setShowCreate(false);
+          setNotice(message);
+          if (currentPage === 1) fetchJobs();
+          else setCurrentPage(1);
+        }}
+      />
     );
   }
 
@@ -270,6 +277,13 @@ const JobsList = () => {
           + Create Job
         </Button>
       </div>
+
+      {notice && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-300 text-green-800 rounded flex justify-between gap-2">
+          <span>{notice}</span>
+          <button onClick={() => setNotice("")} aria-label="Close">✕</button>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">

@@ -1,48 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { CheckCircle2, X, XCircle } from "lucide-react";
 import api from "../../Api";
-
+import MessagePreview from "./MessagePreview";
 
 const TestTemplateModal = ({ template, onClose }) => {
   const [phone, setPhone] = useState("");
+  // Variable values keyed by var_index (labels could repeat in older templates)
   const [testData, setTestData] = useState({});
   const [submitLoader, setSubmitLoader] = useState(false);
   const [result, setResult] = useState(null);
 
-  // =========================
-  // Initialize Variable Inputs
-  // =========================
-  useEffect(() => {
-    const initialData = {};
+  const variables = template.variables || [];
+  const labels = Object.fromEntries(variables.map((v) => [String(v.var_index), v.label]));
 
-    template.variables?.forEach((v) => {
-      initialData[v.label] = "";
-    });
-
-    setTestData(initialData);
-  }, [template]);
-
-  // =========================
-  // Handle Variable Input
-  // =========================
-  const handleTestDataChange = (label, value) => {
-    setTestData((prev) => ({ ...prev, [label]: value }));
-  };
-
-  // =========================
-  // Send Test Message
-  // =========================
   const handleSendTest = async () => {
-    if (!phone.trim()) {
-      alert("Please enter a phone number");
+    if (!/^\d{10}$/.test(phone)) {
+      setResult({ success: false, message: "Enter a valid 10-digit mobile number" });
       return;
     }
 
-    const missingData = Object.entries(testData).filter(
-      ([_, value]) => !value.trim(),
-    );
-
-    if (missingData.length > 0) {
-      alert("Please fill all variable values");
+    const missing = variables.filter((v) => !testData[v.var_index]?.trim());
+    if (missing.length > 0) {
+      setResult({ success: false, message: `Enter a value for: ${missing.map((v) => v.label).join(", ")}` });
       return;
     }
 
@@ -54,164 +33,118 @@ const TestTemplateModal = ({ template, onClose }) => {
         phone,
         test_data: testData,
       });
-
-      if (response.data.success) {
-        const cleaned = response.data.rendered_message
-          ?.replace(/\\n/g, "\n")
-          ?.replace(/\r\n/g, "\n");
-
-        setResult({
-          success: true,
-          message: response.data.message,
-          rendered: cleaned,
-        });
-
-        alert("Test message sent successfully !!");
-      } else {
-        setResult({
-          success: false,
-          message: response.data.message,
-        });
-      }
+      setResult({ success: true, message: response.data.message });
     } catch (err) {
+      console.error("Test error:", err);
+      // The backend passes on WhatsApp's own reason (template not approved, wrong values…)
       setResult({
         success: false,
-        message: "Failed to send test message",
+        message: err.response?.data?.message || "Failed to send test message",
       });
-
-      console.error("Test error:", err);
     } finally {
       setSubmitLoader(false);
     }
   };
 
-  // =========================
-  // UI (UNCHANGED)
-  // =========================
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-custom">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-2xl font-bold text-secondary">
-              Test: {template.name}
-            </h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+      <div className="bg-white rounded-t-lg sm:rounded-lg max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-custom">
+        <div className="flex justify-between items-center gap-3 border-b px-4 py-3 md:px-6 sticky top-0 bg-white z-10">
+          <h3 className="text-lg md:text-xl font-bold text-secondary break-words min-w-0">
+            Test: {template.name}
+          </h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-black shrink-0" aria-label="Close">
+            <X size={22} />
+          </button>
+        </div>
 
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-black"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div>
+        <div className="grid md:grid-cols-2 gap-5 p-4 md:p-6">
+          <div className="space-y-3">
             {/* Phone Input */}
-            <div className="mb-3">
-              <label className="block">Phone Number *</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "").slice(0, 10);
-
-                  setPhone(value);
-                }}
-                maxLength={10}
-                className="border p-2 w-full rounded"
-                placeholder="9876543210"
-              />
+            <div>
+              <label className="block text-sm font-medium text-black mb-1">Phone Number *</label>
+              <div className="flex">
+                <span className="px-3 py-2 border border-r-0 border-gray-300 rounded-l bg-gray-50 text-gray-600">+91</span>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  maxLength={10}
+                  className="border border-gray-300 p-2 w-full rounded-r focus:outline-none focus:border-primary"
+                  placeholder="9876543210"
+                />
+              </div>
             </div>
 
-            {/* Variables Section */}
-            <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
-              <h4 className="text-sm font-semibold text-secondary mb-3">
-                Variable Values
-              </h4>
-
-              <div className="space-y-3">
-                {template.variables?.map((variable) => (
-                  <div key={variable.id} className="mb-3">
-                    <label className="block">
-                      {variable.label} ({"{{"}
-                      {variable.var_index}
-                      {"}}"})*
+            {/* Variables */}
+            {variables.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded p-3 space-y-3">
+                <h4 className="text-sm font-semibold text-secondary">Variable Values</h4>
+                {variables.map((variable) => (
+                  <div key={variable.id ?? variable.var_index}>
+                    <label className="block text-sm mb-1">
+                      {variable.label} <span className="text-gray-500 font-mono">{`{{${variable.var_index}}}`}</span> *
                     </label>
-
                     <input
                       type="text"
-                      value={testData[variable.label] || ""}
+                      value={testData[variable.var_index] || ""}
                       onChange={(e) =>
-                        handleTestDataChange(variable.label, e.target.value)
+                        setTestData((prev) => ({ ...prev, [variable.var_index]: e.target.value }))
                       }
-                      className="border p-2 w-full rounded"
+                      className="border border-gray-300 p-2 w-full rounded bg-white focus:outline-none focus:border-primary"
                       placeholder={`Enter ${variable.label}`}
                     />
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Result Section */}
-            {result && (
-              <div
-                className={`p-4 rounded mb-4 ${
-                  result.success
-                    ? "bg-green-50 border border-green-200"
-                    : "bg-red-50 border border-red-200"
-                }`}
-              >
-                <p
-                  className={`font-medium ${
-                    result.success ? "text-green-800" : "text-red-800"
-                  }`}
-                >
-                  {result.message}
-                </p>
-
-                {result.rendered && (
-                  <div className="mt-3 p-3 bg-white rounded border">
-                    <p className="text-sm text-black font-mono whitespace-pre-line">
-                      {result.rendered}
-                    </p>
-                  </div>
-                )}
-              </div>
             )}
+          </div>
 
-            {/* Buttons */}
-            <div className="flex gap-2">
-              <button
-                onClick={onClose}
-                className="flex-1 border border-gray-300 text-black px-4 py-2 rounded hover:bg-gray-50"
-              >
-                Close
-              </button>
+          <div>
+            <p className="text-sm font-medium text-black mb-1">Preview</p>
+            <MessagePreview
+              body={template.body}
+              headerType={template.header_type}
+              headerUrl={template.header_url}
+              labels={labels}
+              values={testData}
+            />
+          </div>
+        </div>
 
-              <button
-                onClick={handleSendTest}
-                className="flex-1 bg-primary min-w-36 disabled:opacity-50 grid place-items-center text-white px-4 py-2 rounded hover:bg-secondary"
-                disabled={submitLoader}
-              >
-                {submitLoader ? (
-                  <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span>
-                ) : (
-                  "Send Test"
-                )}
-              </button>
+        <div className="px-4 pb-4 md:px-6 md:pb-6">
+          {result && (
+            <div
+              className={`p-3 rounded mb-3 flex items-start gap-2 text-sm ${
+                result.success
+                  ? "bg-green-50 border border-green-200 text-green-800"
+                  : "bg-red-50 border border-red-200 text-red-800"
+              }`}
+            >
+              {result.success ? <CheckCircle2 size={18} className="shrink-0" /> : <XCircle size={18} className="shrink-0" />}
+              <span className="break-words">{result.message}</span>
             </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="flex-1 border border-gray-300 text-black px-4 py-2 rounded hover:bg-gray-50"
+            >
+              Close
+            </button>
+            <button
+              onClick={handleSendTest}
+              className="flex-1 bg-primary disabled:opacity-50 grid place-items-center text-white px-4 py-2 rounded hover:bg-secondary"
+              disabled={submitLoader}
+            >
+              {submitLoader ? (
+                <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></span>
+              ) : (
+                "Send Test"
+              )}
+            </button>
           </div>
         </div>
       </div>

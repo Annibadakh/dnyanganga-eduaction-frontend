@@ -1,261 +1,329 @@
-import React, { useState, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import {
-  Upload,
-  FileSpreadsheet,
-  Trash2,
-  Pencil,
+  AlertTriangle,
   Check,
-  X,
-  ChevronRight,
   ChevronLeft,
-  Table2,
+  ChevronRight,
+  FileSpreadsheet,
+  Pencil,
+  Phone,
+  Trash2,
+  Upload,
+  X,
 } from "lucide-react";
+import { phoneProblems } from "./phone";
 
-const ExcelUploadEditor = ({ onDataReady, onCancel }) => {
-  const [rows, setRows] = useState([]);
-  const [columns, setColumns] = useState([]);
-  const [labels, setLabels] = useState({});
-  const [editIndex, setEditIndex] = useState(null);
+const PAGE_SIZE = 50;
+const PHONE_COLUMN_GUESS = /phone|mobile|contact|whats\s*app|number|no\.?$/i;
+
+let nextRowId = 1;
+
+// Step 2 of job creation: read the Excel file, pick the phone column, fix or remove rows
+// whose number is missing, invalid or repeated (shown in red) before continuing.
+const ExcelUploadEditor = ({ initial, onDataReady, onCancel }) => {
+  const [rows, setRows] = useState(initial?.rows || []);
+  const [columns, setColumns] = useState(initial?.columns || []);
+  const [phoneField, setPhoneField] = useState(initial?.phoneField || "");
+  const [fileName, setFileName] = useState(initial?.fileName || "");
+  const [editId, setEditId] = useState(null);
   const [editRow, setEditRow] = useState({});
-  const [fileName, setFileName] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [reading, setReading] = useState(false);
   const [error, setError] = useState("");
+  const [onlyProblems, setOnlyProblems] = useState(false);
+  const [page, setPage] = useState(1);
   const fileInputRef = useRef(null);
+
+  const problems = useMemo(
+    () => (phoneField ? phoneProblems(rows, phoneField) : rows.map(() => "")),
+    [rows, phoneField],
+  );
+  const problemCount = problems.filter(Boolean).length;
+
+  const visible = useMemo(() => {
+    const all = rows.map((row, i) => ({ row, problem: problems[i] }));
+    return onlyProblems ? all.filter((r) => r.problem) : all;
+  }, [rows, problems, onlyProblems]);
+
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = visible.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const processFile = (file) => {
     if (!file) return;
-    setFileName(file.name);
+    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) {
+      setError("Please upload an Excel file (.xlsx, .xls or .csv)");
+      return;
+    }
     setError("");
+    setReading(true);
     const reader = new FileReader();
-    reader.readAsBinaryString(file);
     reader.onload = (event) => {
-      const wb = XLSX.read(event.target.result, { type: "binary" });
-      const sheet = wb.SheetNames[0];
-      const data = XLSX.utils.sheet_to_json(wb.Sheets[sheet]);
-      const cols = Object.keys(data[0] || {});
-      setRows(data);
-      setColumns(cols);
-      setLabels(cols.reduce((acc, c) => ({ ...acc, [c]: c }), {}));
+      try {
+        const wb = XLSX.read(event.target.result, { type: "array" });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        if (data.length === 0) {
+          setError("The first sheet of this file has no rows");
+          return;
+        }
+        // Columns from every row (a blank cell in the first row would hide its column)
+        const cols = [...new Set(data.flatMap((r) => Object.keys(r)))].filter(
+          (c) => !c.startsWith("__EMPTY"),
+        );
+        setRows(data.map((r) => ({ ...r, __id: nextRowId++ })));
+        setColumns(cols);
+        setPhoneField(cols.find((c) => PHONE_COLUMN_GUESS.test(c)) || "");
+        setFileName(file.name);
+        setEditId(null);
+        setOnlyProblems(false);
+        setPage(1);
+      } catch (err) {
+        console.error("Excel read error:", err);
+        setError("Could not read this file. Please check it is a valid Excel file.");
+      } finally {
+        setReading(false);
+      }
     };
+    reader.readAsArrayBuffer(file);
   };
-
-  const handleFileUpload = (e) => processFile(e.target.files[0]);
 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file && (file.name.endsWith(".xlsx") || file.name.endsWith(".xls"))) {
-      processFile(file);
-    } else {
-      setError("Please upload a valid Excel file (.xlsx or .xls)");
-    }
+    processFile(e.dataTransfer.files[0]);
   };
 
-  const startEditing = (index) => {
-    setEditIndex(index);
-    setEditRow({ ...rows[index] });
+  const startEditing = (row) => {
+    setEditId(row.__id);
+    setEditRow({ ...row });
   };
 
-  const saveRow = (index) => {
-    const updated = [...rows];
-    updated[index] = editRow;
-    setRows(updated);
-    setEditIndex(null);
+  const saveRow = () => {
+    setRows((prev) => prev.map((r) => (r.__id === editId ? editRow : r)));
+    setEditId(null);
   };
 
-  const deleteRow = (index) => {
-    setRows(rows.filter((_, i) => i !== index));
-    if (editIndex === index) setEditIndex(null);
+  const deleteRow = (id) => {
+    setRows((prev) => prev.filter((r) => r.__id !== id));
+    if (editId === id) setEditId(null);
   };
 
-  const renameColumn = (key, value) => setLabels({ ...labels, [key]: value });
+  const removeProblemRows = () => {
+    setRows((prev) => prev.filter((_, i) => !problems[i]));
+    setOnlyProblems(false);
+    setPage(1);
+  };
 
   const deleteColumn = (col) => {
-    setColumns(columns.filter((c) => c !== col));
-    setRows(rows.map((r) => { const { [col]: _, ...rest } = r; return rest; }));
-    const newLabels = { ...labels };
-    delete newLabels[col];
-    setLabels(newLabels);
+    if (col === phoneField) setPhoneField("");
+    setColumns((prev) => prev.filter((c) => c !== col));
+    setRows((prev) => prev.map(({ [col]: _, ...rest }) => rest));
   };
 
   const handleSubmit = () => {
-    if (rows.length === 0) {
-      setError("Please upload an Excel file before continuing.");
-      return;
+    if (rows.length === 0) return setError("Please upload an Excel file before continuing.");
+    if (!phoneField) return setError("Select the column that has the phone numbers.");
+    if (problemCount > 0) {
+      return setError(`${problemCount} row(s) have a problem with the phone number. Fix or remove them to continue.`);
     }
     setError("");
-    const mappedRows = rows.map((row) => {
-      const newRow = {};
-      columns.forEach((col) => { newRow[labels[col] || col] = row[col]; });
-      return newRow;
-    });
-    onDataReady?.(mappedRows, columns);
+    onDataReady?.({ rows, columns, phoneField, fileName });
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-5xl mx-auto bg-customwhite shadow-custom rounded p-6">
+    <div>
+      <h2 className="text-lg md:text-xl font-semibold text-primary mb-4">Upload Receivers (Excel)</h2>
 
-        {/* Page Title */}
-        <h2 className="text-xl font-bold text-primary mb-5">
-          Upload Excel File
-        </h2>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded flex items-start gap-2 text-sm">
+          <X size={16} className="shrink-0 mt-0.5" />
+          {error}
+        </div>
+      )}
 
-        {/* Error Banner */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded flex items-center gap-2 text-md">
-            <X size={16} className="shrink-0" />
-            {error}
+      {/* ── Drop zone ── */}
+      <div
+        className={`border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors mb-4 ${
+          rows.length > 0 ? "p-4" : "p-8"
+        } ${isDragging ? "border-primary bg-blue-100" : "border-fourthcolor bg-blue-50 hover:border-primary"}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls,.csv"
+          onChange={(e) => {
+            processFile(e.target.files[0]);
+            e.target.value = "";
+          }}
+          className="hidden"
+        />
+        {reading ? (
+          <span className="inline-block animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+        ) : fileName ? (
+          <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+            <FileSpreadsheet size={18} className="text-green-600" />
+            <span className="font-medium text-primary break-all">{fileName}</span>
+            <span className="text-gray-500">· tap to choose another file</span>
           </div>
-        )}
-
-        {/* ── Upload Section ── */}
-        <div className="mb-5 border border-blue-200 rounded-lg p-4 bg-blue-50">
-          <h3 className=" text-primary mb-3 flex items-center gap-2">
-            <FileSpreadsheet size={16} />
-            Select or Drop Your File *
-          </h3>
-
-          {/* Drop Zone */}
-          <div
-            className={`relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              isDragging
-                ? "border-primary bg-blue-100"
-                : "border-fourthcolor bg-customwhite hover:border-primary hover:bg-blue-50"
-            }`}
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
+        ) : (
+          <>
             <Upload size={32} className="mx-auto mb-3 text-fourthcolor" />
-            <p className=" text-primary text-md">
-              Click to browse or drag &amp; drop here
-            </p>
-            <p className="text-gray-400 text-sm mt-1">
-              Supports .xlsx and .xls formats
-            </p>
-            {fileName && (
-              <span className="inline-flex items-center gap-2 mt-3 bg-blue-100 text-primary text-sm font-medium px-3 py-1 rounded-full">
-                <Check size={12} /> {fileName}
+            <p className="text-primary">Click to browse or drag &amp; drop here</p>
+            <p className="text-gray-400 text-sm mt-1">.xlsx, .xls or .csv — the first row must be the column names</p>
+          </>
+        )}
+      </div>
+
+      {rows.length > 0 && (
+        <>
+          {/* ── Phone column + summary ── */}
+          <div className="grid md:grid-cols-[minmax(0,320px)_1fr] gap-4 mb-4 items-end">
+            <div>
+              <label className="block text-sm font-medium text-black mb-1">
+                <Phone size={14} className="inline mr-1" />
+                Phone Number Column *
+              </label>
+              <select
+                value={phoneField}
+                onChange={(e) => {
+                  setPhoneField(e.target.value);
+                  setError("");
+                }}
+                className={`border p-2 w-full rounded focus:outline-none focus:border-primary ${
+                  phoneField ? "border-gray-300" : "border-red-400"
+                }`}
+              >
+                <option value="">-- Select phone column --</option>
+                {columns.map((col) => (
+                  <option key={col} value={col}>{col}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-sm">
+              <span className="bg-white border border-blue-200 px-3 py-1 rounded-full">
+                <b className="text-primary">{rows.length}</b> rows
               </span>
-            )}
+              {phoneField && (
+                <span className="bg-green-50 border border-green-200 text-green-800 px-3 py-1 rounded-full">
+                  <b>{rows.length - problemCount}</b> ready to send
+                </span>
+              )}
+              {problemCount > 0 && (
+                <span className="bg-red-50 border border-red-200 text-red-700 px-3 py-1 rounded-full">
+                  <b>{problemCount}</b> with problems
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Stats */}
-          {rows.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              <span className="bg-customwhite border border-blue-200 text-tertiary text-sm px-3 py-1 rounded-full">
-                <span className=" text-primary">{rows.length}</span> Rows
+          {problemCount > 0 && (
+            <div className="mb-4 p-3 rounded border border-red-200 bg-red-50 flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-red-800">
+              <AlertTriangle size={18} className="shrink-0" />
+              <span className="flex-1">
+                Rows in red have a missing, invalid or repeated phone number. Edit them, or remove them all.
               </span>
-              <span className="bg-customwhite border border-blue-200 text-tertiary text-sm px-3 py-1 rounded-full">
-                <span className=" text-primary">{columns.length}</span> Columns
-              </span>
-              <span className="bg-customwhite border border-blue-200 text-tertiary text-sm px-3 py-1 rounded-full">
-                <span className=" text-primary">{rows.length * columns.length}</span> Cells
-              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setOnlyProblems((v) => !v);
+                    setPage(1);
+                  }}
+                  className="px-3 py-1.5 rounded border border-red-300 bg-white hover:bg-red-100"
+                >
+                  {onlyProblems ? "Show all rows" : "Show only these"}
+                </button>
+                <button
+                  onClick={removeProblemRows}
+                  className="px-3 py-1.5 rounded bg-red-600 text-white hover:bg-red-700 flex items-center gap-1"
+                >
+                  <Trash2 size={14} /> Remove {problemCount}
+                </button>
+              </div>
             </div>
           )}
-        </div>
 
-        {/* ── Data Preview & Edit Section ── */}
-        {rows.length > 0 && (
-          <div className="mb-5 border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <h3 className=" text-customblack mb-3 flex items-center gap-2">
-              <Table2 size={16} />
-              Preview &amp; Edit Data
-            </h3>
-
-            <div className="overflow-x-auto rounded-lg border border-gray-200 max-h-96">
-              <table className="w-full text-md min-w-max border-collapse">
-                <thead className="bg-primary">
-                  <tr>
-                    <th className="px-3 py-3 text-center text-sm  text-customwhite uppercase tracking-wide w-12">
-                      Sr
+          {/* ── Rows ── */}
+          <div className="overflow-auto rounded-lg border border-gray-200 max-h-[60vh] mb-3">
+            <table className="w-full text-sm min-w-max border-collapse">
+              <thead className="bg-primary text-customwhite sticky top-0 z-10">
+                <tr>
+                  <th className="px-3 py-2 text-center w-12">Sr</th>
+                  {columns.map((col) => (
+                    <th key={col} className="px-3 py-2 text-left font-medium">
+                      <div className="flex items-center gap-1">
+                        <span className={col === phoneField ? "underline underline-offset-4" : ""}>{col}</span>
+                        <button
+                          onClick={() => deleteColumn(col)}
+                          title={`Remove column ${col}`}
+                          className="w-5 h-5 flex items-center justify-center rounded hover:bg-red-500"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
                     </th>
-                    {columns.map((col) => (
-                      <th key={col} className="px-3 py-2 text-left">
-                        <div className="flex items-center gap-1">
-                          <input
-                            value={labels[col]}
-                            onChange={(e) => renameColumn(col, e.target.value)}
-                            className="flex-1 min-w-[80px] bg-white bg-opacity-20 border border-white border-opacity-30 rounded px-2 py-1 text-customwhite text-sm font-medium focus:outline-none"
-                          />
-                          <button
-                            onClick={() => deleteColumn(col)}
-                            className="shrink-0 w-6 h-6 flex items-center justify-center rounded bg-white bg-opacity-10 text-customwhite hover:bg-red-500 transition-colors"
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
-                      </th>
-                    ))}
-                    <th className="px-3 py-3 text-left text-sm  text-customwhite uppercase tracking-wide">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {rows.map((row, index) => (
+                  ))}
+                  <th className="px-3 py-2 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pageRows.map(({ row, problem }) => {
+                  const editing = editId === row.__id;
+                  const index = rows.indexOf(row);
+                  return (
                     <tr
-                      key={index}
-                      className={`border-b border-gray-100 whitespace-nowrap transition-colors ${
-                        editIndex === index
-                          ? "bg-orange-50"
-                          : index % 2 === 0
-                          ? "bg-customwhite hover:bg-blue-50"
-                          : "bg-gray-50 hover:bg-blue-50"
+                      key={row.__id}
+                      className={`border-b border-gray-100 ${
+                        editing ? "bg-orange-50" : problem ? "bg-red-50 text-red-800" : "bg-white hover:bg-blue-50"
                       }`}
                     >
-                      <td className="px-3 py-2 text-center text-sm text-black ">
+                      <td className="px-3 py-2 text-center">
                         {index + 1}
+                        {problem && !editing && (
+                          <span className="block text-[10px] font-semibold text-red-600 whitespace-nowrap">{problem}</span>
+                        )}
                       </td>
-
                       {columns.map((key) => (
-                        <td key={key} className=" whitespace-nowrap py-2">
-                          {editIndex === index ? (
+                        <td key={key} className="px-3 py-2">
+                          {editing ? (
                             <input
                               value={editRow[key] ?? ""}
-                              onChange={(e) =>
-                                setEditRow({ ...editRow, [key]: e.target.value })
-                              }
-                              className="w-full border border-fourthcolor rounded px-2 py-1 text-sm focus:outline-none focus:border-primary min-w-[90px]"
+                              onChange={(e) => setEditRow({ ...editRow, [key]: e.target.value })}
+                              className="w-full border border-fourthcolor rounded px-2 py-1 focus:outline-none focus:border-primary min-w-[90px] text-black"
                             />
                           ) : (
                             <span
-                              className="block max-w-[160px] text-customblack text-sm"
+                              className={`block max-w-[200px] truncate ${
+                                problem && key === phoneField ? "font-semibold text-red-600" : ""
+                              }`}
                               title={String(row[key] ?? "")}
                             >
-                              {row[key] !== undefined && row[key] !== ""
-                                ? row[key]
-                                : <span className="text-gray-300">—</span>}
+                              {row[key] !== undefined && row[key] !== "" ? String(row[key]) : <span className="text-gray-300">—</span>}
                             </span>
                           )}
                         </td>
                       ))}
-
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        {editIndex === index ? (
+                      <td className="px-3 py-2">
+                        {editing ? (
                           <div className="flex gap-1">
                             <button
-                              onClick={() => saveRow(index)}
-                              className="flex items-center gap-1 px-2 py-1 text-sm font-medium bg-green-100 text-green-800 rounded hover:bg-green-600 hover:text-customwhite transition-colors"
+                              onClick={saveRow}
+                              className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded hover:bg-green-600 hover:text-white"
                             >
                               <Check size={12} /> Save
                             </button>
                             <button
-                              onClick={() => setEditIndex(null)}
-                              className="flex items-center gap-1 px-2 py-1 text-sm font-medium bg-gray-100 text-gray-600 rounded hover:bg-gray-300 transition-colors"
+                              onClick={() => setEditId(null)}
+                              className="flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-300"
                             >
                               <X size={12} /> Cancel
                             </button>
@@ -263,14 +331,14 @@ const ExcelUploadEditor = ({ onDataReady, onCancel }) => {
                         ) : (
                           <div className="flex gap-1">
                             <button
-                              onClick={() => startEditing(index)}
-                              className="flex items-center gap-1 px-2 py-1 text-sm font-medium bg-blue-100 text-primary rounded hover:bg-primary hover:text-customwhite transition-colors"
+                              onClick={() => startEditing(row)}
+                              className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-primary rounded hover:bg-primary hover:text-white"
                             >
                               <Pencil size={12} /> Edit
                             </button>
                             <button
-                              onClick={() => deleteRow(index)}
-                              className="flex items-center gap-1 px-2 py-1 text-sm font-medium bg-red-100 text-red-700 rounded hover:bg-red-600 hover:text-customwhite transition-colors"
+                              onClick={() => deleteRow(row.__id)}
+                              className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-600 hover:text-white"
                             >
                               <Trash2 size={12} /> Delete
                             </button>
@@ -278,29 +346,53 @@ const ExcelUploadEditor = ({ onDataReady, onCancel }) => {
                         )}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        )}
 
-        {/* ── Footer ── */}
-        <div className="flex gap-3 flex-wrap">
-          <button
-            onClick={onCancel}
-            className="flex items-center gap-2 px-5 py-2 border border-gray-300 rounded text-gray-600 font-medium text-md hover:border-primary hover:text-primary transition-colors bg-customwhite"
-          >
-            <ChevronLeft size={16} /> Back
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="flex items-center gap-2 px-6 py-2 bg-green-600 text-customwhite  text-md rounded hover:bg-green-700 transition-colors"
-          >
-            Continue <ChevronRight size={16} />
-          </button>
-        </div>
+          {pageCount > 1 && (
+            <div className="flex items-center justify-center gap-3 mb-4 text-sm">
+              <button
+                onClick={() => setPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-1.5 border rounded disabled:opacity-40"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span>
+                Page {currentPage} of {pageCount}
+              </span>
+              <button
+                onClick={() => setPage(currentPage + 1)}
+                disabled={currentPage === pageCount}
+                className="p-1.5 border rounded disabled:opacity-40"
+                aria-label="Next page"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+        </>
+      )}
 
+      {/* ── Footer ── */}
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2 pt-2">
+        <button
+          onClick={onCancel}
+          className="flex items-center justify-center gap-2 px-5 py-2 border border-gray-300 rounded text-gray-600 hover:border-primary hover:text-primary bg-customwhite"
+        >
+          <ChevronLeft size={16} /> Back
+        </button>
+        <button
+          onClick={handleSubmit}
+          disabled={rows.length === 0}
+          className="flex items-center justify-center gap-2 px-6 py-2 bg-primary text-customwhite rounded hover:bg-secondary disabled:opacity-50"
+        >
+          Continue <ChevronRight size={16} />
+        </button>
       </div>
     </div>
   );
