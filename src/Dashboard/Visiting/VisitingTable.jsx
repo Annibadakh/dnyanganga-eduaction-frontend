@@ -46,12 +46,16 @@ const VisitingTable = () => {
   const [followupVisit, setFollowupVisit] = useState(null);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
+  // Only admin and follow-up users work with the follow-up flag: they see the
+  // Flag column and flagged names in red. Other roles see plain names.
+  const canSeeFollowUpFlag = user.role === "admin" || user.role === "followUp";
+
   const columns = [
     {
       header: "Sr. No.",
       render: (_, index) => (currentPage - 1) * itemsPerPage + index + 1,
     },
-    ...(user.role === "admin" || user.role === "followUp"
+    ...(canSeeFollowUpFlag
       ? [
           {
             header: "Flag",
@@ -77,7 +81,7 @@ const VisitingTable = () => {
     {
       header: "Student Name",
       render: (row) => {
-        if (row.followUp == true) {
+        if (canSeeFollowUpFlag && row.followUp == true) {
           return (
             <span className="text-red-600 font-semibold">
               {row.studentName}
