@@ -6,7 +6,7 @@ import DateField from "../Generic/DateField";
 import PdfViewerModal from "../Generic/PdfViewerModal";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
-import { Download, Users, Banknote, Percent } from "lucide-react";
+import { Download, Users, Banknote, Percent, Search } from "lucide-react";
 
 const StatCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
   const colorClasses = {
@@ -35,6 +35,26 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color = "blue" }) => {
 
 const inr = (n) => "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN");
 
+const TYPE_OPTIONS = [
+  { value: "", label: "All" },
+  { value: "GST", label: "GST" },
+  { value: "NON_GST", label: "NON-GST" },
+];
+const SORT_BY_OPTIONS = [
+  { value: "invoiceDate", label: "Invoice Date" },
+  { value: "invoiceNumber", label: "Invoice Number" },
+  { value: "studentId", label: "Student ID" },
+];
+const SORT_ORDER_OPTIONS = [
+  { value: "asc", label: "Ascending" },
+  { value: "desc", label: "Descending" },
+];
+const DEFAULT_SORT_BY = "invoiceDate";
+const DEFAULT_SORT_ORDER = "asc";
+
+const selectClass =
+  "w-full px-3 h-[38px] text-sm border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-[#094D9E] focus:border-[#094D9E] outline-none cursor-pointer text-gray-700";
+
 export default function CaStudents() {
   const { user } = useAuth();
 
@@ -60,6 +80,26 @@ export default function CaStudents() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
+  // Bill type (GST / NON_GST, "" = both) and search (name / student ID /
+  // invoice number). The search box is debounced into `search`.
+  const [billType, setBillType] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    const next = searchInput.trim();
+    if (next === search) return undefined;
+    const id = setTimeout(() => {
+      setSearch(next);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(id);
+  }, [searchInput, search]);
+
+  // Sort (server-side, same order in the table and the Excel)
+  const [sortBy, setSortBy] = useState(DEFAULT_SORT_BY);
+  const [sortOrder, setSortOrder] = useState(DEFAULT_SORT_ORDER);
+
   // PDF
   const [pdfUrl, setPdfUrl] = useState("");
   const [pdfFileName, setPdfFileName] = useState("");
@@ -79,6 +119,10 @@ export default function CaStudents() {
             : "",
         dateFrom,
         dateTo,
+        type: billType,
+        search,
+        sortBy,
+        sortOrder,
       };
       const response = await api.get("/ca/students/export", {
         params,
@@ -124,6 +168,10 @@ export default function CaStudents() {
           : "",
       dateFrom,
       dateTo,
+      type: billType,
+      search,
+      sortBy,
+      sortOrder,
     };
     api
       .get("/ca/students", { params })
@@ -155,7 +203,7 @@ export default function CaStudents() {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, itemsPerPage, selectedStandard, dateFrom, dateTo]);
+  }, [currentPage, itemsPerPage, selectedStandard, dateFrom, dateTo, billType, search, sortBy, sortOrder]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -177,10 +225,22 @@ export default function CaStudents() {
     setSelectedStandard([]);
     setDateFrom("");
     setDateTo("");
+    setBillType("");
+    setSearchInput("");
+    setSearch("");
+    setSortBy(DEFAULT_SORT_BY);
+    setSortOrder(DEFAULT_SORT_ORDER);
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = selectedStandard.length > 0 || dateFrom || dateTo;
+  const hasActiveFilters =
+    selectedStandard.length > 0 ||
+    dateFrom ||
+    dateTo ||
+    billType ||
+    searchInput ||
+    sortBy !== DEFAULT_SORT_BY ||
+    sortOrder !== DEFAULT_SORT_ORDER;
 
   const handleViewPdf = async (row) => {
     try {
@@ -249,7 +309,7 @@ export default function CaStudents() {
       header: "Invoice Date",
       render: (row) =>
         row.invoiceDate
-          ? new Date(row.invoiceDate).toLocaleDateString("en-IN")
+          ? new Date(row.invoiceDate).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })
           : "—",
     },
     {
@@ -322,6 +382,22 @@ export default function CaStudents() {
       <div className="bg-white p-4 rounded-lg shadow-md mb-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-700">Filters</h2>
         <div className="flex flex-col md:flex-row gap-4 flex-wrap items-end">
+          <div className="w-full md:w-72">
+            <label htmlFor="caSearch" className="block text-sm font-medium text-gray-700 mb-1">
+              Search
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                id="caSearch"
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Student name, ID or invoice no."
+                className={`${selectClass} pl-9 cursor-text`}
+              />
+            </div>
+          </div>
           <div className="w-full md:w-64">
             <CustomMultiSelect
               label="Standard"
@@ -330,6 +406,57 @@ export default function CaStudents() {
               onChange={withPageReset(setSelectedStandard)}
               placeholder="Select Standard"
             />
+          </div>
+          <div className="w-full md:w-36">
+            <label htmlFor="caType" className="block text-sm font-medium text-gray-700 mb-1">
+              Type
+            </label>
+            <select
+              id="caType"
+              value={billType}
+              onChange={(e) => withPageReset(setBillType)(e.target.value)}
+              className={selectClass}
+            >
+              {TYPE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full md:w-44">
+            <label htmlFor="caSortBy" className="block text-sm font-medium text-gray-700 mb-1">
+              Sort By
+            </label>
+            <select
+              id="caSortBy"
+              value={sortBy}
+              onChange={(e) => withPageReset(setSortBy)(e.target.value)}
+              className={selectClass}
+            >
+              {SORT_BY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full md:w-36">
+            <label htmlFor="caSortOrder" className="block text-sm font-medium text-gray-700 mb-1">
+              Order
+            </label>
+            <select
+              id="caSortOrder"
+              value={sortOrder}
+              onChange={(e) => withPageReset(setSortOrder)(e.target.value)}
+              className={selectClass}
+            >
+              {SORT_ORDER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </div>
           <DateField
             id="dateFrom"
