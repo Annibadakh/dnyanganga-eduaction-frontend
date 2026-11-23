@@ -7,15 +7,32 @@ import FileUpload from "../FileUpload/FileUpload";
 import Button from "../Generic/Button";
 import CustomSelect from "../Generic/CustomSelect";
 import { fileUrl } from "../../utils/fileUrl";
+import { dobError } from "./registrationValidation";
+
+// Stored DOB → "YYYY-MM-DD" in India time (same as the student login check), so the
+// date input never shows the previous day
+const toIstDateInput = (value) => {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+};
 
 // Limited edit for the student's owner (the counsellor / sub-admin who registered them).
-// Only Student Photo, Med/Grp, Mother Name and Exam Centre are editable — everything else is read-only.
+// Only Student Photo, Med/Grp, Mother Name, Date of Birth and Exam Centre are editable —
+// everything else is read-only.
 // The exam centre is locked once a seat number is assigned (the server checks this too).
 const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
   const { successToast, errorToast } = useToast();
   const studentPhoto = FileUploadHook();
 
   const [motherName, setMotherName] = useState(student.motherName || "");
+  const [dob, setDob] = useState(() => toIstDateInput(student.dob));
   const [branch, setBranch] = useState(student.branch || "");
   const [newPhotoUrl, setNewPhotoUrl] = useState("");
   const [branchOptions, setBranchOptions] = useState([]);
@@ -81,6 +98,11 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
       errorToast("Please save the new photo first");
       return;
     }
+    const dobMessage = dobError(dob);
+    if (dobMessage) {
+      errorToast(dobMessage);
+      return;
+    }
     if (!examCentre) {
       errorToast("Please select an exam centre");
       return;
@@ -93,6 +115,7 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
         {
           motherName,
           branch,
+          dob,
           examCentre: examCentre ? Number(examCentre) : undefined,
           studentPhoto: newPhotoUrl || undefined,
         },
@@ -115,7 +138,6 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
     { label: "Student ID", value: student.studentId },
     { label: "Student Name", value: student.studentName },
     { label: "Gender", value: student.gender },
-    { label: "Date Of Birth", value: formatDate(student.dob) },
     { label: "Standard", value: student.standard },
     { label: "Exam Year", value: student.examYear },
     { label: "Student No.", value: student.studentNo },
@@ -207,6 +229,23 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
                   className={`${inputClass} uppercase`}
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date Of Birth
+                </label>
+                <input
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  max={toIstDateInput(new Date())}
+                  className={inputClass}
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  The student logs in with Student ID + Date of Birth.
+                </p>
               </div>
 
               <div>

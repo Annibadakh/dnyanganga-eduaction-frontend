@@ -1,4 +1,5 @@
 import axios from "axios";
+import { loginPathFor } from "../utils/authPaths";
 
 // API client for the video module (/api/video/…). Separate from Api.jsx because:
 //  - requests go with credentials, so the playback call can store CloudFront cookies
@@ -26,9 +27,9 @@ videoApi.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && !error.config?.url?.includes("/auth/login")) {
-      const isVideoUser = storedUser()?.role === "videoUser";
+      const role = storedUser()?.role;
       localStorage.removeItem("user");
-      window.location.href = isVideoUser ? "/video/login" : "/login";
+      window.location.href = loginPathFor(role);
     }
     return Promise.reject(error);
   },

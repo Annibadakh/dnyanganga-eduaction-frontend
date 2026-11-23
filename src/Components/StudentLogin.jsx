@@ -1,22 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../Context/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import logo from "../Images/logo3.png";
 import { useToast } from "../useToast";
+import Loader from "../Pages/Loader";
+import { useSessionRedirect } from "../utils/useSessionRedirect";
 function StudentLogin() {
   const apiUrl = import.meta.env.VITE_API_URL;
-  const { login, user } = useAuth();
-  const navigate = useNavigate();
+  const { login } = useAuth();
   const location = useLocation();
 
   const { successToast, errorToast } = useToast();
 
-  const from = location.state?.from || "/student";
-
   const searchParams = new URLSearchParams(location.search);
   const paramStudentId = searchParams.get("studentID") || "";
   const paramDob = searchParams.get("DOB") || "";
+  const hasLinkParams = Boolean(paramStudentId && paramDob);
+
+  // a stored login is checked with the server first; a WhatsApp login link
+  // (studentID + DOB in the URL) logs in fresh instead
+  const { checkingSession, goHome } = useSessionRedirect({ skip: hasLinkParams });
 
   const [studentId, setStudentId] = useState(paramStudentId);
   const [dob, setDob] = useState(paramDob);
@@ -38,6 +42,7 @@ function StudentLogin() {
       setDob("");
 
       successToast("Login successful !!");
+      goHome(response.data.role);
     } catch (error) {
       console.error(error);
       errorToast(error.response?.data?.message || "Login failed");
@@ -47,13 +52,7 @@ function StudentLogin() {
   };
 
   useEffect(() => {
-    if (user) {
-      navigate(from, { replace: true });
-    }
-  }, [user, navigate, from]);
-
-  useEffect(() => {
-    if (paramStudentId && paramDob) {
+    if (hasLinkParams) {
       (async () => {
         setLoginLoader(true);
         try {
@@ -63,6 +62,7 @@ function StudentLogin() {
           });
           await login(response.data);
           successToast("Login successful !!");
+          goHome(response.data.role);
         } catch (error) {
           console.error(error);
           errorToast(error.response?.data?.message || "Login failed");
@@ -72,6 +72,8 @@ function StudentLogin() {
       })();
     }
   }, []);
+
+  if (checkingSession) return <Loader />;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">

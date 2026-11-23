@@ -1,27 +1,23 @@
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../Context/AuthContext";
 import { useToast } from "../../useToast";
 import logo from "../../Images/logo3.png";
 import videoApi, { apiMessage } from "../videoApi";
+import Loader from "../../Pages/Loader";
+import { useSessionRedirect } from "../../utils/useSessionRedirect";
 
 // Login for video users (email + password given by the admin)
 function VideoLogin() {
-  const { login, user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { login } = useAuth();
+  // a stored login is checked with the server before going to the videos
+  const { checkingSession, goHome } = useSessionRedirect();
   const { successToast, errorToast } = useToast();
-  const from = location.state?.from || "/video";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (user?.role === "videoUser") navigate(from, { replace: true });
-  }, [user, navigate, from]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -30,12 +26,15 @@ function VideoLogin() {
       const { data } = await videoApi.post("/auth/login", { email: email.trim().toLowerCase(), password });
       await login(data);
       successToast("Login successful !!");
+      goHome(data.role);
     } catch (error) {
       errorToast(apiMessage(error, "Login failed"));
     } finally {
       setLoading(false);
     }
   };
+
+  if (checkingSession) return <Loader />;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">

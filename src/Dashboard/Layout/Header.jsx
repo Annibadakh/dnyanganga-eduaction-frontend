@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Context/AuthContext";
 import logo from "../../Images/logo3.png";
+import { loginPathFor } from "../../utils/authPaths";
 
 const Header = () => {
   const { logout, user } = useAuth();
@@ -9,11 +10,12 @@ const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // each kind of user goes back to its own login page
   const handleLogout = () => {
-    const wasVideoUser = user?.role === "videoUser";
+    const loginPath = loginPathFor(user?.role);
     setDropdownOpen(false);
     logout();
-    navigate(wasVideoUser ? "/video/login" : "/");
+    navigate(loginPath, { replace: true });
   };
 
   // Close dropdown when clicking outside

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ensureFileToken, clearFileToken } from "./utils/fileUrl";
+import { getStoredUser, loginPathFor } from "./utils/authPaths";
 
 const getAuthToken = () => localStorage.getItem("user");
 
@@ -28,9 +29,11 @@ api.interceptors.response.use(
   (error) => {
     console.log(error);
     if (error.response && error.response.status === 401) {
+      // back to the login page of whoever was logged in (staff / student)
+      const role = getStoredUser()?.role;
       localStorage.removeItem("user");
       clearFileToken();
-      window.location.href = '/login'
+      window.location.href = loginPathFor(role);
     } else {
       return Promise.reject(error);
     }

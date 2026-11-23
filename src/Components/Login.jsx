@@ -1,30 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../Context/AuthContext";
-import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import logo from "../Images/logo3.png";
 import { useToast } from "../useToast";
+import Loader from "../Pages/Loader";
+import { useSessionRedirect } from "../utils/useSessionRedirect";
 function Login() {
   const apiUrl = import.meta.env.VITE_API_URL;
-  const { login, user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { login } = useAuth();
+  // a stored login is checked with the server before going to the dashboard
+  const { checkingSession, goHome } = useSessionRedirect();
 
   const { successToast, errorToast } = useToast();
-
-  const from = location.state?.from || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginLoader, setLoginLoader] = useState(false);
-
-
-
-  useEffect(() => {
-    if (user) {
-      navigate(from, { replace: true });
-    }
-  }, [user, navigate, from]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -42,6 +33,7 @@ function Login() {
       setPassword("");
 
       successToast("Login successful !!")
+      goHome(response.data.role);
 
     } catch (error) {
       console.error(error);
@@ -50,6 +42,8 @@ function Login() {
       setLoginLoader(false);
     }
   };
+
+  if (checkingSession) return <Loader />;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">

@@ -23,6 +23,17 @@ const ageOn = (dob, on = new Date()) => {
   return age;
 };
 
+// Date of birth check used outside the registration form (owner edit).
+// Same rule as `dob` in step1Schema; the server checks it too. Returns a message or "".
+export const dobError = (v) => {
+  if (!v) return "Date of birth is required";
+  if (Number.isNaN(new Date(v).getTime())) return "Enter a valid date";
+  if (new Date(v) > new Date()) return "Date of birth cannot be in the future";
+  const age = ageOn(v);
+  if (age < MIN_AGE || age > MAX_AGE) return `Student age must be between ${MIN_AGE} and ${MAX_AGE} years`;
+  return "";
+};
+
 // ---------------- Step 1: student info + payment ----------------
 export const step1Schema = yup.object({
   studentName: yup
