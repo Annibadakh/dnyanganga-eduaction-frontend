@@ -331,7 +331,7 @@ const VisitingTable = () => {
     } catch (error) {
       console.error("Error updating follow-up status:", error);
       setRowFollowUp(currentFollowUp);
-      alert("Failed to update follow-up status.");
+      alert(error.response?.data?.message || "Failed to update follow-up status.");
     }
   };
 
@@ -354,7 +354,7 @@ const VisitingTable = () => {
       alert("Visiting record deleted successfully.");
     } catch (error) {
       console.error("Error deleting visiting record:", error);
-      alert("Failed to delete visiting record.");
+      alert(error.response?.data?.message || "Failed to delete visiting record.");
     }
   };
   const handleExportExcel = async () => {
