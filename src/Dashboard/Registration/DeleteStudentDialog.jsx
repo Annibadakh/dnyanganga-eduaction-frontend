@@ -43,7 +43,7 @@ const DeleteStudentDialog = ({ student, onClose, onConfirm }) => {
     try {
       await onConfirm(student.studentId, refundAmount);
     } catch (err) {
-      setError("Failed to delete student. Please try again.");
+      setError(err.response?.data?.message || "Failed to delete student. Please try again.");
       setIsDeleting(false);
     }
   };
