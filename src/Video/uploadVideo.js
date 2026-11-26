@@ -3,14 +3,14 @@ import videoApi from "./videoApi";
 // Uploads a video file straight to S3 in 10 MiB parts (the server only hands out signed part
 // links and finishes the upload). Parts go 4 at a time and each part is retried up to 3 times.
 //
-//   const upload = uploadVideo({ file, title, standardId, onProgress });
+//   const upload = uploadVideo({ file, title, standardId, topicId, onProgress });
 //   await upload.done;      // { videoId, status: "processing" }
 //   upload.cancel();        // stops and removes the half-finished upload
 const PARALLEL = 4;
 const RETRIES = 3;
 const URL_BATCH = 20;
 
-export const uploadVideo = ({ file, title, standardId, onProgress = () => {} }) => {
+export const uploadVideo = ({ file, title, standardId, topicId, onProgress = () => {} }) => {
   const controller = new AbortController();
   let videoId = null;
   let cancelled = false;
@@ -20,6 +20,7 @@ export const uploadVideo = ({ file, title, standardId, onProgress = () => {} }) 
     const { data } = await videoApi.post("/admin/uploads", {
       title,
       standardId,
+      topicId,
       fileName: file.name,
       sizeBytes: file.size,
     });

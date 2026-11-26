@@ -11,6 +11,7 @@ const VideoWatch = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const standard = location.state?.standard;
+  const topic = location.state?.topic;
   const [playback, setPlayback] = useState(null);
   const [error, setError] = useState("");
 
@@ -30,7 +31,9 @@ const VideoWatch = () => {
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center gap-3 my-3">
         <button
-          onClick={() => (standard ? navigate(`/video/standards/${standard.id}`) : navigate(-1))}
+          onClick={() =>
+            standard && topic ? navigate(`/video/standards/${standard.id}/topics/${topic.id}`) : navigate(-1)
+          }
           className="p-2 rounded-full hover:bg-white text-primary"
           aria-label="Back"
         >
@@ -60,6 +63,7 @@ const VideoWatch = () => {
             <p className="font-semibold text-gray-800">{playback.title}</p>
             <p className="text-sm text-gray-500">
               {standard?.name ? `${standard.name} · ` : ""}
+              {topic?.title ? `${topic.title} · ` : ""}
               {formatDuration(playback.durationSeconds)}
             </p>
           </div>

@@ -220,6 +220,12 @@ const Sidebar = ({ isSidebarOpen, clickSidebar, userRole }) => {
       role: ["student"],
       icon: <FaDatabase className="text-lg" />,
     },
+    {
+      path: "documents",
+      label: "Hall Ticket & Result",
+      role: ["student"],
+      icon: <FaFileAlt className="text-lg" />,
+    },
   ];
   // console.log(userRole)
   const isActive = (path) =>

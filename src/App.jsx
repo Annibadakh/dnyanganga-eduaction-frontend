@@ -26,6 +26,7 @@ import StudentAllQuizzes from "./Dashboard/Student/StudentAllQuizzes";
 import StudentQuizView from "./Dashboard/Student/StudentQuizView";
 import StudentQuizResult from "./Dashboard/Student/StudentQuizResult";
 import StudentQuizzDashboard from "./Dashboard/Student/StudentQuizzDashboard";
+import StudentDocuments from "./Dashboard/Student/StudentDocuments";
 import ChapterManager from "./Dashboard/QuestionBank/ChapterManager";
 import StudentSubjects from "./Dashboard/Student/QuestionBank/StudentSubjects";
 import StudentChapters from "./Dashboard/Student/QuestionBank/StudentChapters";
@@ -124,6 +125,7 @@ const VideosAdmin = lazy(() => import("./Video/Admin/Videos"));
 const VideoLogin = lazy(() => import("./Video/Viewer/VideoLogin"));
 const VideoLayout = lazy(() => import("./Video/Viewer/VideoLayout"));
 const VideoStandards = lazy(() => import("./Video/Viewer/VideoStandards"));
+const VideoTopics = lazy(() => import("./Video/Viewer/VideoTopics"));
 const VideoList = lazy(() => import("./Video/Viewer/VideoList"));
 const VideoWatch = lazy(() => import("./Video/Viewer/VideoWatch"));
 
@@ -365,6 +367,7 @@ function App() {
                   path="question-bank/:subjectId/:chapterId"
                   element={<StudentQuestions />}
                 />
+                <Route path="documents" element={<StudentDocuments />} />
                 <Route path="quizzes" element={<StudentAllQuizzes />} />
                 <Route path="practice" element={<PracticeTest />} />
                 <Route path="view-quiz/:quizId" element={<StudentQuizView />} />
@@ -384,7 +387,8 @@ function App() {
             <Route path="video" element={<VideoProtectedRoute />}>
               <Route element={<VideoLayout />}>
                 <Route index element={<VideoStandards />} />
-                <Route path="standards/:standardId" element={<VideoList />} />
+                <Route path="standards/:standardId" element={<VideoTopics />} />
+                <Route path="standards/:standardId/topics/:topicId" element={<VideoList />} />
                 <Route path="watch/:id" element={<VideoWatch />} />
               </Route>
             </Route>

@@ -3,6 +3,7 @@ import { Upload, X } from "lucide-react";
 import { useToast } from "../../useToast";
 import { apiMessage } from "../videoApi";
 import { uploadVideo, formatBytes } from "../uploadVideo";
+import { topicOptionsFor } from "./useVideoTopics";
 
 const MAX_BYTES = 2 * 1024 * 1024 * 1024; // keep in step with VIDEO_MAX_UPLOAD_BYTES on the server
 const TYPES = [".mp4", ".mov", ".mkv"];
@@ -10,11 +11,13 @@ const TYPES = [".mp4", ".mov", ".mkv"];
 const FieldError = ({ msg }) =>
   msg ? <p className="text-red-500 text-xs sm:text-sm mt-1">{msg}</p> : null;
 
-// Upload a new video: title, standard, file → straight to S3 with a progress bar.
-const VideoUploadPanel = ({ standardOptions, onUploaded, onClose }) => {
+// Upload a new video: title, standard, topic, file → straight to S3 with a progress bar.
+const VideoUploadPanel = ({ standardOptions, topics, onUploaded, onClose }) => {
   const { successToast, errorToast } = useToast();
   const [title, setTitle] = useState("");
   const [standardId, setStandardId] = useState("");
+  const [topicId, setTopicId] = useState("");
+  const topicOptions = topicOptionsFor(topics, standardId);
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [progress, setProgress] = useState(null); // null = not uploading, 0..1
@@ -42,6 +45,7 @@ const VideoUploadPanel = ({ standardOptions, onUploaded, onClose }) => {
     const found = {};
     if (title.trim().length < 2 || title.trim().length > 200) found.title = "Title must be 2–200 characters";
     if (!standardId) found.standardId = "Select a standard";
+    if (!topicId) found.topicId = "Select a topic";
     if (!file) found.file = "Choose a video file";
     else if (!TYPES.some((t) => file.name.toLowerCase().endsWith(t))) found.file = "Only MP4, MOV or MKV files";
     else if (file.size > MAX_BYTES) found.file = `Video is too large (max ${formatBytes(MAX_BYTES)})`;
@@ -52,7 +56,7 @@ const VideoUploadPanel = ({ standardOptions, onUploaded, onClose }) => {
   const start = async () => {
     if (!validate()) return;
     setProgress(0);
-    const upload = uploadVideo({ file, title: title.trim(), standardId: Number(standardId), onProgress: setProgress });
+    const upload = uploadVideo({ file, title: title.trim(), standardId: Number(standardId), topicId: Number(topicId), onProgress: setProgress });
     uploadRef.current = upload;
     try {
       await upload.done;
@@ -106,7 +110,10 @@ const VideoUploadPanel = ({ standardOptions, onUploaded, onClose }) => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Standard</label>
           <select
             value={standardId}
-            onChange={(e) => setStandardId(e.target.value)}
+            onChange={(e) => {
+              setStandardId(e.target.value);
+              setTopicId(""); // topics belong to one standard
+            }}
             disabled={uploading}
             className={`${inputCls("standardId")} bg-white cursor-pointer`}
           >
@@ -118,6 +125,23 @@ const VideoUploadPanel = ({ standardOptions, onUploaded, onClose }) => {
             ))}
           </select>
           <FieldError msg={errors.standardId} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+          <select
+            value={topicId}
+            onChange={(e) => setTopicId(e.target.value)}
+            disabled={uploading || !standardId}
+            className={`${inputCls("topicId")} bg-white cursor-pointer disabled:bg-gray-100`}
+          >
+            <option value="">{!standardId ? "Select standard first" : topicOptions.length ? "Select topic" : "No active topic — add one first"}</option>
+            {topicOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <FieldError msg={errors.topicId} />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Video file (MP4, MOV or MKV, up to 2 GB)</label>

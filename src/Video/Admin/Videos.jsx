@@ -9,6 +9,8 @@ import { formatBytes, formatDuration } from "../uploadVideo";
 import { useVideoStandards } from "./useVideoStandards";
 import VideoUploadPanel from "./VideoUploadPanel";
 import VideoPreviewModal from "./VideoPreviewModal";
+import VideoTopicModal from "./VideoTopicModal";
+import { useVideoTopics, topicOptionsFor } from "./useVideoTopics";
 
 const STATUS_STYLE = {
   uploading: "bg-yellow-100 text-yellow-800",
@@ -18,14 +20,16 @@ const STATUS_STYLE = {
 };
 const STATUS_LABEL = { uploading: "Uploading", processing: "Converting", ready: "Ready", failed: "Failed" };
 
-// Admin → Videos: upload, follow the conversion, edit, preview, delete.
+// Admin → Videos: upload, follow the conversion, edit, preview, delete; topics (standard → topic → video).
 const Videos = () => {
   const { successToast, errorToast } = useToast();
   const { options: standardOptions } = useVideoStandards();
+  const { topics, reload: reloadTopics } = useVideoTopics();
 
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [standardId, setStandardId] = useState("");
+  const [topicId, setTopicId] = useState(""); // "" all, "none" without topic, or an id
   const [status, setStatus] = useState("");
   const [active, setActive] = useState(""); // "", "true", "false"
   const [search, setSearch] = useState("");
@@ -35,8 +39,9 @@ const Videos = () => {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [showUpload, setShowUpload] = useState(false);
+  const [showTopics, setShowTopics] = useState(false);
   const [preview, setPreview] = useState(null);
-  const [editing, setEditing] = useState(null); // { id, title, standardId }
+  const [editing, setEditing] = useState(null); // { id, title, standardId, topicId, currentTopicId }
   const [busy, setBusy] = useState(null); // video id with an action running
 
   useEffect(() => {
@@ -53,6 +58,7 @@ const Videos = () => {
             page,
             limit,
             standardId: standardId || undefined,
+            topicId: topicId || undefined,
             status: status || undefined,
             active: active || undefined,
             search: debouncedSearch || undefined,
@@ -67,14 +73,31 @@ const Videos = () => {
         if (!quiet) setLoading(false);
       }
     },
-    [page, limit, standardId, status, active, debouncedSearch], // eslint-disable-line react-hooks/exhaustive-deps
+    [page, limit, standardId, topicId, status, active, debouncedSearch], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   useEffect(() => {
     fetchVideos();
   }, [fetchVideos]);
 
-  useEffect(() => setPage(1), [standardId, status, active, debouncedSearch, limit]);
+  useEffect(() => setPage(1), [standardId, topicId, status, active, debouncedSearch, limit]);
+
+  // Topic filter options follow the Standard filter (all topics when no standard is picked)
+  const topicFilterOptions = topics
+    .filter((t) => !standardId || String(t.standardId) === String(standardId))
+    .map((t) => ({
+      value: t.id,
+      label: t.title + (standardId ? "" : ` (${t.standardName})`) + (t.isActive ? "" : " - inactive"),
+    }));
+
+  const changeStandardFilter = (value) => {
+    setStandardId(value);
+    // keep the topic filter only when it still fits the new standard
+    if (topicId && topicId !== "none" && value) {
+      const topic = topics.find((t) => String(t.id) === String(topicId));
+      if (!topic || String(topic.standardId) !== String(value)) setTopicId("");
+    }
+  };
 
   const run = async (id, action, okMessage) => {
     setBusy(id);
@@ -105,9 +128,10 @@ const Videos = () => {
   const saveEdit = async () => {
     const title = editing.title.trim();
     if (title.length < 2) return errorToast("Title must be at least 2 characters");
+    if (!editing.topicId) return errorToast("Select a topic");
     await run(
       editing.id,
-      () => videoApi.put(`/admin/videos/${editing.id}`, { title, standardId: Number(editing.standardId) }),
+      () => videoApi.put(`/admin/videos/${editing.id}`, { title, standardId: Number(editing.standardId), topicId: Number(editing.topicId) }),
       "Video updated",
     );
     setEditing(null);
@@ -117,6 +141,18 @@ const Videos = () => {
     { header: "Sr. No.", render: (_, i) => (page - 1) * limit + i + 1 },
     { header: "Title", render: (row) => <span className="font-medium text-left block max-w-xs mx-auto">{row.title}</span> },
     { header: "Standard", render: (row) => row.standard?.name || "-" },
+    {
+      header: "Topic",
+      render: (row) =>
+        row.topic ? (
+          <span className={row.topic.isActive ? "" : "text-red-600"}>
+            {row.topic.title}
+            {!row.topic.isActive && " (inactive)"}
+          </span>
+        ) : (
+          <span className="text-yellow-700">No topic</span>
+        ),
+    },
     {
       header: "Status",
       render: (row) => (
@@ -153,7 +189,15 @@ const Videos = () => {
             </button>
           )}
           <button
-            onClick={() => setEditing({ id: row.id, title: row.title, standardId: row.standard?.id || "" })}
+            onClick={() =>
+              setEditing({
+                id: row.id,
+                title: row.title,
+                standardId: row.standard?.id || "",
+                topicId: row.topic?.id || "",
+                currentTopicId: row.topic?.id || null,
+              })
+            }
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md"
           >
             Edit
@@ -198,6 +242,9 @@ const Videos = () => {
             Upload Video
           </button>
         )}
+        <button onClick={() => setShowTopics(true)} className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700">
+          Add Topic
+        </button>
         {/* No auto refresh: loading the list also updates videos still converting */}
         <button
           onClick={() => fetchVideos()}
@@ -211,6 +258,7 @@ const Videos = () => {
       {showUpload && (
         <VideoUploadPanel
           standardOptions={standardOptions}
+          topics={topics}
           onClose={() => setShowUpload(false)}
           onUploaded={() => {
             setShowUpload(false);
@@ -235,11 +283,27 @@ const Videos = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Standard</label>
             <select
               value={standardId}
-              onChange={(e) => setStandardId(e.target.value)}
+              onChange={(e) => changeStandardFilter(e.target.value)}
               className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white cursor-pointer"
             >
               <option value="">All Standards</option>
               {standardOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full md:w-56">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+            <select
+              value={topicId}
+              onChange={(e) => setTopicId(e.target.value)}
+              className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white cursor-pointer"
+            >
+              <option value="">All Topics</option>
+              <option value="none">Without Topic</option>
+              {topicFilterOptions.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
@@ -287,6 +351,15 @@ const Videos = () => {
 
       {preview && <VideoPreviewModal video={preview} onClose={() => setPreview(null)} />}
 
+      {showTopics && (
+        <VideoTopicModal
+          topics={topics}
+          standardOptions={standardOptions}
+          onClose={() => setShowTopics(false)}
+          onChanged={() => Promise.all([reloadTopics(), fetchVideos(true)])}
+        />
+      )}
+
       {editing &&
         createPortal(
           <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-3" onClick={() => setEditing(null)}>
@@ -308,10 +381,25 @@ const Videos = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Standard</label>
                   <select
                     value={editing.standardId}
-                    onChange={(e) => setEditing((p) => ({ ...p, standardId: e.target.value }))}
+                    onChange={(e) => setEditing((p) => ({ ...p, standardId: e.target.value, topicId: "" }))}
                     className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white cursor-pointer"
                   >
                     {standardOptions.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                  <select
+                    value={editing.topicId}
+                    onChange={(e) => setEditing((p) => ({ ...p, topicId: e.target.value }))}
+                    className="w-full px-3 h-[42px] text-sm border border-gray-300 rounded-lg bg-white cursor-pointer"
+                  >
+                    <option value="">Select topic</option>
+                    {topicOptionsFor(topics, editing.standardId, editing.currentTopicId).map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>

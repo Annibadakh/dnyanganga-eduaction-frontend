@@ -12,10 +12,11 @@ const watchedSeconds = (id) => {
   }
 };
 
-// The videos of one standard (newest first) with a search box and "continue watching" marks
+// The videos of one topic of a standard (newest first) with a search box and "continue watching" marks
 const VideoList = () => {
-  const { standardId } = useParams();
+  const { standardId, topicId } = useParams();
   const [standard, setStandard] = useState(null);
+  const [topic, setTopic] = useState(null);
   const [videos, setVideos] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -23,14 +24,15 @@ const VideoList = () => {
 
   useEffect(() => {
     videoApi
-      .get(`/standards/${standardId}/videos`)
+      .get(`/standards/${standardId}/topics/${topicId}/videos`)
       .then((res) => {
         setStandard(res.data.standard);
+        setTopic(res.data.topic);
         setVideos(res.data.videos || []);
       })
       .catch((e) => setError(apiMessage(e, "Couldn't load the videos")))
       .finally(() => setLoading(false));
-  }, [standardId]);
+  }, [standardId, topicId]);
 
   const shown = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -40,10 +42,10 @@ const VideoList = () => {
   return (
     <div>
       <div className="flex items-center gap-3 my-4">
-        <Link to="/video" className="p-2 rounded-full hover:bg-white text-primary" aria-label="Back">
+        <Link to={`/video/standards/${standardId}`} className="p-2 rounded-full hover:bg-white text-primary" aria-label="Back">
           <ArrowLeft size={22} />
         </Link>
-        <h1 className="text-2xl sm:text-3xl font-bold text-primary">{standard?.name || "Videos"}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">{topic?.title || "Videos"}</h1>
       </div>
 
       {!loading && !error && videos.length > 0 && (
@@ -59,7 +61,7 @@ const VideoList = () => {
       {loading && <p className="text-center text-gray-400 py-10">Loading...</p>}
       {error && <p className="text-center text-red-500 py-10">{error}</p>}
       {!loading && !error && videos.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">No videos in this standard yet.</div>
+        <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">No videos in this topic yet.</div>
       )}
 
       <div className="bg-white rounded-xl shadow-sm divide-y divide-gray-100">
@@ -67,7 +69,7 @@ const VideoList = () => {
           const watched = watchedSeconds(v.id);
           const pct = v.durationSeconds ? Math.min((watched / v.durationSeconds) * 100, 100) : 0;
           return (
-            <Link key={v.id} to={`/video/watch/${v.id}`} state={{ standard }} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-blue-50 transition">
+            <Link key={v.id} to={`/video/watch/${v.id}`} state={{ standard, topic }} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 hover:bg-blue-50 transition">
               <PlayCircle className="w-10 h-10 text-primary shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-gray-800 truncate">{v.title}</p>
