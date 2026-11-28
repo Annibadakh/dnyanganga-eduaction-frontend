@@ -10,6 +10,8 @@ export default function Home() {
   const [resultDeclared, setResultDeclared] = useState(false);
   const [hallLoading, setHallLoading] = useState(false);
   const [resultLoading, setResultLoading] = useState(false);
+  const [studentBot, setStudentBot] = useState(false);
+  const [botLoading, setBotLoading] = useState(false);
 
   const getFlag = () => {
     api
@@ -26,6 +28,10 @@ export default function Home() {
         if (hallTicketFlag) setHallTicket(hallTicketFlag.flagValue === "true");
         if (resultDeclaredFlag)
           setResultDeclared(resultDeclaredFlag.flagValue === "true");
+        const studentBotFlag = data.find(
+          (flag) => flag.flagName === "STUDENT_BOT",
+        );
+        setStudentBot(studentBotFlag?.flagValue === "true");
       })
       .catch((err) => console.error("Error fetching flags", err));
   };
@@ -41,6 +47,7 @@ export default function Home() {
   const toggleFlag = async (flagName, currentValue) => {
     if (flagName === "RESULT") setResultLoading(true);
     else if (flagName === "HALLTICKET") setHallLoading(true);
+    else if (flagName === "STUDENT_BOT") setBotLoading(true);
 
     try {
       await api.put(`/admin/updateSettingFlag/${flagName}`, {
@@ -52,6 +59,7 @@ export default function Home() {
     } finally {
       setHallLoading(false);
       setResultLoading(false);
+      setBotLoading(false);
     }
   };
 
@@ -127,6 +135,31 @@ export default function Home() {
                 {/* <p className="text-xs text-gray-500">
                   {resultDeclared ? 'Results are visible to students' : 'Results are hidden from students'}
                 </p> */}
+              </div>
+
+              {/* WhatsApp Student Bot Toggle (STUDENT_BOT): answers students' own fees, results… on WhatsApp */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-gray-700">
+                    WhatsApp Student Bot
+                  </span>
+                  {botLoading ? (
+                    <span className="animate-spin h-7 w-7 border-2 border-blue-600 border-t-transparent rounded-full"></span>
+                  ) : (
+                    <button
+                      onClick={() => toggleFlag("STUDENT_BOT", studentBot)}
+                      className={`w-14 h-7 flex items-center rounded-full p-1 duration-300 ease-in-out ${
+                        studentBot ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                    >
+                      <div
+                        className={`bg-white w-5 h-5 rounded-full shadow-md transform duration-300 ease-in-out ${
+                          studentBot ? "translate-x-7" : ""
+                        }`}
+                      ></div>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
