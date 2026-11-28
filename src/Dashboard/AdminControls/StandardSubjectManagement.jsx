@@ -80,6 +80,7 @@ function StandardSubjectManagement() {
     baseStandardId: "",
     eligibleFor: ["hallticket", "result", "quiz"],
     isGSTBill: false,
+    packageType: "NONE",
     isActive: true,
   });
 
@@ -153,6 +154,7 @@ function StandardSubjectManagement() {
             ? ELIGIBILITY_OPTIONS.map((o) => o.value)
             : parseList(standard.eligibleFor),
         isGSTBill: standard.isGSTBill,
+        packageType: standard.packageType || "NONE",
         isActive: standard.isActive,
       });
     } else {
@@ -167,6 +169,7 @@ function StandardSubjectManagement() {
         baseStandardId: "",
         eligibleFor: ["hallticket", "result", "quiz"],
         isGSTBill: false,
+        packageType: "NONE",
         isActive: true,
       });
     }
@@ -710,6 +713,16 @@ function StandardSubjectManagement() {
                     <div className="text-xs text-gray-500">Receipt</div>
                     <div className="font-semibold">{s.isGSTBill ? "GST bill" : "Normal"}</div>
                   </div>
+                  <div className="rounded bg-gray-50 p-2">
+                    <div className="text-xs text-gray-500">Book Package</div>
+                    <div className="font-semibold">
+                      {s.packageType === "COMMON"
+                        ? "Common"
+                        : s.packageType === "BRANCH"
+                          ? s.branchType === "GROUP" ? "Group wise" : "Medium wise"
+                          : "No package"}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Groups with usage */}
@@ -976,6 +989,23 @@ function StandardSubjectManagement() {
                   />
                   <span>Receipts use the GST bill</span>
                 </label>
+              </div>
+              <div className="col-span-2">
+                <label className={labelCls}>Book Package</label>
+                <select
+                  value={stdForm.packageType}
+                  onChange={(e) => setStdForm({ ...stdForm, packageType: e.target.value })}
+                  className="w-full px-3 py-2 border rounded bg-white text-sm"
+                >
+                  <option value="NONE">No package</option>
+                  <option value="COMMON">Common package (one for the whole standard)</option>
+                  <option value="BRANCH">
+                    {stdForm.branchType === "GROUP" ? "Group wise package" : "Medium wise package"}
+                  </option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Locked once packages of this standard are in a challan.
+                </p>
               </div>
 
               <div className="col-span-2">

@@ -69,7 +69,10 @@ const OwnerStudentEdit = ({ student, onClose, onSaved }) => {
             branches = [];
           }
         }
-        setBranchOptions(Array.isArray(branches) ? branches : []);
+        const options = Array.isArray(branches) ? branches : [];
+        setBranchOptions(options);
+        // An old Med/Grp that isn't one of the options must be picked again
+        setBranch((prev) => (options.length && prev && !options.includes(prev) ? "" : prev));
         setBranchType(std.branchType || "");
       })
       .catch((err) => console.error("Error fetching standards", err));

@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { followupAccess } from "../../utils/roleArrays";
 import { fileUrl } from "../../utils/fileUrl";
+import StudentPackages from "../Packages/StudentPackages";
 
 
 const categoryOptions = [
@@ -85,6 +86,7 @@ const RegistrationTable = () => {
   const [showBookProof, setShowBookProof] = useState(false);
   const [bookProofUrl, setBookProofUrl] = useState(null);
   const [bookProofFileName, setBookProofFileName] = useState("");
+  const [bookProofStudentId, setBookProofStudentId] = useState(null);
   const [exporting, setExporting] = useState(false);
   const currentYear = new Date().getFullYear();
   const [selectedExamYear, setSelectedExamYear] = useState([
@@ -636,6 +638,7 @@ const RegistrationTable = () => {
         ? `${student.studentName.replace(/\s+/g, "_")}_BOOK_PROOF.jpg`
         : `${student.studentId}_BOOK_PROOF.jpg`;
       setBookProofFileName(fileName);
+      setBookProofStudentId(student.studentId);
       setShowBookProof(true);
     } else {
       alert("No book proof image available.");
@@ -646,6 +649,7 @@ const RegistrationTable = () => {
     setShowBookProof(false);
     setBookProofUrl(null);
     setBookProofFileName("");
+    setBookProofStudentId(null);
   };
 
   const handleCloseEditStudent = () => {
@@ -922,11 +926,11 @@ const RegistrationTable = () => {
       {/* Book Proof Image Viewer */}
       {showBookProof && bookProofUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">
-                  Book Distribution Proof
+                  Book Distribution
                 </h2>
                 <p className="text-sm text-gray-500">{bookProofFileName}</p>
               </div>
@@ -936,6 +940,9 @@ const RegistrationTable = () => {
               >
                 <X size={20} className="text-gray-500" />
               </button>
+            </div>
+            <div className="p-5 border-b border-gray-200">
+              <StudentPackages studentId={bookProofStudentId} />
             </div>
             <div className="p-5 flex items-center justify-center bg-gray-50">
               <img

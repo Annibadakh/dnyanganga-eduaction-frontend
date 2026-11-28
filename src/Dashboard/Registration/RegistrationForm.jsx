@@ -11,6 +11,8 @@ import consentImage from "./formRules.png";
 import { validateStep1, validateStep2 } from "./registrationValidation";
 import { PAYMENT_MODES } from "./paymentValidation";
 import { fileUrl } from "../../utils/fileUrl";
+import PackageScanField from "../Packages/PackageScanField";
+import { formatCode } from "../Packages/packageUtils";
 
 const STEPS = ["Student Info", "Documents & Consent", "Review & Submit"];
 
@@ -30,6 +32,9 @@ const RegistrationForm = () => {
   const [submitLoader, setSubmitLoader] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
   const [isPaidInFull, setIsPaidInFull] = useState(false);
+  // Book package scanned when the fees are paid in full (only when the standard has a package)
+  const [packageCode, setPackageCode] = useState("");
+  const [packageRequired, setPackageRequired] = useState(false);
   const [selectedExamCentre, setSelectedExamCentre] = useState(null);
   const [showDraftButton, setShowDraftButton] = useState(false);
   const [step, setStep] = useState(1);
@@ -404,13 +409,18 @@ const RegistrationForm = () => {
     }, 50);
   };
 
-  const getStep2Errors = () =>
-    validateStep2({
+  const getStep2Errors = () => {
+    const stepErrors = validateStep2({
       formData,
       studentPhotoSaved: studentPhoto.isSaved,
       bookPhotoSaved: bookPhoto.isSaved,
       isPaidInFull,
     });
+    if (isPaidInFull && packageRequired && !packageCode) {
+      stepErrors.packageCode = "Scan the student's book package";
+    }
+    return stepErrors;
+  };
 
   const handleNext = async () => {
     if (step === 1) {
@@ -461,7 +471,8 @@ const RegistrationForm = () => {
     setSubmitLoader(true);
 
     try {
-      const response = await api.post("/counsellor/register", formData, {
+      const payload = { ...formData, packageCode: isPaidInFull && packageRequired ? packageCode : "" };
+      const response = await api.post("/counsellor/register", payload, {
         headers: { "Content-Type": "application/json" },
       });
 
@@ -1103,6 +1114,20 @@ const RegistrationForm = () => {
                         <FieldError msg={errors.bookPhoto} />
                       </div>
                     )}
+                    <div {...errAttr("packageCode")}>
+                      <PackageScanField
+                        active={isPaidInFull}
+                        standardId={formData.standardId}
+                        branch={formData.branch}
+                        value={packageCode}
+                        onChange={(code) => {
+                          setPackageCode(code);
+                          if (code) clearError("packageCode");
+                        }}
+                        onRequiredChange={setPackageRequired}
+                      />
+                      <FieldError msg={errors.packageCode} />
+                    </div>
                   </div>
                 </div>
 
@@ -1207,6 +1232,7 @@ const RegistrationForm = () => {
                   ["Amount Remaining", Number(formData.amountRemaining || 0).toLocaleString("en-IN")],
                   ["Payment Mode", formData.modeOfPayment],
                   ["Due Date", isPaidInFull ? "Paid in full" : formatDate(formData.dueDate)],
+                  ...(isPaidInFull && packageRequired ? [["Book Package", formatCode(packageCode) || "-"]] : []),
                 ])}
 
                 {/* Documents, consent & signature */}

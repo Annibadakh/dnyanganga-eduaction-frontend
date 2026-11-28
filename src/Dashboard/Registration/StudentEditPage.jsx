@@ -4,6 +4,7 @@ import { useAuth } from "../../Context/AuthContext";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
 import { fileUrl } from "../../utils/fileUrl";
+import PackageScanField from "../Packages/PackageScanField";
 
 const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   const { user } = useAuth();
@@ -18,6 +19,9 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
 
   // Form states
   const [submitLoader, setSubmitLoader] = useState(false);
+  // Book package: needed when this edit (standard conversion) clears the fees
+  const [packageCode, setPackageCode] = useState("");
+  const [packageRequired, setPackageRequired] = useState(false);
   const [examCentres, setExamCentres] = useState([]);
   const [standards, setStandards] = useState([]);
 
@@ -233,8 +237,12 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
     if (!formData.standard || standards.length === 0) return;
     const std = standards.find((s) => s.name === formData.standard);
     if (!std) return;
+    const options = std.branches && Array.isArray(std.branches) ? std.branches : [];
     setFormData((prev) => ({
       ...prev,
+      // An old Med/Grp that isn't one of the standard's options (e.g. "SEMI ENGLISH")
+      // is cleared so the user has to pick a valid one before saving
+      branch: options.length && prev.branch && !options.includes(prev.branch) ? "" : prev.branch,
       branchType: prev.branchType || std.branchType || "",
       branches:
         prev.branches && prev.branches.length > 0
@@ -336,6 +344,14 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
     setExamCentreSearch("");
   };
 
+  // Fees get cleared by this edit (standard conversion to a fee equal to the amount paid)
+  const newStandardRow = standards.find((s) => s.name === formData.standard);
+  const becomesFullyPaid =
+    !!studentData &&
+    Number(studentData.amountRemaining) > 0 &&
+    Number(formData.amountRemaining) === 0 &&
+    formData.standard !== studentData.standard;
+
   // Handle photo upload
   const handleStudentPhotoUpload = async (type = "students") => {
     const imageUrl = await studentPhoto.uploadImage(type);
@@ -353,12 +369,17 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
   // Handle combined update submission
   const handleCombinedUpdate = async (e) => {
     e.preventDefault();
+    if (becomesFullyPaid && packageRequired && !packageCode) {
+      alert("Scan the student's book package (the fees get cleared with this change).");
+      return;
+    }
     setSubmitLoader(true);
 
     try {
       // Prepare update data
       const updateData = { ...formData };
       updateData.studentId = studentData.studentId;
+      updateData.packageCode = becomesFullyPaid && packageRequired ? packageCode : "";
 
       // If there's a new photo uploaded, include it in the update
       if (studentPhoto.isSaved && studentPhoto.imageUrl) {
@@ -912,6 +933,18 @@ const StudentEditPage = ({ studentId: propStudentId, onClose }) => {
                       className="w-full px-3 py-2 border rounded bg-gray-100"
                     />
                   </div>
+
+                  {becomesFullyPaid && (
+                    <PackageScanField
+                      active
+                      studentId={studentData.studentId}
+                      standardId={newStandardRow?.id}
+                      branch={formData.branch}
+                      value={packageCode}
+                      onChange={setPackageCode}
+                      onRequiredChange={setPackageRequired}
+                    />
+                  )}
 
                   {/* Submit Button */}
                   <div className="grid place-items-center w-full">

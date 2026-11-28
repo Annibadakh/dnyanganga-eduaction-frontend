@@ -4,6 +4,7 @@ import { FileUploadHook } from "../FileUpload/FileUploadHook";
 import FileUpload from "../FileUpload/FileUpload";
 import { useToast } from "../../useToast";
 import { PAYMENT_MODES, validatePayment } from "./paymentValidation";
+import PackageScanField from "../Packages/PackageScanField";
 
 // Inline field error (same as the registration form)
 const FieldError = ({ msg }) =>
@@ -29,6 +30,9 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
   });
   const [errors, setErrors] = useState({});
   const [submitLoader, setSubmitLoader] = useState(false);
+  // Book package scanned when this payment clears the fees (only when the standard has a package)
+  const [packageCode, setPackageCode] = useState("");
+  const [packageRequired, setPackageRequired] = useState(false);
 
   if (!student) {
     return <p className="text-red-500">No student selected for payment.</p>;
@@ -92,6 +96,9 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
     if (clearsFees && (!bookPhoto.isSaved || !formData.bookPhoto)) {
       fieldErrors.bookPhoto = "Please upload and save the book distribution proof";
     }
+    if (clearsFees && packageRequired && !packageCode) {
+      fieldErrors.packageCode = "Scan the student's book package";
+    }
     if (Object.keys(fieldErrors).length > 0) return showErrors(fieldErrors);
 
     setSubmitLoader(true);
@@ -104,6 +111,7 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
         newDueDate: clearsFees ? "" : formData.dueDate,
         receiptPhoto: formData.receiptPhoto,
         bookPhoto: clearsFees ? formData.bookPhoto : "",
+        packageCode: clearsFees && packageRequired ? packageCode : "",
       });
       successToast("Payment submitted successfully!");
       setShowPayment(false);
@@ -239,6 +247,19 @@ const PaymentForm = ({ paymentData, setShowPayment }) => {
                     onRemovePhoto={bookPhoto.removePhoto}
                   />
                   <FieldError msg={errors.bookPhoto} />
+                  <div className="mt-3" {...errAttr("packageCode")}>
+                    <PackageScanField
+                      active={clearsFees}
+                      studentId={student.studentId}
+                      value={packageCode}
+                      onChange={(code) => {
+                        setPackageCode(code);
+                        if (code) clearError("packageCode");
+                      }}
+                      onRequiredChange={setPackageRequired}
+                    />
+                    <FieldError msg={errors.packageCode} />
+                  </div>
                 </div>
               )}
             </div>

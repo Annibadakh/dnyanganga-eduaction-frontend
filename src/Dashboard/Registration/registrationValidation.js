@@ -68,11 +68,9 @@ export const step1Schema = yup.object({
     .required("Pincode is required")
     .matches(PINCODE_REGEX, "Pincode must be 6 digits and not start with 0"),
   standard: yup.string().required("Please select standard"),
-  branch: yup.string().when("branches", {
-    is: (branches) => Array.isArray(branches) && branches.length > 0,
-    then: (s) => s.required("Please select medium / group"),
-    otherwise: (s) => s.notRequired(),
-  }),
+  // Always required: an empty Med/Grp used to slip through when the standard's
+  // options had not loaded yet (the server now rejects it too)
+  branch: yup.string().trim().required("Please select medium / group"),
   preYearPercent: yup
     .number()
     .transform((v, orig) => (orig === "" || orig === null ? undefined : v))

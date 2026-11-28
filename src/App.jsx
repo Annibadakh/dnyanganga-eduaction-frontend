@@ -35,14 +35,16 @@ import {
   counsellorLikeRoles,
   paymentTableAccess,
   reportAccess,
-  challanAccess,
+  challanViewAccess,
+  challanCreateAccess,
+  packageStickerAccess,
+  packageStockAccess,
   registrationTableAccess,
   adminControlsAccess,
   userMenuAccess,
   marksAccess,
   questionBankManageAccess,
   quizManageAccess,
-  bookEntryAccess,
   caAccess,
   quizReadAccess,
 } from "./utils/roleArrays";
@@ -103,11 +105,10 @@ const RegistrationForm = lazy(
 const PaymentTable = lazy(() => import("./Dashboard/Payment/PaymentTable"));
 const VisitingForm = lazy(() => import("./Dashboard/Visiting/VisitingForm"));
 const VisitingTable = lazy(() => import("./Dashboard/Visiting/VisitingTable"));
-const ChallanManagement = lazy(
-  () => import("./Dashboard/Books/ChallanManagement"),
-);
-const AddBookEntry = lazy(() => import("./Dashboard/Books/AddBookEntry"));
-const CounsellorBooks = lazy(() => import("./Dashboard/Books/CounsellorBooks"));
+const ChallanList = lazy(() => import("./Dashboard/Packages/ChallanList"));
+const ChallanForm = lazy(() => import("./Dashboard/Packages/ChallanForm"));
+const PackageStickers = lazy(() => import("./Dashboard/Packages/PackageStickers"));
+const PackageStock = lazy(() => import("./Dashboard/Packages/PackageStock"));
 const CounsellorCollection = lazy(
   () => import("./Dashboard/Collection/CounsellorCollection"),
 );
@@ -241,10 +242,27 @@ function App() {
 
                 <Route
                   element={
-                    <ProtectedRoleBasedRoute allowedRoles={challanAccess} />
+                    <ProtectedRoleBasedRoute allowedRoles={challanViewAccess} />
                   }
                 >
-                  <Route path="chalan" element={<ChallanManagement />} />
+                  <Route path="chalan" element={<ChallanList />} />
+                </Route>
+
+                <Route
+                  element={
+                    <ProtectedRoleBasedRoute allowedRoles={challanCreateAccess} />
+                  }
+                >
+                  <Route path="chalan/new" element={<ChallanForm />} />
+                  <Route path="chalan/:id/edit" element={<ChallanForm />} />
+                </Route>
+
+                <Route
+                  element={
+                    <ProtectedRoleBasedRoute allowedRoles={packageStockAccess} />
+                  }
+                >
+                  <Route path="package-stock" element={<PackageStock />} />
                 </Route>
 
                 <Route
@@ -267,10 +285,6 @@ function App() {
                 >
                   <Route path="register" element={<RegistrationForm />} />
                   <Route path="visiting" element={<VisitingForm />} />
-                  <Route
-                    path="bookdistribution"
-                    element={<CounsellorBooks />}
-                  />
                   <Route path="settlement" element={<CounsellorCollection />} />
                 </Route>
 
@@ -345,10 +359,10 @@ function App() {
 
                 <Route
                   element={
-                    <ProtectedRoleBasedRoute allowedRoles={bookEntryAccess} />
+                    <ProtectedRoleBasedRoute allowedRoles={packageStickerAccess} />
                   }
                 >
-                  <Route path="bookentries" element={<AddBookEntry />} />
+                  <Route path="package-stickers" element={<PackageStickers />} />
                 </Route>
               </Route>
             </Route>
