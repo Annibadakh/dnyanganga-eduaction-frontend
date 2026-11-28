@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../../Api";
 import { useAuth } from "../../Context/AuthContext";
 import { useToast } from "../../useToast";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
+import CustomSelect from "../Generic/CustomSelect";
 import { StatusBadge, apiMessage, formatCode } from "./packageUtils";
 
 // Package stock of a counsellor / sub-admin: counts per standard + Med/Grp, pamphlets, and
@@ -18,6 +19,14 @@ const PackageStock = () => {
   const isSubAdmin = user?.role === "sub-admin";
 
   const [people, setPeople] = useState([]);
+  const peopleOptions = useMemo(
+    () =>
+      people.map((u) => ({
+        value: u.uuid,
+        label: `${u.name}${u.role === "sub-admin" ? " (Sub-admin)" : ""}${u.counsellorBranch ? ` - ${u.counsellorBranch}` : ""}`,
+      })),
+    [people],
+  );
   const [userId, setUserId] = useState(isHeadOffice ? "" : user?.uuid || "");
   const [stock, setStock] = useState(null);
   const [list, setList] = useState([]);
@@ -97,23 +106,18 @@ const PackageStock = () => {
 
       {(isHeadOffice || isSubAdmin) && (
         <div className="bg-white p-4 md:p-6 shadow-custom mb-6">
-          <label className="block mb-2 font-medium text-sm">Viewing Stock Of</label>
-          <select
-            value={userId}
-            onChange={(e) => {
-              setUserId(e.target.value);
+          <CustomSelect
+            label="Viewing Stock Of"
+            options={peopleOptions}
+            value={peopleOptions.find((o) => o.value === userId) || null}
+            onChange={(o) => {
+              setUserId(o?.value || (isHeadOffice ? "" : user?.uuid || ""));
               setPage(1);
             }}
-            className={inputClass}
-          >
-            {isHeadOffice && <option value="">Select counsellor / sub-admin</option>}
-            {people.map((u) => (
-              <option key={u.uuid} value={u.uuid}>
-                {u.name}
-                {u.role === "sub-admin" ? " (Sub-admin)" : ""}
-              </option>
-            ))}
-          </select>
+            isClearable={isHeadOffice}
+            isRequired={false}
+            placeholder={isHeadOffice ? "Search counsellor / sub-admin" : "Search your counsellor"}
+          />
         </div>
       )}
 

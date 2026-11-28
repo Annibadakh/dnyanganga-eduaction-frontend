@@ -8,6 +8,7 @@ import { useToast } from "../../useToast";
 import Button from "../Generic/Button";
 import DataTable from "../Generic/DataTable";
 import Pagination from "../Generic/Pagination";
+import CustomSelect from "../Generic/CustomSelect";
 import PdfViewerModal from "../Generic/PdfViewerModal";
 import FileUpload from "../FileUpload/FileUpload";
 import { FileUploadHook } from "../FileUpload/FileUploadHook";
@@ -174,6 +175,11 @@ const ChallanList = () => {
   const [receiptFor, setReceiptFor] = useState(null);
   const [pdf, setPdf] = useState(null); // { url, name }
 
+  const peopleOptions = people.map((u) => ({
+    value: u.uuid,
+    label: `${u.name}${u.role === "sub-admin" ? " (Sub-admin)" : ""}${u.counsellorBranch ? ` - ${u.counsellorBranch}` : ""}`,
+  }));
+
   const setFilter = (name, value) => {
     setFilters((f) => ({ ...f, [name]: value }));
     setPage(1);
@@ -228,7 +234,7 @@ const ChallanList = () => {
     setBusyId(row.id);
     try {
       setPdf({ url: await fetchChallanPdfUrl(row.id), name: `${row.challanNo}.pdf` });
-    } catch (e) {
+    } catch {
       errorToast("Couldn't open the PDF");
     } finally {
       setBusyId(null);
@@ -343,15 +349,14 @@ const ChallanList = () => {
         )}
         {canCreate && (
           <div className={isSubAdmin ? "col-span-2 md:col-span-6" : "col-span-2 md:col-span-6"}>
-            <label className="block mb-1 text-sm font-medium text-gray-700">{isHeadOffice ? "Counsellor / Sub-admin" : "Counsellor"}</label>
-            <select value={filters.userId} onChange={(e) => setFilter("userId", e.target.value)} className={inputClass}>
-              <option value="">All</option>
-              {people.map((u) => (
-                <option key={u.uuid} value={u.uuid}>
-                  {u.name}{u.role === "sub-admin" ? " (Sub-admin)" : ""}
-                </option>
-              ))}
-            </select>
+            <CustomSelect
+              label={isHeadOffice ? "Counsellor / Sub-admin" : "Counsellor"}
+              options={peopleOptions}
+              value={peopleOptions.find((o) => o.value === filters.userId) || null}
+              onChange={(o) => setFilter("userId", o?.value || "")}
+              isRequired={false}
+              placeholder="All (type to search)"
+            />
           </div>
         )}
       </div>
